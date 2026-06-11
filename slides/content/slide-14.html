@@ -1,0 +1,30 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 02 · concurrent.futures</span>
+    <h3>1. Tổng quan module concurrent.futures</h3>
+    <div class="columns">
+        <div class="column">
+            <div class="info-box">
+                <h4>Sự ra đời & Mục đích</h4>
+                <p>Ra mắt từ phiên bản **Python 3.2**, cung cấp một giao diện cấp cao (high-level interface) đồng nhất để lập trình viên thực thi các hàm hoặc lệnh gọi một cách bất đồng bộ dưới nền.</p>
+            </div>
+            <div class="info-box">
+                <h4>Cơ cấu phân cấp lớp</h4>
+                <p>Module được xây dựng quanh lớp trừu tượng base là <code>Executor</code>, chia thành hai lớp con cụ thể tương ứng với hai hạ tầng thực thi khác nhau:</p>
+                <ul style="margin-top: 0.5rem;">
+                    <li><code>ThreadPoolExecutor</code>: Quản lý luồng (Dựa trên module <code>threading</code>).</li>
+                    <li><code>ProcessPoolExecutor</code>: Quản lý tiến trình độc lập (Dựa trên module <code>multiprocessing</code>).</li>
+                </ul>
+            </div>
+        </div>
+        <div class="column">
+            <div class="info-box" style="height: 100%;">
+                <h4>Ưu điểm nổi bật</h4>
+                <ul>
+                    <li><strong>Tự động quản lý (Automated Management):</strong> Tự động quản lý vòng đời worker (khởi tạo, phân chia công việc, tắt worker), loại bỏ gánh nặng tự viết code quản lý luồng/tiến trình thủ công rất dễ lỗi.</li>
+                    <li><strong>Đơn giản hóa (Simplification):</strong> Giao diện API đồng nhất (cùng dùng <code>submit</code>, <code>map</code>, <code>shutdown</code>) giúp chuyển đổi giữa đa luồng và đa tiến trình cực kỳ dễ dàng chỉ bằng cách đổi tên lớp.</li>
+                    <li><strong>Tối ưu đa lõi (Multi-core Optimization):</strong> Khai thác triệt để sức mạnh phần cứng CPU đa lõi cho tác vụ tính toán nặng thông qua Process Pool.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

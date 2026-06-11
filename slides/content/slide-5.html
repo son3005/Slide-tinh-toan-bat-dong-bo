@@ -1,0 +1,30 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 01 · Tổng quan</span>
+    <h3>3. Bản chất & So sánh mô hình thực thi</h3>
+    <div class="info-box" style="margin-bottom: 1rem;">
+        <h4>3.1. Bản chất cốt lõi (Trọng tâm cơ chế Non-blocking)</h4>
+        <p>Luồng chính (main thread) gửi yêu cầu thực thi tác vụ nền và ngay lập tức tiếp tục xử lý công việc khác mà không dừng lại chờ đợi kết quả.</p>
+    </div>
+    <div class="columns">
+        <div class="column comparison-col">
+            <h4 class="comparison-title sync">Song song truyền thống (Sync Parallel)</h4>
+            <div class="comparison-body">
+                <ul>
+                    <li>Luồng chính chia việc cho luồng hoặc tiến trình con chạy song song.</li>
+                    <li><strong class="color-rose">Luồng chính dừng hoạt động hoàn toàn (bị chặn - Blocking)</strong> để chờ các luồng con trả kết quả.</li>
+                    <li>Lãng phí tài nguyên CPU của luồng chính.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="column comparison-col">
+            <h4 class="comparison-title async">Bất đồng bộ có luồng nền (Async with Background Workers)</h4>
+            <div class="comparison-body">
+                <ul>
+                    <li>Luồng chính chia việc cho các luồng hoặc tiến trình con chạy dưới nền.</li>
+                    <li><strong class="color-sky">Luồng chính vẫn chạy tiếp tục độc lập (không bị chặn - Non-blocking)</strong> để xử lý các sự kiện khác.</li>
+                    <li>Xử lý kết quả trả về thông qua cơ chế callback hoặc thông báo sẵn sàng.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

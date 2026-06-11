@@ -1,0 +1,48 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 03 · asyncio</span>
+    <h3>2. Vòng lặp sự kiện (Event Loop)</h3>
+    <div class="columns">
+        <div class="column" style="flex: 0.85;">
+            <div class="info-box">
+                <h4>2.1. Khái niệm lập trình sự kiện</h4>
+                <p style="font-size: 0.8rem; line-height: 1.4; color: var(--text-secondary);">
+                    Là mô hình lập trình mà luồng thực thi của chương trình được quyết định bởi các sự kiện phát sinh từ bên ngoài hoặc bên trong hệ thống (click chuột, mạng, timer).
+                </p>
+            </div>
+            <div class="info-box" style="margin-top: 0.5rem;">
+                <h4>Bộ điều khiển sơ đồ:</h4>
+                <div class="sim-controls" style="padding: 0.4rem; justify-content: center; gap: 0.35rem; display: flex; flex-wrap: wrap; border: none; background: transparent;">
+                    <button class="sim-btn" id="flowStep1Btn">Bước 1: Nguồn phát</button>
+                    <button class="sim-btn" id="flowStep2Btn" disabled>Bước 2: Xếp hàng</button>
+                    <button class="sim-btn" id="flowStep3Btn" disabled>Bước 3: Rút sự kiện</button>
+                    <button class="sim-btn btn-rose" id="flowStep4Btn" disabled>Bước 4: Kích hoạt</button>
+                </div>
+            </div>
+        </div>
+        <div class="column" style="flex: 1.15;">
+            <h4 class="sub-title" style="text-align: center;">Sơ đồ B: Kiến trúc dòng chảy Event Loop</h4>
+            
+            <div class="flow-diag-container" id="flowDiagContainer">
+                <div id="flowEventToken"></div>
+                
+                <div class="flow-diag-node" id="nodeSource">Event Source<br><span style="font-size: 0.65rem; color: var(--text-muted);">Nguồn sự kiện</span></div>
+                <div class="flow-diag-arrow" id="arrowSrcQueue"></div>
+                
+                <div class="flow-diag-node" id="nodeQueue">Event Queue<br><span style="font-size: 0.65rem; color: var(--text-muted);">Hàng đợi</span></div>
+                <div class="flow-diag-arrow" id="arrowQueueLoop"></div>
+                
+                <div class="flow-diag-node" id="nodeLoop">Event Loop<br><span style="font-size: 0.65rem; color: var(--text-muted);">Bộ điều phối</span></div>
+                <div class="flow-diag-arrow" id="arrowLoopHandler"></div>
+                
+                <div class="flow-diag-node" id="nodeHandler">Event Handler<br><span style="font-size: 0.65rem; color: var(--text-muted);">Callback</span></div>
+            </div>
+            
+            <div class="info-box" style="margin-top: 0.5rem; background: #1e293b; border: 1px solid rgba(0,0,0,0.08); padding: 0.6rem;">
+                <strong style="font-size: 0.8rem; color: var(--accent-sky);">Chi tiết dòng chảy:</strong>
+                <p id="flowExplainText" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; line-height: 1.35;">
+                    Nhấp nút "Bước 1: Nguồn phát" ở bộ điều khiển để bắt đầu xem cách sự kiện truyền phát.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

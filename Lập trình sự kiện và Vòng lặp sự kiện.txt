@@ -1,0 +1,71 @@
+﻿1.Khái niệm lập trình sự kiện (event programming) trong tính toán bất đồng bộ. 
+* Lập trình sự kiện là mô hình lập trình trong đó luồng thực thi của chương trình được điều khiển bởi các sự kiện (events) như nhấp chuột, nhấn phím, nhận dữ liệu từ mạng, hết thời gian chờ (timer), hoặc các tín hiệu từ hệ thống.
+* Trong tính toán bất đồng bộ (asynchronous computing), chương trình không phải chờ một tác vụ hoàn thành mới tiếp tục thực hiện công việc khác. Thay vào đó, khi một sự kiện xảy ra, hệ thống sẽ kích hoạt bộ xử lý sự kiện (event handler) tương ứng để xử lý sự kiện đó.
+* Khái niệm xoay quanh Sự kiện (Event) - bản chất là một hành động diễn ra khi người dùng tương tác với một chương trình, điển hình như thao tác gõ phím hoặc click chuột. Toàn bộ quá trình hình thành và giải quyết một sự kiện được vận hành bởi ba thành phần nền tảng: Nguồn sự kiện, Trình xử lý sự kiện và Vòng lặp sự kiện
+
+
+________________
+
+
+2.Các thực thể cốt lõi: Nguồn sự kiện (event source) và Bộ xử lý sự kiện (event handler). 
+Trong một hệ thống tính toán bất đồng bộ, quá trình hình thành và giải quyết một sự kiện không diễn ra ngẫu nhiên mà phụ thuộc vào sự đàm phán, phối hợp giữa hai thực thể (entity) nòng cốt 
+Nguồn sự kiện (Event source): Đây là thực thể đóng vai trò khởi tạo và phát đi các sự kiện vào trong hệ thống.
+Bộ xử lý sự kiện (Event handler / Trình xử lý sự kiện): Đây là thực thể chịu trách nhiệm đàm phán để quản lý và giải quyết sự kiện. Xét về mặt kỹ thuật, bộ xử lý sự kiện chính là một hàm gọi lại (callback). Hàm này được hệ thống tự động gọi lên thực thi ngay sau khi một sự kiện tương ứng xảy ra
+Hàng đợi sự kiện (Event Queue): Là một cấu trúc dữ liệu làm nhiệm vụ lưu trữ và xếp hàng các sự kiện đã xảy ra. Khi các sự kiện được phát đi từ Nguồn sự kiện, chúng không được xử lý ngay lập tức mà sẽ được đưa vào cấu trúc dữ liệu này để xếp hàng chờ đến lượt.
+Vòng lặp sự kiện (Event loop): Là thực thể thứ ba đóng vai trò điều phối toàn bộ hệ thống. Về bản chất, nó là một cấu trúc lập trình hoặc một mẫu thiết kế (design pattern) làm nhiệm vụ chờ và gửi các sự kiện hoặc thông báo trong chương trình. Vòng lặp này hoạt động theo chu kỳ xuyên suốt toàn bộ quá trình thực thi của chương trình với cơ chế như sau: Nó liên tục theo dõi hàng đợi sự kiện (Event Queue); sau đó tiến hành xử lý tuần tự từng sự kiện một bằng cách rút sự kiện ra và gọi đến trình xử lý sự kiện (Event handler) có liên quan, với điều kiện tiên quyết là luồng chính (main thread) của chương trình đang ở trạng thái rảnh rỗi
+Q1: Tại sao khi một sự kiện vừa phát sinh từ Nguồn sự kiện (Event Source), hệ thống không cho Bộ xử lý (Event Handler) giải quyết ngay lập tức mà lại phải đưa nó vào Hàng đợi sự kiện (Event Queue)?
+A: Trong thực tế, nhiều tương tác (sự kiện) có thể được tạo ra gần như cùng một lúc từ Nguồn sự kiện. Nếu hệ thống cố gắng xử lý ngay lập tức mọi sự kiện vừa xuất hiện một cách hỗn loạn, nó sẽ dẫn đến tình trạng quá tải và mất kiểm soát. Hàng đợi sự kiện (Event Queue) được sử dụng như một cấu trúc dữ liệu đệm làm nhiệm vụ lưu trữ và xếp hàng các sự kiện này. Nhờ đó, hệ thống có thể duy trì trật tự và từ từ rút từng sự kiện ra để xử lý tuần tự một cách an toàn.
+
+
+Q2: Vòng lặp sự kiện (Event Loop) dựa vào điều kiện tiên quyết nào để quyết định kích hoạt Bộ xử lý sự kiện (Event handler)? Giải thích ý nghĩa của điều kiện này.
+A: Điều kiện tiên quyết để Vòng lặp sự kiện rút một sự kiện ra khỏi hàng đợi và gọi Bộ xử lý tương ứng là luồng chính (main thread) của chương trình phải đang ở trạng thái rảnh rỗi. Do mô hình bất đồng bộ này vận hành trên một luồng điều khiển chính duy nhất, nếu luồng chính đang bận thực thi một tác vụ khác, Vòng lặp sự kiện bắt buộc phải chờ đợi. Điều này đảm bảo rằng các tác vụ không dẫm đạp lên nhau gây xung đột bộ nhớ và hệ thống luôn duy trì được tính nhất quán
+
+
+Q3: Xét về mặt kỹ thuật, Bộ xử lý sự kiện (Event Handler) thực chất là gì và tại sao lập trình viên lại không trực tiếp gọi nó chạy như các hàm thông thường?
+A: Xét về mặt kỹ thuật, Bộ xử lý sự kiện chính là một hàm gọi lại (callback). Trong mô hình lập trình sự kiện, luồng điều hướng của chương trình không chạy tuần tự từ trên xuống dưới mà phụ thuộc vào các hành động tương tác. Do đó, lập trình viên không thể biết trước khi nào sự kiện sẽ xảy ra để gọi hàm thủ công. Thay vào đó, lập trình viên chỉ viết sẵn mã lệnh (code) quy định hành động cho callback này; còn việc trực tiếp gọi hàm lên để thực thi sẽ do hệ thống (thông qua Vòng lặp sự kiện) tự động thực hiện ngay khi sự kiện tương ứng xuất hiện
+
+
+
+
+
+
+
+
+________________
+
+
+3.Chức năng của Vòng lặp sự kiện (Event loop): Hoạt động theo chu kỳ, theo dõi, đưa vào hàng đợi (queue) và kích hoạt bộ xử lý sự kiện. 
+Vòng lặp sự kiện (Event loop) đóng vai trò là "trái tim" điều phối trong mô hình lập trình bất đồng bộ, là cấu trúc lập trình hoặc mẫu thiết kế chuyên biệt để chờ và gửi các sự kiện hoặc thông báo trong một chương trình. 
+
+
+1. Hoạt động theo chu kỳ
+* Vòng lặp sự kiện không chạy một lần rồi kết thúc mà hoạt động theo chu kỳ liên tục trong suốt toàn bộ quá trình thực thi của chương trình.
+* Nó duy trì sự sống của chương trình bất đồng bộ, đảm bảo hệ thống luôn sẵn sàng phản ứng với các tác động mới.
+2. Theo dõi và thu thập sự kiện
+* Vòng lặp đưa ra các yêu cầu tới các "nhà cung cấp sự kiện" (event providers), có thể là các thực thể bên trong hoặc bên ngoài hệ thống.
+* Nhiệm vụ của nó là phát hiện các hành động tương tác (như gõ phím, click chuột) từ nguồn sự kiện (event source).
+3. Đưa vào hàng đợi (Queueing)
+* Khi các sự kiện xảy ra, chúng không được xử lý ngay lập tức một cách hỗn loạn. Vòng lặp sự kiện sẽ theo dõi và lưu trữ các sự kiện này vào một cấu trúc dữ liệu cụ thể để xếp hàng (queue) chờ xử lý.
+4. Kích hoạt bộ xử lý sự kiện (Event Handler)
+* Điều kiện kích hoạt: Vòng lặp sẽ xử lý từng sự kiện một trong hàng đợi bằng cách gọi trình xử lý sự kiện (event handler) liên quan, nhưng chỉ khi luồng chính (main thread) đang ở trạng thái rảnh.
+* Bản chất xử lý: Trình xử lý sự kiện thực chất là một callback – đoạn mã do lập trình viên viết để thực hiện hành động cụ thể khi sự kiện tương ứng xảy ra.
+
+
+Ví dụ thực tế: Quản lý cửa hàng thức ăn nhanh
+Hãy tưởng tượng vòng lặp sự kiện (Event Loop) chính là Người quản lý điều phối đứng ở quầy, và luồng chính (Main thread) là Đầu bếp duy nhất ở trong bếp.
+Hoạt động theo chu kỳ: Người quản lý không phải chỉ nhìn quầy một lần rồi đi về. Họ đứng đó làm việc liên tục, đảo mắt không ngừng từ lúc mở cửa đến lúc đóng cửa quán.
+Theo dõi và thu thập sự kiện (Event source): Người quản lý liên tục lắng nghe và giám sát các nguồn tạo sự kiện: Khách bước vào bấm máy tự order (sự kiện click), khách gọi điện thoại đặt hàng (sự kiện gõ phím), hoặc chuông báo tin nhắn app giao đồ ăn reo lên.
+Đưa vào hàng đợi (Queue): Vào giờ cao điểm, có 10 khách cùng order một lúc. Khách order xong không thể xông thẳng vào bếp bắt đầu bếp nấu ngay lập tức một cách lộn xộn. Người quản lý sẽ in 10 tờ hóa đơn (bill) và kẹp chúng lên một thanh treo theo đúng thứ tự xếp hàng (đây chính là Hàng đợi sự kiện).
+Kích hoạt bộ xử lý (Event Handler): Người quản lý quan sát vào trong bếp. Chỉ khi nào Đầu bếp (luồng chính) vừa nấu xong món trước đó và đang đứng rảnh tay, Người quản lý mới rút tờ hóa đơn đầu tiên trên thanh treo ra và giao cho đầu bếp thực hiện. Tờ hóa đơn ghi "Chiên khoai tây" chính là đoạn mã Callback do người thiết lập sẵn để đầu bếp biết phải làm hành động gì.
+
+
+Q1: Tại sao Vòng lặp sự kiện (Event loop) lại được ví như "trái tim" của mô hình lập trình bất đồng bộ? Nếu nó không "hoạt động theo chu kỳ" thì điều gì sẽ xảy ra?
+A: Vòng lặp sự kiện được gọi là "trái tim" vì nó là cấu trúc trung tâm chịu trách nhiệm liên tục bơm (điều phối) các sự kiện và thông báo đi khắp hệ thống. Nếu nó không hoạt động theo chu kỳ liên tục mà chỉ chạy một lần rồi kết thúc, chương trình sẽ chạy xong kịch bản có sẵn rồi đóng lại ngay lập tức. Tính chu kỳ giúp duy trì "sự sống" cho chương trình, đảm bảo hệ thống luôn trong trạng thái thức và sẵn sàng phản ứng bất cứ khi nào người dùng có tác động mới.
+
+
+Q2: Vòng lặp sự kiện làm thế nào để thu thập được các sự kiện (như click chuột hay gõ phím)?
+A: Vòng lặp sự kiện không tự sinh ra sự kiện mà nó chủ động đưa ra các yêu cầu giám sát tới các "nhà cung cấp sự kiện" (có thể là các thành phần phần cứng hoặc phần mềm bên trong/bên ngoài hệ thống). Khi người dùng thực hiện một tương tác thực tế, vòng lặp sự kiện sẽ lập tức phát hiện và thu thập hành động này từ nguồn sự kiện (event source).
+
+
+Q3: Trong giờ cao điểm, khi có hàng chục sự kiện click và gõ phím xảy ra gần như cùng lúc, Vòng lặp sự kiện làm thế nào để không bị "bối rối" và xử lý lộn xộn?
+A: Khi sự kiện xảy ra, Vòng lặp sự kiện tuyệt đối không kích hoạt xử lý ngay lập tức. Thay vào đó, nó thực hiện chức năng Đưa vào hàng đợi (Queueing). Nó sẽ giám sát các sự kiện vừa phát sinh và đóng gói, lưu trữ chúng vào một cấu trúc dữ liệu cụ thể (hàng đợi) một cách có trật tự. Nhờ hàng đợi này, hệ thống giữ được sự ổn định và giải quyết công việc theo thứ tự.

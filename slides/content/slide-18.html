@@ -1,0 +1,70 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 02 · concurrent.futures</span>
+    <h3>4. Pooling & Cơ chế Tái sử dụng Worker</h3>
+    <div class="columns">
+        <div class="column" style="flex: 0.95;">
+            <div class="info-box">
+                <h4>Định nghĩa Pooling</h4>
+                <p>Là cơ chế quản lý phần mềm duy trì sẵn một nhóm số lượng worker (luồng hoặc tiến trình con) ngầm ở trạng thái rảnh rỗi (idle) để phân bổ thực thi các tác vụ đồng thời.</p>
+            </div>
+            <div class="info-box" style="margin-top: 0.5rem;">
+                <h4>Mục đích cốt lõi</h4>
+                <ul style="padding-left: 1rem; font-size: 0.85rem;">
+                    <li>Tăng hiệu suất hệ thống đáng kể bằng cách quản lý worker tập trung.</li>
+                    <li>Loại bỏ hoàn toàn độ trễ (latency) và chi phí hệ điều hành (overhead) do việc liên tục khởi tạo mới và giải phóng luồng/tiến trình cho mỗi tác vụ ngắn.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="column" style="flex: 1.05;">
+            <div class="info-box" style="height: 100%; display: flex; flex-direction: column;">
+                <h4>Cơ chế Tái sử dụng (Worker Reuse)</h4>
+                <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    Một worker sau khi hoàn thành nhiệm vụ **không bị tiêu hủy**. Nó tự động dọn dẹp trạng thái và quay về Pool ở chế độ **Idle** để chờ nhận công việc tiếp theo từ hàng đợi.
+                </p>
+                
+                <!-- Animated Pool Dispatcher -->
+                <div class="sim-container" style="min-height: 250px; flex-direction: column; gap: 0.5rem; padding: 0.75rem; flex: 1; justify-content: space-between;">
+                    <div class="sim-controls" style="margin-bottom: 0.25rem; justify-content: center; padding: 0.35rem; gap: 0.5rem;">
+                        <button class="sim-btn btn-rose" id="poolDispStartBtn">Chạy mô phỏng</button>
+                        <button class="sim-btn" id="poolDispAddBtn">Thêm Task</button>
+                        <button class="sim-btn btn-sec" id="poolDispResetBtn">Reset</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem; flex: 1; align-items: stretch; min-height: 0;">
+                        <!-- Task Queue -->
+                        <div style="flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); padding: 0.4rem; border-radius: 8px; border: 1px dashed var(--card-border); align-items: center; min-height: 0;">
+                            <span class="label" style="font-size: 0.65rem; margin-bottom: 0.25rem;">Queue</span>
+                            <div id="poolDispQueue" style="display: flex; flex-direction: column; gap: 0.25rem; width: 100%; justify-content: flex-start; flex: 1; overflow-y: hidden;">
+                                <!-- Task bubbles will be injected -->
+                            </div>
+                        </div>
+
+                        <!-- Pool Manager & Workers -->
+                        <div style="flex: 2; display: flex; flex-direction: column; gap: 0.35rem; justify-content: space-between;">
+                            <!-- Central Manager -->
+                            <div id="poolDispManager" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 0.3rem 0.5rem; border-radius: 6px; text-align: center; font-size: 0.75rem; font-weight: bold; color: var(--accent-sky);">
+                                ⚙️ Manager
+                            </div>
+
+                            <!-- Workers -->
+                            <div id="poolDispWorkers" style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1; justify-content: center;">
+                                <div class="worker-disp-node" id="poolDispW0">
+                                    <span class="w-disp-name">Worker 0</span>
+                                    <span class="w-disp-status idle">Idle</span>
+                                </div>
+                                <div class="worker-disp-node" id="poolDispW1">
+                                    <span class="w-disp-name">Worker 1</span>
+                                    <span class="w-disp-status idle">Idle</span>
+                                </div>
+                                <div class="worker-disp-node" id="poolDispW2">
+                                    <span class="w-disp-name">Worker 2</span>
+                                    <span class="w-disp-status idle">Idle</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

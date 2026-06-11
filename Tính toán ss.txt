@@ -1,0 +1,325 @@
+﻿1. ĐỊNH NGHĨA COROUTINE
+1.1 Coroutine là gì?
+Coroutine là sự mở rộng của khái niệm subroutine (chương trình con/hàm thông thường).
+Khác với subroutine truyền thống chỉ thực thi tuần tự từ đầu đến cuối rồi kết thúc bằng lệnh return, coroutine có khả năng:
+* Tạm dừng quá trình thực thi.
+* Ghi nhớ trạng thái hiện tại.
+* Tiếp tục chạy lại từ đúng vị trí đã dừng.
+* Hỗ trợ xử lý bất đồng bộ.
+* Điều phối nhiều tác vụ trên cùng một luồng.
+Trong Python Asyncio, coroutine thường được dùng để xử lý:
+* Đọc/ghi file.
+* Truy cập mạng.
+* Truy vấn cơ sở dữ liệu.
+* Gọi API.
+* Streaming dữ liệu.
+* Chat realtime.
+Coroutine có thể tạm dừng trong khi chờ I/O và tiếp tục khi tác vụ bên ngoài hoàn tất.
+
+
+1.2 So sánh Subroutine và Coroutine
+Subroutine hoạt động theo mô hình LIFO (Last In, First Out) trên Call Stack.
+Khi được gọi, subroutine thực thi từ đầu đến cuối và chỉ trả quyền điều khiển (return) khi đã hoàn thành tác vụ.
+Ngược lại, Coroutine là sự tổng quát hóa của khái niệm subroutine. Nó cho phép chia nhỏ quá trình tính toán:
+* Coroutine có thể bị treo trong quá trình thực thi
+* Chờ xử lý bên ngoài (I/O)
+* Sau đó quay trở lại đúng vị trí đã dừng để tiếp tục thực hiện
+
+
+
+
+Subroutine 
+	Coroutine 
+	Chạy từ đầu đến cuối 
+	Có thể tạm dừng 
+	Chỉ có 1 điểm vào và 1 điểm thoát 
+	
+
+
+
+	
+
+Có nhiều điểm vào
+	
+
+	Không lưu trạng thái sau khi return 
+	Ghi nhớ trạng thái khi suspend 
+	Thực hiện tuần tự 
+	Hỗ trợ bất đồng bộ 
+	Trả quyền điều khiển bằng return 
+	Chuyển điều khiển bằng yield/await 
+	Block trong khi chờ I/O 
+	Không block khi chờ I/O 
+	
+
+1.3 Ví dụ thực tế
+Ví dụ ứng dụng chat:
+Một ứng dụng cần:
+1. Nhận tin nhắn.
+2. Tải hình ảnh.
+3. Hiển thị thông báo.
+4. Gửi phản hồi.
+Nếu dùng hàm thông thường:
+* chương trình phải chờ tải hình ảnh xong mới xử lý việc khác.
+Nếu dùng coroutine:
+* khi đang chờ tải ảnh, CPU có thể xử lý tin nhắn khác.
+Ví dụ:
+  
+
+Trong thời gian chờ await asyncio.sleep(2):
+* Event Loop có thể xử lý coroutine khác.
+
+
+2. ĐẶC ĐIỂM HOẠT ĐỘNG CỦA COROUTINE
+2.1 Multiple Entry Points (Nhiều điểm truy cập)
+Hàm thông thường chỉ bắt đầu tại một vị trí duy nhất.
+Coroutine có thể:
+* Tạm dừng ở nhiều vị trí.
+* Resume đúng vị trí đã dừng.
+* Không cần chạy lại từ đầu.
+Điều này xảy ra nhờ Python lưu:
+* Instruction Pointer.
+* Local Variables.
+* Stack Frame.
+* Execution Context.
+  
+
+Mỗi yield là một điểm tạm dừng. 
+Coroutine tạm dừng bằng cơ chế nào?
+Coroutine tạm dừng thông qua:
+* yield
+* await
+Khi gặp các lệnh này:
+* trạng thái hiện tại được lưu lại,
+* coroutine suspend,
+* CPU chuyển sang task khác.
+Coroutine resume bằng gì?
+Coroutine được kích hoạt lại bằng:
+* next()
+* send()
+* Event Loop của Asyncio
+
+
+Ví dụ Resume bằng next()
+  
+
+Coroutine không chạy lại từ đầu mà tiếp tục từ vị trí đã dừng 
+
+
+Resume bằng send() 
+  
+
+send():
+* vừa resume coroutine,
+* vừa truyền dữ liệu mới vào coroutine.
+
+
+Resume bằng Event Loop 
+  
+
+Khi coroutine gặp await:
+1. Coroutine tự tạm dừng.
+2. Event Loop ghi nhận task đang chờ I/O.
+3. CPU chuyển sang task khác.
+4. Khi I/O hoàn tất → Event Loop resume coroutine.
+
+
+2.2 Yielding a Value (Chuyển giao giá trị)
+Yielding a Value không chỉ là “trả dữ liệu”.
+Về bản chất:
+* Coroutine vừa gửi dữ liệu ra ngoài.
+* Vừa chuyển quyền điều khiển.
+* Sau đó có thể tiếp tục nhận input mới.
+Coroutine KHÔNG kết thúc sau yield. Nó chỉ suspend.
+VÍ DỤ
+  
+
+  
+
+
+
+Coroutine lưu gì khi suspend?
+Khi coroutine tạm dừng tại yield, Python lưu:
+* Instruction Pointer.
+* Local Variables.
+* Stack Frame.
+* Execution Context.
+* Trạng thái coroutine.
+Nhờ vậy coroutine có thể resume đúng vị trí cũ.
+3. TRIỂN KHAI CƠ BẢN CỦA COROUTINE
+3.1 yield
+Trong Coroutine, yield không chỉ dùng để sinh dữ liệu như Generator.
+yield giúp coroutine:
+* Tạm dừng.
+* Chuyển quyền điều khiển.
+* Gửi dữ liệu ra ngoài.
+* Chờ input mới.
+* Resume từ vị trí cũ.
+Trong Generator:
+* yield thiên về produce dữ liệu.
+Trong Coroutine:
+* yield thiên về consume dữ liệu.
+Ví dụ Coroutine Consumer
+  
+
+Coroutine:
+* nhận dữ liệu mới liên tục,
+* xử lý dữ liệu,
+* không cần tạo lại coroutine.
+3.2 yield from
+yield from không chỉ chuyển tiếp dữ liệu.
+Về bản chất:
+* coroutine cha chuyển quyền thực thi cho coroutine con,
+* coroutine con xử lý trực tiếp,
+* khi coroutine con kết thúc thì quyền điều khiển quay lại coroutine cha.
+Đây là cơ chế delegation (ủy quyền thực thi).
+Ví dụ
+  
+
+
+
+Giải thích
+Dòng:
+yield from child()
+nghĩa là:
+* parent() nhường quyền thực thi cho child().
+* mọi next() được chuyển trực tiếp vào child().
+* khi child() kết thúc → quyền điều khiển quay lại parent().
+
+
+
+
+
+
+3.3 next()
+next() giúp:
+* khởi động coroutine,
+* hoặc resume tới yield kế tiếp.
+Ví dụ
+  
+
+
+
+3.4 send()
+send():
+* resume coroutine,
+* đồng thời truyền dữ liệu vào coroutine.
+VÍ DỤ
+  
+
+
+
+4. ỨNG DỤNG THỰC TẾ CỦA COROUTINE
+4.1 Chaining
+Chaining là mô hình nhiều coroutine xử lý dữ liệu tuần tự theo dây chuyền.
+Ví dụ xử lý điểm sinh viên:
+Input → Tính trung bình → Xếp loại
+Ứng dụng:
+* Hệ thống quản lý sinh viên.
+* Tính lương.
+* ETL Pipeline.
+
+
+4.2 Pipeline
+Pipeline là mô hình dữ liệu đi qua nhiều bước xử lý.
+Input → Process → Transform → Output
+Mỗi bước là một coroutine riêng.
+Ví dụ ETL Pipeline
+Database → Clean Data → Normalize → Save Warehouse
+Extract
+* lấy dữ liệu từ Database/API.
+Transform
+* làm sạch và chuẩn hóa dữ liệu.
+Load
+* lưu vào Data Warehouse.
+Ví dụ Streaming Video
+Receive Video → Decode → Buffer → Display
+Coroutine phù hợp với Streaming vì:
+* xử lý dữ liệu liên tục,
+* không block khi chờ I/O,
+* dễ tạo pipeline realtime.
+Ưu điểm của Pipeline
+* Modular.
+* Dễ tái sử dụng.
+* Dễ mở rộng.
+* Xử lý streaming hiệu quả.
+* Không block hệ thống.
+
+
+4.3 Multiple Input
+Coroutine có thể nhận dữ liệu từ nhiều nguồn khác nhau.
+Ví dụ:
+* nhiều sensor,
+* nhiều user request,
+* nhiều websocket,
+* nhiều API.
+Cơ chế nhận nhiều input
+* send()
+* Queue
+* Event Loop
+* Async Generator
+Ví dụ
+  
+
+
+
+4.4 Fan-in
+Fan-in là mô hình:
+Nhiều Input → Một Processor
+Ví dụ:
+Sensor A \
+Sensor B → Processor
+Sensor C /
+Ứng dụng:
+* IoT.
+* Chat Server.
+* Realtime Monitoring.
+Ưu điểm
+* Tập trung xử lý logic.
+* Đồng bộ dữ liệu.
+* Tiết kiệm tài nguyên.
+Nhược điểm
+* Dễ tạo bottleneck.
+* Một coroutine có thể quá tải.
+* Khó scale.
+
+
+4.5 Fan-out
+Fan-out là mô hình:
+Một Input → Nhiều Output
+Ví dụ:
+Producer         → Save Video
+→ AI Detection
+→ Send Alert
+Một camera an ninh có thể:
+* lưu video,
+* nhận diện khuôn mặt,
+* gửi cảnh báo,
+* tất cả cùng nhận dữ liệu từ một nguồn.
+
+
+Ví dụ Code
+  
+
+Ưu điểm
+* Một nguồn phục vụ nhiều tác vụ.
+* Tăng concurrency.
+* Hỗ trợ realtime system.
+Nhược điểm
+* Tốn tài nguyên hơn.
+* Đồng bộ phức tạp.
+* Có thể phát sinh race condition.
+
+
+
+
+5. VAI TRÒ CỦA COROUTINE TRONG ASYNCIO
+Asyncio sử dụng coroutine để xử lý đồng thời trên một luồng đơn.
+Ví dụ
+  
+
+Giải thích
+* Hai coroutine chạy đồng thời.
+* Khi task1 chờ I/O → task2 được xử lý.
+* CPU tận dụng tốt thời gian chờ.
+* Chương trình không bị block.

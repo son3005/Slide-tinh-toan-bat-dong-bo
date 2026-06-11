@@ -1,0 +1,334 @@
+﻿Thẻ 1
+Phần chi tiết để hiểu vấn đề và vấn đáp
+1. Định nghĩa tính toán bất đồng bộ (Asynchronous Computing)
+Tính toán bất đồng bộ (Asynchronous computing), hay còn được gọi là lập trình không chặn (non-blocking), là một mô hình thực thi đồng thời mà trong đó nhiều tác vụ được thực hiện đan xen nhau trên cùng một trục thời gian mà không chặn lẫn nhau, có thể được vận hành dựa trên kiến trúc điều khiển bằng sự kiện (event-driven) thông qua một luồng kiểm soát duy nhất (single-threaded) hoặc một tập hợp nhiều luồng (multi-threaded). 
+2. Khái niệm lập trình không chặn (Non-blocking Programming)
+Khái niệm lập trình không chặn (non-blocking programming) được hiểu như sau:
+* Định nghĩa: Lập trình không chặn (Non-blocking Programming) là phương pháp lập trình cho phép chương trình tiếp tục thực hiện các tác vụ khác trong khi chờ một tác vụ nào đó hoàn thành, thay vì phải dừng toàn bộ quá trình xử lý để đợi kết quả. Trong mô hình này, các thao tác như đọc/ghi dữ liệu, truy cập cơ sở dữ liệu, gọi API hoặc xử lý mạng thường được thực hiện theo cơ chế bất đồng bộ (asynchronous), giúp tận dụng tối đa tài nguyên hệ thống và giảm thời gian chờ của CPU. Nhờ đó, chương trình có thể xử lý nhiều yêu cầu đồng thời, tăng hiệu năng và cải thiện khả năng phản hồi của ứng dụng. Lập trình không chặn thường được sử dụng trong các hệ thống web, ứng dụng thời gian thực, máy chủ mạng và các chương trình cần xử lý nhiều tác vụ cùng lúc mà không làm treo luồng thực thi chính. 
+* Trong lập trình không chặn, chương trình hoạt động dựa trên cơ chế các tác vụ có thể tạm dừng và chuyển quyền thực thi cho tác vụ khác thay vì phải chờ hoàn thành toàn bộ. Trong Python, cơ chế này thường được triển khai thông qua coroutine trong thư viện asyncio. Các coroutine có thể tạm ngưng khi gặp những thao tác mất thời gian như đọc ghi dữ liệu hoặc xử lý mạng, sau đó tiếp tục chạy lại khi công việc đó hoàn tất. Nhờ vậy, nhiều tác vụ có thể được xử lý xen kẽ trên cùng một luồng thực thi, giúp chương trình tận dụng thời gian chờ để thực hiện các công việc khác và nâng cao hiệu suất hoạt động. 
+3. Mô hình thực thi bất đồng bộ: Sự đan xen các bước nhỏ của nhiều tác vụ (tasks) trên một luồng kiểm soát duy nhất
+3.1 Đơn luồng
+Mô hình thực thi bất đồng bộ với sự đan xen các bước nhỏ của nhiều tác vụ trên một luồng kiểm soát duy nhất là một khía cạnh cốt lõi của xử lý tác vụ đồng thời (concurrency) trong môi trường đơn luồng. Tuy nhiên, trong môi trường đa luồng hoặc đa tiến trình, lập trình bất đồng bộ còn có thể kết hợp với nhiều luồng thực thi khác nhau để tăng khả năng xử lý song song. Khi đó, mỗi luồng có thể đảm nhiệm một hoặc nhiều coroutine riêng biệt, cho phép hệ thống vừa tận dụng cơ chế chuyển đổi linh hoạt giữa các tác vụ đang chờ I/O, vừa khai thác hiệu quả tài nguyên của nhiều nhân CPU. Nhờ sự kết hợp này, chương trình có thể xử lý đồng thời số lượng lớn yêu cầu, giảm thời gian chờ và nâng cao hiệu suất tổng thể của hệ thống. Dưới đây là các đặc điểm chi tiết của mô hình này:
+* Thực thi xen kẽ: Trong một khoảng thời gian nhất định, các tác vụ không chạy song song thực sự mà thực hiện xen kẽ nhau. Tại một thời điểm cụ thể, chỉ có một tác vụ nhỏ được thực thi trên luồng điều khiển, trong khi các tác vụ khác tạm dừng.
+* Khả năng tạm dừng và tiếp tục: Điểm mấu chốt của mô hình này là việc thực thi của một tác vụ có thể bị tạm dừng (treo) để nhường quyền điều khiển cho tác vụ khác, và sau đó có thể tiếp tục lại chính xác từ điểm đã dừng.
+* Sử dụng luồng đơn (Single Thread): Mô hình này sử dụng duy nhất một luồng điều khiển chính, ngay cả khi chạy trên hệ thống đa bộ xử lý (multiprocessor systems). Điều này giúp tránh được sự phức tạp của việc quản lý đa luồng truyền thống.
+* Coroutine đóng vai trò cho phép các tác vụ trong lập trình bất đồng bộ được thực thi linh hoạt mà không chặn lẫn nhau. Mỗi coroutine là một chương trình con có thể tạm dừng khi gặp các thao tác cần chờ như I/O, truy cập cơ sở dữ liệu hoặc gửi yêu cầu mạng, sau đó nhường quyền điều khiển cho event loop để thực thi coroutine khác. Khi tác vụ chờ hoàn tất, coroutine sẽ tiếp tục chạy tại đúng vị trí đã dừng. Cơ chế này giúp nhiều coroutine hoạt động xen kẽ trên cùng một luồng thực thi, tận dụng hiệu quả thời gian xử lý của CPU và nâng cao hiệu năng của ứng dụng. 
+* Cơ chế “yielding” trong coroutine là quá trình một coroutine tạm dừng thực thi và chuyển quyền điều khiển cho coroutine khác hoặc cho event loop. Khi gặp các tác vụ cần chờ như I/O hoặc truy cập mạng, coroutine sẽ “yield” để tránh làm chặn chương trình. Trạng thái hiện tại của coroutine được lưu lại và sẽ tiếp tục chạy đúng tại vị trí đã dừng khi tác vụ hoàn tất. Nhờ cơ chế này, nhiều coroutine có thể hoạt động xen kẽ trên cùng một luồng, giúp chương trình xử lý đồng thời hiệu quả hơn. 
+* Lợi ích không chặn (Non-blocking): Nhờ việc đan xen này, chương trình có thể thực hiện nhiều tác vụ bất đồng bộ đồng thời mà không bị chặn bởi các hoạt động chờ đợi (như I/O), giúp tối ưu hóa hiệu suất và hoàn thành công việc trong thời gian ngắn hơn.
+  
+
+3.2 Đa luồng
+Trong môi trường đa luồng, mô hình bất đồng bộ không chỉ dừng lại ở việc xen kẽ các tác vụ trên một luồng, mà còn được mở rộng bằng cách phân phối các coroutine hoặc tác vụ bất đồng bộ lên nhiều luồng khác nhau. Điều này giúp hệ thống vừa giữ được tính linh hoạt của bất đồng bộ, vừa tận dụng được khả năng xử lý song song của CPU đa nhân.
+Các đặc điểm chính:
+* Kết hợp giữa concurrency và parallelism: Trong khi bất đồng bộ trên luồng đơn chỉ đạt được concurrency (đồng thời logic), thì khi kết hợp đa luồng, hệ thống có thể đạt thêm parallelism (song song thực sự). Nhiều tác vụ có thể chạy đồng thời trên các lõi CPU khác nhau.
+* Phân phối coroutine trên nhiều luồng: Mỗi luồng có thể chứa một event loop riêng hoặc chia sẻ công việc thông qua thread pool. Các coroutine được phân bổ hợp lý giúp giảm tải cho một luồng duy nhất và tăng khả năng mở rộng của hệ thống.
+* Sử dụng Thread Pool: Các tác vụ nặng (CPU-bound) hoặc blocking (ví dụ: đọc file lớn, xử lý ảnh) thường được chuyển sang thread pool để tránh làm tắc nghẽn event loop chính. Điều này đảm bảo rằng các tác vụ I/O bất đồng bộ vẫn hoạt động mượt mà.
+* Cơ chế giao tiếp giữa các luồng:
+Khi nhiều luồng cùng xử lý bất đồng bộ, cần có cơ chế đồng bộ hóa như:
+   * Mutex (khóa)
+   * Semaphore
+   * Message Queue
+Tuy nhiên, so với lập trình đa luồng truyền thống, việc sử dụng bất đồng bộ giúp giảm đáng kể việc chia sẻ trạng thái, từ đó hạn chế lỗi race condition.
+      * Tách biệt I/O-bound và CPU-bound:
+      * I/O-bound: xử lý bằng async/await (coroutine, event loop)
+      * CPU-bound: xử lý bằng đa luồng hoặc đa tiến trình
+→ Đây là mô hình phổ biến trong các hệ thống hiện đại như web server.
+         * Tăng khả năng mở rộng (Scalability):
+Khi số lượng request tăng cao, hệ thống có thể:
+            * Dùng bất đồng bộ để xử lý nhiều kết nối cùng lúc
+            * Dùng đa luồng để xử lý song song các tác vụ nặng
+→ Giúp hệ thống phục vụ hàng nghìn đến hàng triệu request hiệu quả.
+4. Phân tích trạng thái sử dụng CPU (Bận/Nhàn rỗi - Busy/Idle) khi thực thi nhiều tác vụ tính toán kết hợp xử lý I/O.
+4.1. Trạng thái CPU trong xử lý tuần tự (Sequential Processing)
+Trong mô hình này, các tác vụ được thực hiện lần lượt theo thứ tự.
+               * Trạng thái Bận (Busy): CPU chỉ thực sự bận khi đang xử lý các lệnh tính toán của tác vụ hiện tại (ví dụ: render tài liệu).
+               * Trạng thái Nhàn rỗi (Idle): Khi tác vụ gặp các thao tác I/O (ví dụ: tải tài liệu từ mạng hoặc đọc ghi ổ đĩa), CPU phải dừng lại để chờ đợi dữ liệu hoàn tất. Trong khoảng thời gian này, CPU rơi vào trạng thái nhàn rỗi một cách lãng phí, vì nó không được phép chuyển sang thực hiện bất kỳ tác vụ nào khác cho đến khi tác vụ hiện tại xong xuôi.
+4.2. Tối ưu hóa trạng thái CPU trong xử lý đồng thời (Concurrency)
+Xử lý đồng thời giải quyết vấn đề lãng phí bằng cách chia nhỏ các tác vụ và sắp xếp chúng xen kẽ nhau.
+               * Tận dụng thời gian rảnh: CPU core sẽ tận dụng thời gian nhàn rỗi của một tác vụ (đang chờ I/O) để chuyển sang thực hiện các bước tính toán nhỏ của tác vụ khác.
+               * Duy trì trạng thái Bận: Nhờ việc đan xen này, CPU duy trì được trạng thái bận liên tục hơn, giảm thiểu tổng thời gian hệ thống ở trạng thái nhàn rỗi.
+4.3. Cơ chế Bất đồng bộ (Asynchronous) và Lập trình không chặn
+Đây là mô hình nâng cao giúp quản lý trạng thái CPU cực kỳ hiệu quả thông qua Coroutine và Event Loop:
+               * Treo tác vụ khi chờ I/O: Khi một coroutine thực hiện một thủ tục I/O, nó sẽ chủ động tạm dừng (bị treo) thay vì chiếm giữ luồng và bắt CPU phải đợi.
+               * Chuyển giao quyền điều khiển (Yielding): Tại thời điểm tác vụ đó đang chờ I/O, nó thực hiện hành động "yielding a value" — tức là chuyển luồng điều khiển lại cho hệ thống (Event Loop) để CPU có thể xử lý tác vụ khác ngay lập tức.
+               * Kết quả: CPU được giữ ở trạng thái bận để giải quyết nhiều yêu cầu đồng thời trên một luồng duy nhất. Điều này giúp hệ thống hoàn thành toàn bộ khối lượng công việc trong khoảng thời gian ngắn hơn so với việc thực hiện tuần tự.
+Tóm tắt so sánh
+Đặc điểm
+	Xử lý Tuần tự
+	Xử lý Bất đồng bộ / Không chặn
+	Khi gặp I/O
+	CPU nhàn rỗi (Idle) để chờ đợi.
+	Tác vụ tạm dừng, CPU chuyển sang việc khác.
+	Hiệu suất CPU
+	Thấp, bị lãng phí do các khoản chờ.
+	Cao, tận dụng tối đa thời gian thực thi.
+	Thứ tự hoàn thành
+	Đúng thứ tự nộp vào.
+	Không theo thứ tự (tác vụ nào xong trước trả về trước).
+	Nhờ việc đan xen các bước nhỏ của nhiều tác vụ trên một luồng kiểm soát duy nhất, mô hình bất đồng bộ đảm bảo rằng CPU luôn có việc để làm thay vì phải "đứng yên" chờ đợi các tín hiệu chậm chạp từ thiết bị ngoại vi hoặc mạng.
+4.4. Bất đồng bộ kết hợp đa luồng (Asynchronous Multithreading)
+Trong mô hình bất đồng bộ kết hợp đa luồng (Asynchronous Multithreading), các thành phần của hệ thống được liên kết với nhau thông qua sự phối hợp chặt chẽ giữa luồng thực thi (thread), event loop và coroutine. Mỗi luồng đóng vai trò như một đơn vị thực thi độc lập và thường được gán với một event loop riêng. Event loop trong mỗi luồng có nhiệm vụ quản lý và điều phối việc thực thi các coroutine, tức là các tác vụ bất đồng bộ.
+Khi một coroutine được khởi tạo, nó sẽ được đưa vào hàng đợi của event loop để chờ được cấp quyền sử dụng CPU. Event loop sẽ lần lượt kích hoạt các coroutine này thực thi. Trong quá trình chạy, nếu một coroutine gặp phải các thao tác I/O như truy cập cơ sở dữ liệu, gửi yêu cầu mạng hoặc đọc ghi file, nó sẽ không tiếp tục chiếm CPU mà tạm thời dừng lại thông qua cơ chế “yielding”. Lúc này, coroutine nhường quyền điều khiển lại cho event loop, cho phép event loop chuyển sang kích hoạt một coroutine khác đang sẵn sàng thực thi. Cơ chế này giúp đảm bảo rằng trong cùng một luồng, CPU luôn được sử dụng liên tục mà không bị rơi vào trạng thái chờ đợi thụ động.
+Song song với đó, trong mô hình đa luồng, nhiều luồng khác nhau có thể hoạt động đồng thời trên các nhân CPU riêng biệt. Mỗi luồng vẫn duy trì cơ chế bất đồng bộ nội tại thông qua event loop và coroutine của riêng mình. Nhờ vậy, hệ thống không chỉ đạt được sự xen kẽ hiệu quả giữa các tác vụ trong từng luồng mà còn tận dụng được khả năng xử lý song song thực sự giữa các luồng trên phần cứng đa lõi.
+Sự liên kết giữa các thành phần có thể được hiểu theo chuỗi: coroutine là đơn vị công việc, được quản lý bởi event loop, và event loop lại được vận hành bên trong từng luồng. Các luồng này chạy song song trên các nhân CPU, trong khi các coroutine bên trong mỗi luồng được thực thi xen kẽ thông qua cơ chế yielding. Khi các thao tác I/O hoàn tất, hệ thống sẽ đưa coroutine tương ứng quay trở lại hàng đợi của event loop để tiếp tục thực thi từ đúng vị trí đã tạm dừng trước đó.
+Nhờ cơ chế phối hợp này, hệ thống vừa loại bỏ được thời gian CPU nhàn rỗi do chờ I/O, vừa duy trì trạng thái bận trên nhiều luồng cùng lúc. Điều này giúp tăng đáng kể thông lượng xử lý, cải thiện hiệu năng tổng thể và cho phép hệ thống đáp ứng hiệu quả số lượng lớn yêu cầu đồng thời, đặc biệt trong các ứng dụng như máy chủ web, hệ thống mạng hoặc các hệ thống thời gian thực.
+5. Sự khác biệt giữa mô hình bất đồng bộ so với các mô hình lập trình đồng bộ tuần tự và song song truyền thống
+Sự khác biệt giữa mô hình bất đồng bộ với các mô hình lập trình truyền thống được thể hiện qua cách quản lý luồng điều khiển, cơ chế xử lý tác vụ và khả năng tận dụng tài nguyên phần cứng.
+Đặc điểm
+	Xử lý tuần tự (Sequential)
+	Xử lý song song (Parallel)
+	Bất đồng bộ đơn luồng (Asynchronous Single-thread)
+	Bất đồng bộ đa luồng (Asynchronous Multithreading)
+	Cách thực thi
+	Các tác vụ thực hiện lần lượt theo thứ tự
+	Nhiều tác vụ chạy cùng lúc trên nhiều nhân CPU
+	Các tác vụ thực hiện xen kẽ trên một luồng duy nhất
+	Kết hợp coroutine và nhiều luồng thực thi
+	Khi gặp I/O
+	Chương trình bị chặn, CPU phải chờ
+	Một luồng có thể chờ, luồng khác vẫn chạy
+	Coroutine tạm dừng và nhường quyền điều khiển
+	Coroutine tạm dừng, các luồng khác vẫn tiếp tục xử lý
+	Khả năng tận dụng CPU
+	Thấp do thời gian chờ lớn
+	Cao nếu có nhiều nhân CPU
+	Cao nhờ giảm thời gian CPU nhàn rỗi
+	Rất cao nhờ vừa không chặn vừa khai thác đa lõi
+	Yêu cầu phần cứng
+	Không yêu cầu đa lõi
+	Cần CPU đa nhân
+	Có thể chạy hiệu quả trên một luồng
+	Hoạt động tốt trên hệ thống đa lõi
+	Bản chất hoạt động
+	Đồng bộ và chặn (blocking)
+	Song song thực sự
+	Không chặn (non-blocking), xen kẽ tác vụ
+	Không chặn kết hợp xử lý song song
+	Thứ tự hoàn thành
+	Theo đúng thứ tự nộp vào
+	Không cố định
+	Không cố định
+	Không cố định
+	Thành phần điều phối
+	Không có cơ chế đặc biệt
+	Bộ lập lịch luồng/hệ điều hành
+	Event Loop và Coroutine
+	Event Loop, Coroutine và Thread Pool
+	Hiệu quả với tác vụ I/O
+	Kém
+	Tốt
+	Rất tốt
+	Rất tốt
+	Hiệu quả với tác vụ tính toán lớn
+	Thấp
+	Rất tốt
+	Hạn chế trên một luồng
+	Tốt nhờ đa luồng và đa lõi
+	
+
+
+
+        
+
+
+
+
+        
+
+
+
+
+        
+
+
+
+
+
+
+
+
+Thẻ 2
+Phần tóm tắt để đưa vào slide thuyết trình
+1. Định nghĩa tính toán bất đồng bộ (Asynchronous Computing)
+        Tính toán bất đồng bộ (Asynchronous computing), hay còn được gọi là lập trình không chặn (non-blocking), là một mô hình thực thi đồng thời mà trong đó nhiều tác vụ được thực hiện đan xen nhau trên cùng một trục thời gian mà không chặn lẫn nhau, có thể được vận hành dựa trên kiến trúc điều khiển bằng sự kiện (event-driven) thông qua một luồng kiểm soát duy nhất (single-threaded) hoặc một tập hợp nhiều luồng (multi-threaded). 
+2. Khái niệm lập trình không chặn (Non-blocking Programming)
+Khái niệm:
+               * Lập trình không chặn cho phép chương trình tiếp tục thực thi tác vụ khác khi đang chờ I/O (file, database, network…)
+Đặc điểm chính:
+               * Không dừng toàn bộ chương trình khi gặp thao tác chờ
+               * Các tác vụ được xử lý xen kẽ (interleaving)
+               * Thường chạy trên một luồng nhưng vẫn xử lý nhiều việc
+Cơ chế hoạt động:
+               * Dựa trên mô hình bất đồng bộ (asynchronous)
+               * Tác vụ có thể tạm dừng (pause) khi chờ dữ liệu
+               * Sau khi có kết quả → tiếp tục thực thi (resume)
+Lợi ích:
+               * Tận dụng CPU hiệu quả hơn
+               * Tăng khả năng xử lý đồng thời (concurrency)
+               * Cải thiện hiệu năng hệ thống, đặc biệt với I/O nhiều
+Trong Python:
+               * Sử dụng thư viện asyncio
+               * Dùng coroutine (async/await)
+               * Cho phép nhiều tác vụ chạy xen kẽ trên cùng một luồng
+3. Mô hình thực thi bất đồng bộ: Sự đan xen các bước nhỏ của nhiều tác vụ (tasks) trên một luồng kiểm soát duy nhất 
+        Bản chất:
+               *  Trong môi trường đơn luồng đan xen các bước nhỏ của nhiều tác vụ trên một luồng kiểm soát duy nhất là một khía cạnh cốt lõi của xử lý tác vụ đồng thời (concurrency).
+               * Trong môi trường đa luồng hoặc đa tiến trình, lập trình bất đồng bộ còn có thể kết hợp với nhiều luồng thực thi khác nhau để tăng khả năng xử lý song song
+        Đặc điểm chi tiết:
+               * Thực thi xen kẽ: Các tác vụ không chạy song song, mà luân phiên từng phần nhỏ trên 1 luồng 
+  
+
+               * Khả năng tạm dừng và tiếp tục: Tác vụ có thể tạm dừng (suspend) và tiếp tục (resume) đúng vị trí đã dừng 
+               * Sử dụng luồng đơn (Single Thread): Chỉ dùng 1 luồng chính → giảm độ phức tạp so với đa luồng 
+               * Lợi ích không chặn (Non-blocking): 
+               * Không bị dừng khi chờ I/O
+               * Cho phép xử lý nhiều tác vụ hiệu quả hơn
+
+
+Vai trò của Coroutine trong Lập trình Bất đồng bộ
+               * Bản chất:
+               * Coroutine là chương trình con giúp thực thi không chặn (non-blocking) và linh hoạt.
+               * Cơ chế hoạt động:
+               * Có thể tạm dừng (suspend) khi gặp I/O, database, network
+               * Thực hiện yielding → nhường quyền cho Event Loop xử lý tác vụ khác
+               * Sau đó tiếp tục (resume) đúng vị trí đã dừng
+               * Điều phối (Event Loop):
+               * Quản lý và phân phối việc thực thi giữa các coroutine
+               * Giúp các tác vụ chạy xen kẽ trên cùng luồng
+               * Tối ưu hiệu suất:
+               * Giữ CPU luôn hoạt động (không idle)
+               * Tăng khả năng xử lý nhiều tác vụ đồng thời
+               * Cải thiện tốc độ phản hồi hệ thống
+Cơ chế “Yielding”
+               * Cho phép coroutine tạm dừng & nhường quyền khi gặp tác vụ chờ
+               * Event Loop chuyển sang xử lý tác vụ khác
+               * Khi hoàn tất → quay lại tiếp tục xử lý
+   Mô hình thực thi
+               * Đơn luồng:
+               * Đơn giản, vẫn xử lý đồng thời hiệu quả nhờ bất đồng bộ
+               * Đa luồng:
+               * Kết hợp async + đa nhân → tăng thông lượng
+   Giá trị cốt lõi
+               * CPU luôn có việc để làm
+               * Xử lý nhiều request trong thời gian ngắn
+               * Tối ưu hiệu năng hệ thống
+4. Phân tích trạng thái sử dụng CPU (Bận/Nhàn rỗi - Busy/Idle) khi thực thi nhiều tác vụ tính toán kết hợp xử lý I/O.
+4.1 Trạng thái CPU trong xử lý tuần tự (Sequential Processing)
+Busy (Bận):
+               * CPU đang xử lý tính toán của tác vụ (ví dụ: render, xử lý dữ liệu)
+Idle (Nhàn rỗi):
+               * CPU phải chờ các thao tác I/O (đọc/ghi, mạng…)
+               * Không thể làm việc khác → gây lãng phí tài nguyên
+4.2 Tối ưu hóa trạng thái CPU trong xử lý đồng thời
+Xử lý đồng thời giải quyết vấn đề lãng phí bằng cách chia nhỏ các tác vụ và sắp xếp chúng xen kẽ nhau.
+               * Tận dụng thời gian rảnh: CPU core sẽ tận dụng thời gian nhàn rỗi của một tác vụ (đang chờ I/O) để chuyển sang thực hiện các bước tính toán nhỏ của tác vụ khác.
+               * Duy trì trạng thái Bận: Nhờ việc đan xen này, CPU duy trì được trạng thái bận liên tục hơn, giảm thiểu tổng thời gian hệ thống ở trạng thái nhàn rỗi.
+4.3. Cơ chế Bất đồng bộ (Asynchronous) và Lập trình không chặn đơn luồng
+Đây là mô hình nâng cao giúp quản lý trạng thái CPU cực kỳ hiệu quả thông qua Coroutine và Event Loop:
+               * Treo tác vụ khi chờ I/O: Khi một coroutine thực hiện một thủ tục I/O, nó sẽ chủ động tạm dừng (bị treo) thay vì chiếm giữ luồng và bắt CPU phải đợi.
+               * Chuyển giao quyền điều khiển (Yielding): Tại thời điểm tác vụ đó đang chờ I/O, nó thực hiện hành động "yielding a value" — tức là chuyển luồng điều khiển lại cho hệ thống (Event Loop) để CPU có thể xử lý tác vụ khác ngay lập tức.
+               * Kết quả: CPU được giữ ở trạng thái bận để giải quyết nhiều yêu cầu đồng thời trên một luồng duy nhất. Điều này giúp hệ thống hoàn thành toàn bộ khối lượng công việc trong khoảng thời gian ngắn hơn so với việc thực hiện tuần tự.
+               * Tóm tắt so sánh
+Đặc điểm
+	Xử lý Tuần tự
+	Xử lý Bất đồng bộ / Không chặn
+	Khi gặp I/O
+	CPU nhàn rỗi (Idle) để chờ đợi.
+	Tác vụ tạm dừng, CPU chuyển sang việc khác.
+	Hiệu suất CPU
+	Thấp, bị lãng phí do các khoản chờ.
+	Cao, tận dụng tối đa thời gian thực thi.
+	Thứ tự hoàn thành
+	Đúng thứ tự nộp vào.
+	Không theo thứ tự (tác vụ nào xong trước trả về trước).
+	4.4. Bất đồng bộ kết hợp đa luồng (Asynchronous Multithreading)
+4.4.1. Mục tiêu cốt lõi
+               * Kết hợp lập trình không chặn (non-blocking) và đa luồng (multithreading)
+               * Giảm thời gian CPU nhàn rỗi (Idle) do chờ I/O
+               * Tận dụng tối đa nhiều nhân CPU → tăng hiệu năng toàn hệ thống
+4.4.2. Cơ chế vận hành
+               * Hệ thống tạo nhiều luồng (threads)
+               * Mỗi luồng có thể quản lý một hoặc nhiều coroutine thông qua Event Loop
+               * Khi coroutine gặp I/O:
+               * Tạm dừng (suspend) và yield quyền điều khiển
+               * Luồng chuyển ngay sang coroutine khác → không bị block
+               * Đồng thời:
+               * Các luồng khác chạy trên các nhân CPU khác nhau
+               * Thực hiện các tác vụ tính toán song song
+4.4.3. Phân tích trạng thái CPU (Busy / Idle)
+               * Trạng thái Idle (Nhàn rỗi):
+               * Gần như được loại bỏ vì luôn có coroutine khác để xử lý
+               * Không còn tình trạng CPU chờ I/O như mô hình blocking
+               * Trạng thái Busy (Bận):
+               * CPU luôn có việc để làm:
+               * Xử lý coroutine trong từng luồng
+               * Thực thi song song trên nhiều nhân CPU
+               * Mức độ sử dụng CPU cao và ổn định hơn
+→ Kết quả: CPU được khai thác tối đa, hạn chế lãng phí tài nguyên
+4.4.4. Lợi ích hệ thống
+               * Tối ưu cả 2 loại tác vụ:
+               * I/O-bound (mạng, database)
+               * CPU-bound (tính toán)
+               * Tăng throughput (thông lượng)
+               * Cải thiện thời gian phản hồi (latency)
+               * Phù hợp với hệ thống cần xử lý nhiều request đồng thời
+4.4.5. Ứng dụng thực tế
+               * Máy chủ web (web server, API server)
+               * Hệ thống mạng, streaming, chat realtime
+               * Ứng dụng xử lý dữ liệu lớn kết hợp I/O và tính toán
+               * Các hệ thống yêu cầu hiệu năng cao và khả năng mở rộng
+4.4.6. Giá trị cốt lõi
+               * Giữ CPU luôn ở trạng thái Busy
+               * Giảm tối đa thời gian Idle do chờ I/O
+               * Khai thác hiệu quả cả bất đồng bộ + đa nhân CPU
+5. Sự khác biệt giữa mô hình bất đồng bộ so với các mô hình lập trình đồng bộ tuần tự và song song truyền thống
+Đặc điểm
+	Xử lý tuần tự (Sequential)
+	Xử lý song song (Parallel)
+	Bất đồng bộ đơn luồng (Asynchronous Single-thread)
+	Bất đồng bộ đa luồng (Asynchronous Multithreading)
+	Cách thực thi
+	Các tác vụ thực hiện lần lượt theo thứ tự
+	Nhiều tác vụ chạy cùng lúc trên nhiều nhân CPU
+	Các tác vụ thực hiện xen kẽ trên một luồng duy nhất
+	Kết hợp coroutine và nhiều luồng thực thi
+	Khi gặp I/O
+	Chương trình bị chặn, CPU phải chờ
+	Một luồng có thể chờ, luồng khác vẫn chạy
+	Coroutine tạm dừng và nhường quyền điều khiển
+	Coroutine tạm dừng, các luồng khác vẫn tiếp tục xử lý
+	Khả năng tận dụng CPU
+	Thấp do thời gian chờ lớn
+	Cao nếu có nhiều nhân CPU
+	Cao nhờ giảm thời gian CPU nhàn rỗi
+	Rất cao nhờ vừa không chặn vừa khai thác đa lõi
+	Yêu cầu phần cứng
+	Không yêu cầu đa lõi
+	Cần CPU đa nhân
+	Có thể chạy hiệu quả trên một luồng
+	Hoạt động tốt trên hệ thống đa lõi
+	Bản chất hoạt động
+	Đồng bộ và chặn (blocking)
+	Song song thực sự
+	Không chặn (non-blocking), xen kẽ tác vụ
+	Không chặn kết hợp xử lý song song
+	Thứ tự hoàn thành
+	Theo đúng thứ tự nộp vào
+	Không cố định
+	Không cố định
+	Không cố định
+	Thành phần điều phối
+	Không có cơ chế đặc biệt
+	Bộ lập lịch luồng/hệ điều hành
+	Event Loop và Coroutine
+	Event Loop, Coroutine và Thread Pool
+	Hiệu quả với tác vụ I/O
+	Kém
+	Tốt
+	Rất tốt
+	Rất tốt
+	Hiệu quả với tác vụ tính toán lớn
+	Thấp
+	Rất tốt
+	Hạn chế trên một luồng
+	Tốt nhờ đa luồng và đa lõi

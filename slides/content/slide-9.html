@@ -1,0 +1,42 @@
+<div class="glass-card simulation-card">
+    <span class="slide-header">Phần 01 · Mô phỏng</span>
+    <h3>Mô phỏng 01: Trực quan hóa hoạt động của Event Loop và Concurrency</h3>
+    <div class="sim-wrapper">
+        <div class="sim-controls">
+            <button class="sim-btn" id="spawnClickBtn">Tạo sự kiện Click</button>
+            <button class="sim-btn" id="spawnNetworkBtn">Tạo yêu cầu Mạng (I/O)</button>
+            <button class="sim-btn btn-rose" id="spawnCpuBtn">Tạo tác vụ CPU nặng</button>
+            <button class="sim-btn btn-sec" id="resetLoopSimBtn">Đặt lại</button>
+        </div>
+        <div class="sim-container" id="eventLoopSimContainer">
+            <div class="sim-section">
+                <h5>Nguồn sự kiện</h5>
+                <div class="event-sources">
+                    <div class="source-node">Người dùng</div>
+                    <div class="source-node">Internet</div>
+                    <div class="source-node">CPU</div>
+                </div>
+            </div>
+            <div class="sim-section">
+                <h5>Hàng đợi (Event Queue)</h5>
+                <div class="sim-queue" id="simEventQueue">
+                    <span class="queue-empty-text">Hàng đợi trống...</span>
+                </div>
+            </div>
+            <div class="sim-section loop-sec">
+                <h5>Event Loop</h5>
+                <div class="loop-spinner-wrapper">
+                    <div class="loop-spinner" id="loopSpinner"></div>
+                    <div class="loop-pointer">&rarr;</div>
+                </div>
+            </div>
+            <div class="sim-section">
+                <h5>Luồng chính (Main Thread)</h5>
+                <div class="main-thread-cpu" id="mainThreadCpu">
+                    <div class="cpu-core-active" id="cpuActiveState">RẢNH RỖI</div>
+                    <div class="cpu-core-task" id="cpuCurrentTask"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

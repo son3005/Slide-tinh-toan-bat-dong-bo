@@ -1,0 +1,297 @@
+﻿1.  KIẾN THỨC TỔNG QUAN
+1. Định nghĩa tính toán bất đồng bộ (Asynchronous Computing)
+Tính toán bất đồng bộ là một mô hình thực thi đồng thời mà trong đó các tác vụ được thực hiện đan xen và không chặn lẫn nhau trên cùng một trục thời gian. Mô hình này có thể được vận hành dựa trên kiến trúc điều khiển bằng sự kiện thông qua một luồng kiểm soát duy nhất , một tập hợp nhiều luồng, hoặc các tiến trình độc lập. 
+2. Khái niệm lập trình không chặn (Non-blocking Programming)
+Khái niệm:
+* Lập trình không chặn là phương pháp ngăn không cho các tác vụ I/O (đọc/ghi, gọi API) làm đóng băng luồng xử lý, cho phép hệ thống trả về phản hồi lập tức. Khi kết hợp với cơ chế bất đồng bộ, chương trình có thể tự do chạy các tác vụ khác và chỉ xử lý kết quả khi có thông báo hoàn thành. Sự kết hợp này mới là thứ giúp tối ưu hóa tài nguyên và giảm tối đa thời gian chờ của CPU. 
+Đặc điểm chính:
+* Không dừng toàn bộ chương trình khi gặp thao tác chờ
+* Các tác vụ được xử lý xen kẽ
+* Thường chạy trên một luồng nhưng vẫn xử lý nhiều việc
+Cơ chế hoạt động:
+* Dựa trên mô hình bất đồng bộ
+* Tác vụ có thể tạm dừng khi chờ dữ liệu
+* Sau khi có kết quả → tiếp tục thực thi
+Lợi ích:
+* Tận dụng CPU hiệu quả hơn
+* Tăng khả năng xử lý đồng thời
+* Cải thiện hiệu năng hệ thống, đặc biệt với I/O nhiều
+Trong Python:
+* Sử dụng thư viện asyncio
+* Dùng coroutine (async/await)
+* Cho phép nhiều tác vụ chạy xen kẽ trên cùng một luồng
+3. Mô hình thực thi bất đồng bộ
+3.1. Bản chất cốt lõi
+* Trọng tâm của bất đồng bộ là Cơ chế không chặn (Non-blocking): Luồng chính (main thread) gửi yêu cầu thực thi tác vụ nền và ngay lập tức tiếp tục xử lý các công việc khác mà không dừng lại chờ đợi.
+* Bất đồng bộ có thể sử dụng các hạ tầng thực thi khác nhau tùy thuộc vào loại tác vụ (đơn luồng, đa luồng hoặc đa tiến trình).
+3.2. Phân biệt Bất đồng bộ có luồng nền vs Song song truyền thống
+* Song song truyền thống: Luồng chính chia việc cho các luồng/tiến trình con chạy song song, nhưng luồng chính dừng hoạt động để chờ đợi kết quả hoàn thành (Bị chặn - Blocking).
+* Bất đồng bộ có luồng nền: Luồng chính chia việc cho các luồng/tiến trình con chạy dưới nền, và luồng chính vẫn tiếp tục chạy độc lập để xử lý các sự kiện khác (Không chặn - Non-blocking).
+3.3. Phân loại 3 hình thức thực thi bất đồng bộ
+
+
+Mô hình thực thi
+	Bản chất cách chạy
+	Đặc điểm nổi bật
+	Bất đồng bộ Đơn luồng (Single-threaded Async)
+	Chạy xen kẽ (Interleaved): Các tác vụ luân phiên chạy từng phần nhỏ trên 1 luồng chính duy nhất thông qua Event Loop.
+	Rất nhẹ, tốn ít tài nguyên, loại bỏ rủi ro tranh chấp dữ liệu (Race Condition).
+	Bất đồng bộ dựa trên Luồng (Thread-based Async)
+	Chạy song song nền (I/O): Đẩy các tác vụ chờ đợi I/O sang một Thread Pool riêng dưới nền, giải phóng hoàn toàn luồng chính.
+	Phù hợp nhất cho tác vụ chờ đợi I/O (gọi API, đọc database). Luồng nền nhẹ, tối ưu bộ nhớ.
+	Bất đồng bộ dựa trên Tiến trình (Process-based Async)
+	Chạy song song nền (CPU): Đẩy các tác vụ tính toán nặng sang một Process Pool riêng (có CPU core riêng) để xử lý ngầm.
+	Phù hợp nhất cho các tác vụ ngốn CPU (CPU-bound). Giúp lách qua rào cản khóa GIL của Python.
+	4.1. Trạng thái CPU trong xử lý tuần tự (Sequential)
+* Busy (Bận): CPU đang xử lý tính toán của tác vụ (ví dụ: render, xử lý thuật toán).
+* Idle (Nhàn rỗi): CPU phải dừng lại để chờ các thao tác I/O (đọc/ghi file, phản hồi mạng) 
+* →
+* → Gây lãng phí lớn tài nguyên phần cứng.
+4.2. Tối ưu hóa CPU trong xử lý đồng thời (Concurrency)
+* Chia nhỏ các tác vụ và sắp xếp đan xen. Khi một tác vụ rơi vào trạng thái chờ I/O (Idle), CPU lập tức chuyển sang thực hiện bước tính toán nhỏ của tác vụ khác, giữ CPU luôn ở trạng thái Busy.
+4.3. Cơ chế Bất đồng bộ Không chặn Đơn luồng (Single-thread Async)
+* Treo tác vụ tự nguyện: Khi Coroutine gặp lệnh I/O, nó tự giải phóng quyền kiểm soát và đi vào trạng thái treo dưới sự điều phối của Event Loop.
+* Quy trình hoạt động (Workflow đơn giản):
+   1. Gửi yêu cầu: Luồng chính gửi yêu cầu xử lý công việc.
+   2. Treo tự nguyện: Gặp tác vụ chờ đợi (I/O), tác vụ đó tạm dừng và nhường chỗ. Luồng chính vẫn hoạt động tự do.
+   3. Làm việc khác: Luồng chính chuyển sang chạy tác vụ tiếp theo trong hàng đợi.
+   4. Nhận thông báo: Khi tác vụ chờ ở bước 2 hoàn thành, hệ điều hành gửi tín hiệu báo dữ liệu đã sẵn sàng.
+   5. Tiếp tục & Hoàn thành: Luồng chính khôi phục tác vụ cũ từ vị trí đã dừng và chạy tiếp đến hết.
+* Kết quả: Một luồng duy nhất vẫn có thể giữ CPU luôn bận rộn phục vụ hàng loạt kết nối đồng thời.
+4.4. Bất đồng bộ kết hợp Đa luồng (Multithreading) & Đa tiến trình (Multiprocessing)
+Để tối ưu hóa hiệu năng phần cứng toàn diện, bất đồng bộ phải kết hợp với hai cơ chế nền tảng:
+* A. Bất đồng bộ dựa trên Đa luồng (Thread-based Async) - Cho tác vụ I/O-bound:
+   1. Cách chạy: Event Loop đẩy tác vụ chờ đợi I/O (tải file, gọi API) vào các luồng con (Thread Pool).
+   2. Trạng thái CPU: Các luồng thay nhau chờ I/O, giải phóng hoàn toàn luồng chính. Trạng thái Idle do chờ đợi được giảm thiểu tối đa.
+* B. Bất đồng bộ dựa trên Đa tiến trình (Process-based Async) - Cho tác vụ CPU-bound:
+   1. Cách chạy: Event Loop đẩy tác vụ tính toán nặng sang các tiến trình độc lập (Process Pool). Mỗi tiến trình chạy trên một nhân CPU thực tế.
+   2. Trạng thái CPU: Đạt trạng thái Busy đồng thời trên nhiều lõi (True Parallelism), vượt qua rào cản khóa GIL của Python.
+* Quy trình hoạt động với Pool:
+   1. Chuẩn bị nhóm thợ (Pool): Tạo sẵn một nhóm các luồng/tiến trình con ngầm rảnh rỗi chờ việc.
+   2. Giao việc nền: Luồng chính giao công việc cho nhóm thợ dưới nền xử lý.
+   3. Nhận biên lai: Luồng chính nhận ngay một "biên lai theo dõi" và tiếp tục chạy các tác vụ khác mà không cần đứng đợi.
+   4. Xử lý độc lập: Một thợ rảnh trong nhóm tự lấy việc ra làm (nếu là tiến trình, công việc được chạy độc lập trên lõi CPU riêng).
+   5. Trả kết quả: Khi làm xong, thợ ghi kết quả vào biên lai và quay lại trạng thái chờ việc.
+   6. Nhận dữ liệu: Luồng chính kiểm tra biên lai để lấy kết quả tại thời điểm thích hợp và hoàn tất tác vụ.
+4.5. Lợi ích hệ thống & Ứng dụng thực tế
+* Tăng Thông lượng (Throughput): Phục vụ hàng vạn yêu cầu cùng lúc.
+* Giảm Độ trễ (Latency): Thời gian phản hồi nhanh hơn nhờ tác vụ được xử lý ngầm và song song.
+* Ứng dụng: Web server hiệu năng cao (FastAPI, Nginx), hệ thống xử lý thời gian thực (Chat, Streaming), ứng dụng xử lý dữ liệu lớn kết hợp cả I/O và tính toán.
+
+
+
+
+2. GIỚI THIỆU VỀ MODULE CONCURRENT.FUTURES
+1. Tổng quan về module concurrent.futures
+* Lịch sử & Đặc tính: Ra mắt từ phiên bản Python 3.2, cung cấp một giao diện cấp cao (high-level interface).
+* Mục đích cốt lõi: Giúp lập trình viên thực thi các hàm/lệnh gọi một cách bất đồng bộ.
+* Nền tảng kiến trúc: Xây dựng dựa trên sức mạnh của hai module cơ sở là threading và multiprocessing.
+* Ưu điểm vượt trội:
+   * Loại bỏ gánh nặng tự quản lý luồng thủ công.
+   * Dễ dàng xử lý các tác vụ đa luồng.
+   * Khai thác triệt để tính đa lõi CPU cho các bài toán tính toán nặng thông qua cơ chế Hồ chứa.
+2. Các lớp và các phương thức
+2.1. Lớp trừu tượng Executor
+* Bản chất: Là một lớp trừu tượng định nghĩa "giao diện chuẩn" để thực hiện các lệnh gọi bất đồng bộ.
+* Nguyên tắc sử dụng: KHÔNG được khởi tạo trực tiếp (do chưa có logic lõi). Bắt buộc phải sử dụng thông qua các lớp con cụ thể.
+* Ba phương thức cốt lõi: submit, map, và shutdown.
+2.2. Các phương thức phân phối và quản lý tác vụ
+* submit() - Giao việc đơn lẻ:
+   * Lên lịch chạy ngầm một tác vụ (non-blocking).
+   * Trả về lập tức đối tượng Future ("biên lai" theo dõi tiến độ/kết quả).
+* map() - Giao việc hàng loạt:
+   * Tự động lặp và thực thi tác vụ đồng thời trên một mảng dữ liệu (VD: áp dụng bộ lọc cho 1.000 hình ảnh).
+   * Trả về bộ lặp (iterator) chứa kết quả. Ném lỗi TimeoutError nếu quá hạn.
+* shutdown() - Giải phóng tài nguyên:
+   * Ra tín hiệu dọn dẹp hệ thống. Nếu cố tình giao thêm việc sẽ báo lỗi RuntimeError.
+   * Khuyến cáo: Luôn khởi tạo Executor trong khối lệnh with để hệ thống tự động gọi shutdown an toàn.
+3. đối tượng future
+3.1. Khái niệm đối tượng Future (Tương lai)
+* Định nghĩa: Là đối tượng đóng gói việc thực thi bất đồng bộ, đại diện cho kết quả của một tác vụ đang chạy ngầm.
+* Hình tượng "Tờ biên lai": * Khi giao tác vụ tốn thời gian, hệ thống trả ngay về một "biên lai" (Future) mà không bắt luồng chính phải chờ.
+   * Luồng chính dùng "biên lai" này để theo dõi tiến độ, kiểm tra lỗi và lấy kết quả khi tác vụ xong.
+* Lưu ý khởi tạo: Lập trình viên không tự khởi tạo thủ công (trừ khi testing). Hệ thống sẽ tự động sinh ra và trả về qua phương thức Executor.submit().
+3.2. Các nhóm phương thức kiểm tra trạng thái
+* running(): Trả về True nếu tác vụ đang chạy và không thể hủy.
+* done(): Trả về True nếu tác vụ đã hoàn thành hoặc đã bị hủy thành công.
+* cancelled(): Trả về True nếu tác vụ đã được hủy bỏ thành công.
+3.3. Nhóm điều khiển và trích xuất kết quả
+* cancel(): Cố gắng hủy tác vụ trong hàng đợi.
+   * Trả về True: Hủy thành công (khi tác vụ chưa chạy).
+   * Trả về False: Không thể hủy (khi tác vụ đang chạy hoặc đã xong).
+* result(timeout=None): Chờ và lấy kết quả của hàm chạy ngầm. Ném ra lỗi TimeoutError nếu quá thời gian quy định.
+* exception(timeout=None): Tương tự result(), nhưng dùng để lấy ra ngoại lệ (lỗi) nếu tác vụ thất bại.
+Slide: Cơ chế phản hồi tự động (Callback)
+* Phương thức add_done_callback(fn): Đính kèm một hàm fn vào đối tượng Future.
+* Cơ chế hoạt động: Hàm fn tự động kích hoạt ngay khi tác vụ hoàn thành hoặc bị hủy.
+Lợi ích: Giúp luồng chính không cần đứng chờ (non-blocking), chuyển sang kiến trúc phản ứng tự động (event-driven).
+
+4. Pooling (Hồ chứa) nội dung vào slide
+4.1. Khái niệm Pooling (Hồ chứa)
+* Định nghĩa: Là trình quản lý phần mềm duy trì sẵn một số lượng worker (luồng/tiến trình) rảnh rỗi để phân bổ thực thi tác vụ đồng thời.
+* Mục đích cốt lõi: * Tăng hiệu suất hệ thống.
+   * Tránh độ trễ (latency) do việc tạo mới và hủy luồng/tiến trình liên tục mang lại.
+* Cơ chế Tái sử dụng (Reuse): Worker làm xong việc không bị hủy mà được giữ lại để thực hiện tác vụ khác. Số lượng worker tự động điều chỉnh theo phần cứng.
+4.2. So sánh ThreadPoolExecutor và ProcessPoolExecutor
+Có thể tạo một bảng so sánh trên slide với các thông tin sau:
+Tiêu chí
+	ThreadPoolExecutor
+	ProcessPoolExecutor
+	Worker bên dưới
+	Luồng (Threads)
+	Tiến trình (Processes)
+	Không gian bộ nhớ
+	Dùng chung bộ nhớ chương trình chính
+	Độc lập, không dùng chung bộ nhớ
+	Rào cản GIL
+	Bị ảnh hưởng bởi GIL của Python
+	Lách qua được GIL (Đa nhân thực sự)
+	Loại tác vụ phù hợp
+	Nặng về I/O (Tải file, đọc/ghi tệp...)
+	Nặng về CPU (Tính toán toán học...)
+	Số worker mặc định
+	min(32, lõi CPU + 4)
+	Bằng số lõi CPU logic
+	4.3. Lưu ý kỹ thuật & Thuật ngữ quan trọng
+* ThreadPoolExecutor:
+   * Tình trạng bế tắc (Deadlocks): Xảy ra nếu một hàm đang chạy lại đứng chờ kết quả của một Future khác trong cùng một Pool.
+* ProcessPoolExecutor:
+   * Yêu cầu Picklable: Các tham số/đối tượng truyền vào phải có khả năng tuần tự hóa (đóng gói thành chuỗi byte) để truyền giữa các tiến trình độc lập.
+   * Lỗi BrokenProcessPool: Ngoại lệ nghiêm trọng khi một tiến trình worker bị chết đột ngột, làm sập toàn bộ hồ chứa.
+
+
+5. Task Queue
+5.1. Quản lý Hàng đợi (Task Queue) & Cơ chế Tái sử dụng (Reuse)
+1. Hàng đợi tác vụ (Task Queue)
+* Đóng vai trò là bộ đệm lưu trữ các lệnh gọi (hàm) chưa được thực thi.
+* Trình quản lý giám sát Task Queue và phân bổ công việc tuần tự cho các tiến trình/luồng đang rảnh rỗi trong Hồ chứa (Pool).
+2. Cơ chế Tái sử dụng (Reuse) để tối ưu hiệu suất
+* Vấn đề cũ: Việc liên tục tạo mới và hủy tiến trình/luồng cho các tác vụ ngắn sinh ra độ trễ (latency) rất lớn.
+* Giải pháp Reuse: Một tiến trình/luồng không bị tiêu diệt mà được sử dụng nhiều lần cho các tác vụ khác nhau trong vòng đời của nó.
+* Hiệu quả:
+   * Triệt tiêu độ trễ (latency) cấp phát phần cứng.
+   * Tự động điều chỉnh số lượng worker khớp với sức mạnh tài nguyên máy tính.
+6. Ví về code
+  
+
+
+
+Kết quả:
+  
+
+3. GIỚI THIỆU VỀ MODULE ASYNCIO
+1. Các thành phần chính của module asyncio
+* asyncio: Thư viện chuẩn Python (3.4+) cho lập trình các tác vụ đồng thời (concurrent) trên đơn luồng.
+* Cú pháp chính: async / await
+* 4 thành phần cốt lõi:
+   * Event Loop: 1 vòng lặp / 1 tiến trình – điều phối mọi tác vụ.
+   * Coroutines: Hàm bất đồng bộ – có thể tạm dừng & quay lại.
+   * Tasks: Bao bọc coroutine – lên lịch thực thi song song.
+   * Futures: Đại diện cho kết quả chưa hoàn thành.
+* Phù hợp với: Các tác vụ chờ đợi I/O (I/O-bound tasks như web requests, truy vấn DB, đọc ghi file).
+* Ưu điểm so với Threading (Đa luồng):
+   * Không bị chặn bởi khóa GIL: Chạy thuần túy trên đơn luồng nên không vướng cơ chế Global Interpreter Lock của Python.
+   * Nhẹ hơn nhiều (Low overhead): Khởi tạo coroutine tiêu tốn rất ít RAM và thời gian chuyển ngữ cảnh (context switch) cực nhanh so với chuyển luồng cấp hệ điều hành (OS thread).
+   * Mở rộng cực tốt (Scalability): Có thể duy trì hàng nghìn đến hàng vạn kết nối/coroutine đồng thời trên một luồng mà không làm treo hệ thống.
+2. Vòng lặp sự kiện – asyncio.get_event_loop()
+2.1. Khái niệm lập trình sự kiện (event programming) trong tính toán bất đồng bộ.
+* lập trình sự kiện là là mô hình lập trình mà luồng thực thi được điều khiển bởi các sự kiện(even) ví dụ: nhấp chuột, gõ phím, nhận dữ liệu từ mạng.
+* Trong tính toán bất đồng bộ, chương trình không cần chờ tác vụ hoàn thành mà vẫn có thể tiếp tục thực hiện các công việc khác. Khi một sự kiện xảy ra, bộ xử lý sự kiện tương ứng sẽ được kích hoạt để xử lý sự kiện đó. 
+* Sự kiện (Event) là hành động xảy ra khi người dùng tương tác với chương trình, như nhấn phím hoặc click chuột. Quá trình tạo và xử lý sự kiện được thực hiện bởi ba thành phần chính: Nguồn sự kiện (Event Source), Trình xử lý sự kiện (Event Handler) và Vòng lặp sự kiện (Event Loop). 
+
+
+2.2. Các thực thể cốt lõi: Nguồn sự kiện (event source) và Bộ xử lý sự kiện (event handler).
+* Nguồn sự kiện (Event source): Là nơi khởi tạo và phát đi các sự kiện vào trong hệ thống,.
+* Hàng đợi sự kiện (Event Queue): Cấu trúc dữ liệu có nhiệm vụ lưu trữ và xếp hàng các sự kiện vừa phát sinh để chờ đến lượt.
+* Vòng lặp sự kiện (Event loop): Cấu trúc điều phối trung tâm hoạt động theo chu kỳ,. Có nhiệm vụ liên tục theo dõi hàng đợi và rút từng sự kiện ra để phân phát.
+* Bộ xử lý sự kiện (Event handler): Bản chất là một hàm gọi lại (callback). Hệ thống (Vòng lặp sự kiện) sẽ tự động gọi hàm này lên để giải quyết sự kiện, với điều kiện tiên quyết là luồng chính (main thread) đang rảnh rỗi,.
+(Luồng dữ liệu: Nguồn sự kiện → Hàng đợi → Vòng lặp giám sát → Kích hoạt Bộ xử lý)
+
+
+2.3.Chức năng của Vòng lặp sự kiện (Event loop): Hoạt động theo chu kỳ, theo dõi, đưa vào hàng đợi (queue) và kích hoạt bộ xử lý sự kiện.
+* Vai trò cốt lõi: Là "trái tim" điều phối bất đồng bộ; bản chất là cấu trúc thiết kế dùng để chờ và gửi sự kiện.
+* 4 cơ chế hoạt động chính:
+   * Theo chu kỳ: Chạy liên tục xuyên suốt quá trình thực thi để duy trì sự sống cho chương trình.
+   * Theo dõi & Thu thập: Liên tục lắng nghe các tương tác (click, gõ phím,...) từ các nguồn cung cấp sự kiện.
+   * Xếp hàng (Queueing): Lưu trữ các sự kiện vừa thu thập được vào một cấu trúc dữ liệu (hàng đợi) để chờ đến lượt.
+   * Kích hoạt xử lý: Rút sự kiện từ hàng đợi và gọi hàm phản hồi (callback) tương ứng để giải quyết,. Điều kiện: Chỉ thực hiện khi luồng chính (main thread) đang rảnh rỗi.
+
+
+* Cách Event Loop hoạt động:
+   * Chờ sự kiện → Lấy ra từ hàng đợi → Gọi trình xử lý tương ứng → Lặp lại chu kỳ.
+   * Hoạt động liên tục suốt vòng đời chương trình.
+   * Tuyệt đối: Chỉ có 1 event loop hoạt động trên 1 tiến trình.
+* Lấy & điều khiển Event Loop:
+  
+
+kết quả:
+  
+
+* Các phương thức quan trọng: create_task(), call_soon(), call_later(), stop(), is_running().
+3. Coroutines – @asyncio.coroutine và async def
+3.1. Định nghĩa chi tiết về Coroutine
+Coroutine (Đồng chương trình) là một đơn vị xử lý logic lập trình có khả năng tạm dừng (suspend) thực thi để nhường quyền kiểm soát cho tác vụ khác, và sau đó tiếp tục (resume) lại tại đúng vị trí và trạng thái mà nó đã tạm dừng.
+* Tính chất cốt lõi:
+   * Cooperative (Hợp tác): Khác với Thread do Hệ điều hành tự ý ngắt (Preemptive), Coroutine phải tự nguyện nhường quyền kiểm soát (trong Python thông qua từ khóa await).
+   * Single-threaded Concurrency: Cho phép xử lý đồng thời nhiều tác vụ (concurrency) chỉ trên một luồng duy nhất, giúp loại bỏ chi phí chuyển đổi ngữ cảnh đắt đỏ của hệ điều hành và tránh được các lỗi tranh chấp dữ liệu (race conditions).
+3. 2. Bảng so sánh chi tiết
+Tiêu chí
+	Hàm thông thường (Subroutine)
+	Coroutine (Đồng chương trình)
+	Thread (Luồng hệ điều hành)
+	Điểm vào/ra (Entry/Exit)
+	Chỉ có 1 điểm vào (bắt đầu hàm) và 1 điểm ra (return).
+	Nhiều điểm vào, điểm ra và điểm tạm dừng (await/yield).
+	Chạy độc lập từ đầu đến cuối trên một luồng hệ điều hành.
+	Bảo toàn trạng thái
+	Trạng thái biến cục bộ bị xóa sạch khi hàm kết thúc.
+	Trạng thái cục bộ được lưu giữ nguyên vẹn khi tạm dừng.
+	Trạng thái được lưu trong ngăn xếp (stack) riêng của thread.
+	Cơ chế điều phối
+	Chạy tuần tự theo luồng chính của chương trình.
+	Hợp tác (Cooperative): Code tự nhường quyền điều khiển.
+	Tranh đoạt (Preemptive): Hệ điều hành (OS) tự ngắt luồng.
+	Chi phí tài nguyên
+	Rất thấp (chỉ là gọi hàm thông thường).
+	Rất thấp: Chỉ cần một lượng nhỏ RAM để lưu trạng thái.
+	Cao: Mỗi luồng cần phân bổ vùng nhớ stack riêng (ví dụ 1MB-8MB).
+	Chuyển đổi ngữ cảnh
+	Do ngôn ngữ/compiler thực hiện (nhanh).
+	Do ứng dụng / Event Loop quản lý (cực kỳ nhanh).
+	Do CPU/Hệ điều hành quản lý (chậm, tốn tài nguyên).
+	Trường hợp áp dụng
+	Các tính toán tuần tự thông thường.
+	Tác vụ nghẽn I/O (I/O-bound) như gọi API, đọc DB, tải file.
+	Tác vụ nặng về tính toán (CPU-bound) như render video, AI.
+	3.3. Minh họa bằng Code
+  
+
+Kết quả output:
+  
+
+4. Quản lý Tác vụ – asyncio.Task
+* Task: Là lớp con của asyncio, dùng để đóng gói và quản lý một coroutine.
+* So sánh: Coroutine chỉ là bản định nghĩa | Task = Định nghĩa + Lên lịch chạy + Theo dõi trạng thái.
+* Các cách tạo Task:
+  
+
+Kết quả:
+  
+
+* Phương thức chính: cancel(), done(), result(), add_done_callback().
+* Hủy Task: Khi gọi task.cancel() → Sẽ kích hoạt lỗi CancelledError bên trong coroutine → Bắt buộc dùng try/except để dọn dẹp tài nguyên.
+5. asyncio.Future và add_done_callback()
+* Vòng đời: PENDING (Đang chờ) → FINISHED (Có kết quả hoặc báo lỗi) hoặc CANCELLED (Đã bị hủy).
+* Lớp asyncio.Task kế thừa trực tiếp từ asyncio.Future.
+* Cách hoạt động:
+  
+
+Kết quả:
+  
+
+* Phương thức chính: result(), set_result(), done(), cancel(), exception().
+* Cơ chế Callback: Dùng hàm add_done_callback(fn) để gắn hành động tự kích hoạt khi xong việc (thành công, lỗi hoặc hủy).
+* Đặc biệt: Có thể gắn nhiều callback cùng lúc cho 1 Future hoặc 1 Task.
+
+
+________________

@@ -1,0 +1,59 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 01 · Tổng quan</span>
+    <h3>4.4. Bất đồng bộ kết hợp Pool & Task Queue</h3>
+    <div class="columns">
+        <div class="column" style="flex: 0.85;">
+            <div class="info-box" style="padding: 1rem;">
+                <h4 style="color: var(--accent-sky); font-size: 1rem; margin-bottom: 0.35rem;">A. Thread-based (I/O-bound)</h4>
+                <p style="font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary);">Event Loop đẩy tác vụ chờ I/O vào Thread Pool nền, giải phóng luồng chính để giảm thiểu thời gian Idle.</p>
+            </div>
+            <div class="info-box" style="padding: 1rem; margin-top: 0.5rem;">
+                <h4 style="color: var(--accent-rose); font-size: 1rem; margin-bottom: 0.35rem;">B. Process-based (CPU-bound)</h4>
+                <p style="font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary);">Event Loop đẩy tác vụ nặng sang Process Pool độc lập trên các nhân CPU riêng, lách GIL để đạt song song thực sự.</p>
+            </div>
+            <div class="info-box" style="margin-top: 0.5rem;">
+                <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem;">Quy trình Hoạt động với Pool:</h4>
+                <div class="sim-controls" style="padding: 0.4rem; justify-content: center; gap: 0.35rem; display: flex; flex-wrap: wrap; border: none; background: transparent; margin-bottom: 0;">
+                    <button class="sim-btn" id="poolStep1Btn">Bước 1: Khởi tạo</button>
+                    <button class="sim-btn" id="poolStep2Btn" disabled>Bước 2: Giao việc & Future</button>
+                    <button class="sim-btn" id="poolStep3Btn" disabled>Bước 3: Worker chạy</button>
+                    <button class="sim-btn btn-rose" id="poolStep4Btn" disabled>Bước 4: Nhận kết quả</button>
+                </div>
+            </div>
+        </div>
+        <div class="column" style="flex: 1.15;">
+            <h4 class="sub-title" style="text-align: center; font-size: 0.95rem;">Sơ đồ D: Quy trình dòng chảy dữ liệu với Pool</h4>
+            
+            <div class="pool-flow-container" id="poolFlowContainer">
+                <!-- Row 1: Main Thread & Future -->
+                <div class="pool-flow-node" id="poolNodeMain" style="top: 20px; left: 10%;">
+                    Main Thread<br><span style="font-size: 0.65rem; color: var(--text-muted);">Luồng chính</span>
+                </div>
+                <div class="pool-flow-arrow h-arrow" id="poolArrowMainFuture" style="top: calc(20px + 32.5px - 3px); left: calc(10% + 170px); right: calc(10% + 170px);"></div>
+                <div class="pool-flow-node" id="poolNodeFuture" style="top: 20px; right: 10%;">
+                    Future Object<br><span style="font-size: 0.65rem; color: var(--text-muted);">Biên lai kết quả</span>
+                </div>
+                
+                <!-- Vertical Arrows -->
+                <div class="pool-flow-arrow v-arrow" id="poolArrowMainQueue" style="top: 85px; left: calc(10% + 85px - 3px); height: 100px;"></div>
+                <div class="pool-flow-arrow v-arrow" id="poolArrowPoolFuture" style="top: 85px; right: calc(10% + 85px - 3px); height: 100px;"></div>
+                
+                <!-- Row 2: Queue & Worker Pool -->
+                <div class="pool-flow-node" id="poolNodeQueue" style="bottom: 20px; left: 10%;">
+                    Task Queue<br><span style="font-size: 0.65rem; color: var(--text-muted);">Hàng đợi việc</span>
+                </div>
+                <div class="pool-flow-arrow h-arrow" id="poolArrowQueuePool" style="bottom: calc(20px + 32.5px - 3px); left: calc(10% + 170px); right: calc(10% + 170px);"></div>
+                <div class="pool-flow-node" id="poolNodePool" style="bottom: 20px; right: 10%;">
+                    Worker Pool<br><span style="font-size: 0.65rem; color: var(--text-muted);">Nhóm Worker nền</span>
+                </div>
+            </div>
+            
+            <div class="info-box" style="margin-top: 0.5rem; background: #0f172a; border: 1px solid rgba(0,0,0,0.08); padding: 0.6rem;">
+                <strong style="font-size: 0.8rem; color: #38bdf8;">Chi tiết bước chạy:</strong>
+                <p id="poolExplainText" style="font-size: 0.78rem; color: #cbd5e1; margin-top: 0.2rem; line-height: 1.4;">
+                    Nhấp nút "Bước 1: Khởi tạo" ở bộ điều khiển để bắt đầu xem cách Pool vận hành.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

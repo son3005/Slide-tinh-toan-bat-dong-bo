@@ -1,0 +1,56 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 03 · asyncio</span>
+    <h3>2.3. Chức năng của Vòng lặp sự kiện (Event Loop)</h3>
+    <div class="columns">
+        <div class="column">
+            <div class="info-box">
+                <h4>Vai trò cốt lõi</h4>
+                <p>Event Loop là "trái tim" điều phối bất đồng bộ của chương trình. Bản chất của nó là một mẫu thiết kế (design pattern) hoạt động vô tận để chờ đợi và gửi các sự kiện hoặc thông điệp.</p>
+                <p style="margin-top: 0.5rem; color: var(--accent-rose); font-weight: 600;">
+                    Quy tắc tuyệt đối: Chỉ có duy nhất 1 Event Loop hoạt động trên 1 tiến trình của chương trình tại một thời điểm.
+                </p>
+            </div>
+            <div class="circle-orbit-container">
+                <!-- Outer circular path -->
+                <div class="circle-path"></div>
+                <!-- Rotating particle -->
+                <div class="orbit-particle-wrapper">
+                    <div class="orbit-particle-dot"></div>
+                </div>
+                <!-- Central Core -->
+                <div style="z-index: 5; text-align: center; background: var(--card-bg); border: 2px solid var(--accent-sky); padding: 0.6rem; border-radius: 50%; width: 100px; height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 15px rgba(37, 99, 235, 0.2);">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Core</span>
+                    <span style="font-size: 0.8rem; font-weight: bold; color: var(--accent-sky);">EVENT LOOP</span>
+                </div>
+                <!-- 4 steps positioned absolutely around the circle -->
+                <div class="orbit-node n1">1. Lắng nghe</div>
+                <div class="orbit-node n2">2. Xếp hàng</div>
+                <div class="orbit-node n3">3. Điều phối</div>
+                <div class="orbit-node n4">4. Xử lý</div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="info-box" style="height: 100%;">
+                <h4>4 cơ chế hoạt động chính</h4>
+                <ol style="padding-left: 1.25rem;">
+                    <li style="margin-bottom: 0.5rem;">
+                        <strong>Theo chu kỳ (Cyclic execution):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Chạy liên tục không ngừng nghỉ xuyên suốt vòng đời của chương trình để giữ cho luồng chính luôn hoạt động.</p>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <strong>Theo dõi & Thu thập (Event Gathering):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Liên tục lắng nghe các tương tác, tín hiệu I/O từ các nguồn sự kiện phần cứng và phần mềm.</p>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <strong>Xếp hàng (Queueing):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Lưu trữ các sự kiện vừa thu thập được vào một hàng đợi sự kiện một cách có trật tự.</p>
+                    </li>
+                    <li>
+                        <strong>Kích hoạt xử lý (Dispatching):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Rút sự kiện khỏi queue và gọi callback tương ứng để xử lý. **Điều kiện tiên quyết:** Chỉ thực hiện khi luồng chính đang rảnh rỗi.</p>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

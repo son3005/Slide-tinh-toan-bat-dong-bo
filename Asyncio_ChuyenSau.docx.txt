@@ -1,0 +1,459 @@
+﻿Triển khai bất đồng bộ chuyên sâu qua module asyncio
+Tài liệu tham chiếu: Chương 4 – Tính toán bất đồng bộ (Bài giảng Tính toán Song song & Phân tán) Nguồn bổ sung: Python asyncio Documentation
+Mục lục
+1.   Các thành phần chính của module asyncio
+2.   Vòng lặp sự kiện (Event Loop) – asyncio.get_event_loop()
+3.   Coroutines – Khai báo và xử lý với @asyncio.coroutine
+4.   Quản lý Tác vụ (Task) – asyncio.Task
+5.   Lớp asyncio.Future và add_done_callback()
+ 
+1. Các thành phần chính của module asyncio
+1.1. Tổng quan về asyncio
+Module asyncio là thư viện chuẩn của Python (từ phiên bản 3.4+) dùng để viết mã đồng thời (concurrent) bằng cú pháp async/await. Nó là nền tảng cho nhiều framework bất đồng bộ trong Python, bao gồm:
+·     Mạng và máy chủ web hiệu suất cao (aiohttp, FastAPI, Sanic)
+·     Thư viện kết nối cơ sở dữ liệu (asyncpg, aioredis)
+·     Hàng đợi tác vụ phân tán (Celery async, arq)
+1.2. Bốn thành phần cốt lõi
+asyncio được xây dựng xoay quanh 4 thành phần chính hoạt động phối hợp với nhau:
+·     Event Loop (Vòng lặp sự kiện): Bộ điều phối trung tâm. Cho phép một vòng lặp sự kiện duy nhất cho mỗi tiến trình. Chờ và gửi các sự kiện/thông báo trong chương trình.
+·     Coroutines (Chương trình con): Đơn vị công việc. Là sự tổng quát hóa của subroutine. Có thể bị treo (suspend) trong quá trình thực thi để chờ xử lý bên ngoài (I/O) và quay trở lại từ điểm đã dừng.
+·     Futures (Đối tượng tương lai): Đại diện kết quả. Xác định đối tượng Future, đại diện cho các giá trị bất đồng bộ được trả về từ các tác vụ — một tính toán vẫn chưa hoàn thành.
+·     Tasks (Tác vụ): Trình quản lý coroutine. Là lớp con của asyncio được sử dụng để đóng gói và quản lý các coroutine ở chế độ song song.
+1.3. Mối quan hệ giữa các thành phần
+Mối quan hệ giữa Event Loop, Coroutine, Task và Future là nền tảng cốt lõi giúp hệ thống bất đồng bộ vận hành trơn tru.
+┌──────────────────────────────────────────────────┐
+│                      EVENT LOOP                                                                                            │
+│  (Bộ điều phối trung tâm – 1 loop / 1 process)                                                      │
+│                                                                                                                               │
+│   ┌──────────┐   ┌──────────┐   ┌──────────┐                               │
+│   │  Task 1              │   │  Task 2              │   │  Task 3              │                             │
+│   │(bao bọc)           │   │(bao bọc)           │   │(bao bọc)           │                               │
+│   │Coroutine           │   │Coroutine          │   │Coroutine           │                              │
+│   └────┬─────┘   └────┬─────┘   └────┬─────┘                       │
+│                    │                                │                                    │                                        │
+│               ▼                            ▼                            ▼                                       │
+│   ┌──────────┐   ┌──────────┐   ┌──────────┐                       │
+│   │ Future 1            │   │ Future 2            │   │ Future 3           │                               │
+│   │(kết quả)            │   │(kết quả)             │   │(kết quả)           │                                │
+│   └──────────┘   └──────────┘   └──────────┘                                │
+└──────────────────────────────────────────────────┘
+Cụ thể:
+·     Event Loop (Vòng lặp sự kiện): Là bộ não trung tâm của kiến trúc bất đồng bộ. Nó duy trì một hàng đợi các tác vụ và liên tục kiểm tra trạng thái của chúng. Khi một tác vụ gặp hoạt động chờ đợi (như thao tác đọc ghi I/O), Event Loop sẽ không bị khóa mà ngay lập tức chuyển quyền điều khiển sang một tác vụ khác đang ở trạng thái sẵn sàng thực thi.
+·     Coroutine (Chương trình con cải tiến): Là các khối mã chứa logic xử lý thực tế do lập trình viên định nghĩa. Một coroutine thông thường là một hàm được khai báo với async def, tuy nhiên bản thân nó không tự chạy mà chỉ trả về một đối tượng coroutine khi được gọi. Để được thực thi, nó cần được đẩy vào hệ thống Event Loop.
+·     Task (Tác vụ): Đóng vai trò là vỏ bọc (wrapper) quản lý một Coroutine, chịu trách nhiệm đưa Coroutine đó vào hàng đợi của Event Loop. Task cung cấp các phương thức quản lý để vòng lặp sự kiện có thể theo dõi tiến trình hiện tại của Coroutine (đang chạy, đang chờ, hoặc đã bị hủy bỏ).
+·     Future (Đối tượng tương lai): Là "lời hứa" đại diện cho một kết quả vẫn chưa hoàn thành. Future giống như một biên lai giao dịch; khi Task bắt đầu, một Future tương ứng được tạo ra để hứng kết quả sau này. Khi Coroutine kết thúc nhiệm vụ, kết quả của nó sẽ được điền vào Future, và Event Loop dựa vào trạng thái của Future đó để đánh dấu tác vụ đã hoàn tất.
+1.4. So sánh asyncio với concurrent.futures
+Tiêu chí
+	concurrent.futures
+	asyncio
+	Cơ chế
+	Đa luồng / đa tiến trình
+	Đơn luồng, hướng sự kiện (event-driven)
+	Executor
+	ThreadPoolExecutor, ProcessPoolExecutor
+	Event Loop
+	Phù hợp cho
+	CPU-bound tasks (tiến trình), Blocking I/O (luồng)
+	I/O-bound tasks bất đồng bộ
+	Cú pháp
+	executor.submit()
+	async/await
+	Ảnh hưởng của GIL
+	Bị ảnh hưởng (khi dùng threads)
+	Không bị ảnh hưởng
+	 
+1.5. Câu hỏi vấn đáp
+Câu hỏi 1: Module asyncio giải quyết vấn đề gì mà đa luồng (threading) không làm tốt?
+Trả lời: asyncio giải quyết vấn đề I/O-bound hiệu quả hơn threading bằng cách sử dụng đơn luồng kết hợp với event loop. Thay vì tạo hàng trăm thread tốn bộ nhớ và đòi hỏi chi phí chuyển đổi ngữ cảnh (context switching), asyncio cho phép hàng nghìn coroutine chạy trên một thread duy nhất. Khi một coroutine gặp hoạt động chờ I/O, nó nhường quyền cho coroutine khác mà không cần gọi hệ điều hành can thiệp.
+Câu hỏi 2: Bốn thành phần chính của asyncio là gì? Mối quan hệ giữa chúng?
+Trả lời: Event Loop (điều phối trung tâm), Coroutines (đơn vị công việc), Tasks (bao bọc coroutine), Futures (đại diện kết quả). Event Loop lên lịch cho các Tasks, mỗi Task bao bọc một Coroutine, và mỗi Task có một Future đại diện cho kết quả trả về trong tương lai.
+Câu hỏi 3: Khi nào nên dùng asyncio thay vì concurrent.futures?
+Trả lời: Việc lựa chọn phụ thuộc vào bản chất của công việc:
+·     Sử dụng asyncio khi ứng dụng xử lý hàng nghìn kết nối mạng hoặc thao tác I/O-bound có độ trễ cao (như web requests, database queries, WebSockets). asyncio cực kỳ tối ưu cho các thao tác này vì nó hoạt động trên đơn luồng, tránh được hoàn toàn chi phí chuyển đổi ngữ cảnh nặng nề giữa các thread.
+·     Sử dụng concurrent.futures kết hợp ThreadPoolExecutor khi làm việc với các thư viện đồng bộ (blocking) hoặc thao tác I/O-bound đã cũ, không hỗ trợ cơ chế bất đồng bộ của asyncio. Việc gọi ThreadPoolExecutor sẽ tạo ra các luồng thực sự do hệ điều hành quản lý, phù hợp khi tích hợp các thư viện bên thứ ba mà chưa có giải pháp thay thế qua luồng bất đồng bộ.
+·     Sử dụng concurrent.futures kết hợp ProcessPoolExecutor khi ứng dụng chủ yếu là CPU-bound (tính toán toán học nặng, mã hóa, xử lý hình ảnh phức tạp). Việc sử dụng đa tiến trình cho phép mã Python vượt qua giới hạn của Global Interpreter Lock (GIL) và khai thác được toàn bộ năng lực của CPU đa nhân.
+ 
+2. Vòng lặp sự kiện (Event Loop) – asyncio.get_event_loop()
+2.1. Sự kiện (Event) là gì?
+·     Sự kiện là một hành động diễn ra khi người dùng tương tác với chương trình (gõ phím, click chuột, nhận dữ liệu từ mạng…).
+·         Trong hệ thống tính toán, có 3 thực thể liên quan:
+·     Nguồn sự kiện (Event Source): Thực thể tạo ra sự kiện.
+·     Trình xử lý sự kiện (Event Handler): Là hàm callback được gọi sau khi sự kiện xảy ra. Lập trình viên viết mã cho callback này.
+·     Vòng lặp sự kiện (Event Loop): Thực thể thứ ba đóng vai trò điều phối.
+2.2. Event Loop hoạt động như thế nào?
+Event Loop là một cấu trúc lập trình (design pattern) hoạt động theo chu kỳ:
+┌─────────────────────────────────────────┐
+│                EVENT LOOP CYCLE                                                 │
+│                                         │
+│  ┌─────┐           ┌──────────┐                   ┌───────┐        │
+│  │Chờ       │───▶│Nhận sự            │───▶ │Gọi                   │       │
+│  │sự          │          │kiện từ               │           │handler       │        │
+│  │kiện        │          │hàng đợi            │         │tương         │        │
+│  │             │          │                          │           │ứng                    │        │
+│  └─────┘          └──────────┘        └───┬───┘         │
+│           ▲                                                                       │                      │
+│            └────────────────────────────┘                      │
+│                  (lặp lại)                                                                        │
+└─────────────────────────────────────────┘
+Nguyên lý hoạt động:
+1.   Đưa ra yêu cầu tới nhà cung cấp sự kiện (bên trong hoặc bên ngoài).
+2.   Gọi trình xử lý sự kiện có liên quan.
+3.   Hoạt động theo chu kỳ trong toàn bộ quá trình thực thi chương trình.
+4.   Theo dõi sự kiện trong cấu trúc dữ liệu hàng đợi (queue), xử lý từng sự kiện một khi luồng chính rảnh rỗi.
+2.3. Lấy và điều khiển Event Loop qua asyncio.get_event_loop()
+import asyncio
+
+# Cách 1: Lấy event loop hiện tại (Python 3.4+)
+loop = asyncio.get_event_loop()
+
+# Chạy một coroutine cho đến khi hoàn tất
+loop.run_until_complete(my_coroutine())
+
+# Chạy event loop vô thời hạn
+loop.run_forever()
+
+# Đóng event loop khi hoàn tất
+loop.close()
+# Cách 2: Dùng asyncio.run() (Python 3.7+ – phương pháp hiện đại)
+import asyncio
+
+async def main():
+        print("Hello")
+        await asyncio.sleep(1)
+        print("World")
+
+asyncio.run(main())  # Tự tạo loop, chạy, và tự động đóng
+2.4. Các phương thức quan trọng của Event Loop
+Phương thức
+	Mô tả
+	loop.run_until_complete(future)
+	Chạy vòng lặp cho đến khi future hoàn tất
+	loop.run_forever()
+	Chạy vòng lặp vô thời hạn (cho đến khi gọi stop())
+	loop.stop()
+	Dừng event loop
+	loop.close()
+	Đóng event loop, giải phóng tài nguyên
+	loop.is_running()
+	Kiểm tra vòng lặp có đang chạy không
+	loop.is_closed()
+	Kiểm tra vòng lặp đã được đóng chưa
+	loop.create_task(coro)
+	Lên lịch chạy một coroutine thành Task
+	loop.call_soon(callback, *args)
+	Gọi hàm callback trong lần lặp tiếp theo
+	loop.call_later(delay, callback)
+	Gọi hàm callback sau delay giây
+	 
+2.5. Ví dụ minh họa hoàn chỉnh
+import asyncio
+
+async def say_after(delay, message):
+        """Coroutine mô phỏng tác vụ I/O"""
+        await asyncio.sleep(delay)
+    print(f"[{asyncio.get_event_loop().time():.1f}s] {message}")
+
+async def main():
+        print(f"Bắt đầu tại: {asyncio.get_event_loop().time():.1f}s")
+        
+        # Chạy tuần tự → mất 3 giây
+        await say_after(1, "Xin chào")
+        await say_after(2, "Thế giới")
+        
+        print(f"Kết thúc tại: {asyncio.get_event_loop().time():.1f}s")
+
+# Lấy event loop và chạy
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+loop.close()
+2.6. Câu hỏi vấn đáp
+Câu hỏi 1: Event Loop là gì? Vai trò của nó trong mô hình bất đồng bộ?
+Trả lời: Event Loop là cấu trúc lập trình hoạt động theo chu kỳ, nhận nhiệm vụ chờ và xử lý sự kiện trong chương trình. Vai trò của nó bao gồm: (1) Theo dõi sự kiện được lưu trong hàng đợi, (2) Gọi các event handler tương ứng khi luồng chính rảnh rỗi, và (3) Điều phối thứ tự thực thi của các coroutine.
+Câu hỏi 2: Sự khác biệt giữa loop.run_until_complete() và loop.run_forever() là gì?
+Trả lời: run_until_complete(future) sẽ duy trì vòng lặp cho đến khi future hoặc coroutine đầu vào hoàn tất, sau đó tự dừng lại. Ngược lại, run_forever() sẽ chạy vòng lặp vô thời hạn cho đến khi lập trình viên chủ động gọi loop.stop(). Cách này thường được áp dụng cho các hệ thống máy chủ mạng cần lắng nghe kết nối liên tục.
+Câu hỏi 3: Phương thức asyncio.get_event_loop() khác gì với asyncio.run()?
+Trả lời: get_event_loop() (từ Python 3.4) trả về vòng lặp hiện tại, yêu cầu lập trình viên phải gọi thủ công các hàm run_until_complete() và close(). Trong khi đó, asyncio.run() (từ Python 3.7) là cách thức tiếp cận mới và an toàn hơn, nó tự động khởi tạo vòng lặp mới, thực thi coroutine chính, và đảm nhiệm luôn việc đóng vòng lặp cùng với dọn dẹp các tác vụ còn sót lại.
+Câu hỏi 4: Mỗi tiến trình có tối đa bao nhiêu Event Loop?
+Trả lời: Mặc định, mỗi tiến trình chỉ đi kèm với một Event Loop duy nhất hoạt động trên luồng chính. Tuy nhiên, lập trình viên có thể tạo thêm event loop cho các luồng phụ (threads) bằng cách sử dụng asyncio.new_event_loop().
+ 
+3. Coroutines – Khai báo và xử lý với @asyncio.coroutine
+3.1. Coroutine là gì?
+Coroutine là sự tổng quát hóa của khái niệm chương trình con (subroutine, hay hàm thông thường):
+Đặc điểm
+	Subroutine (Hàm thường)
+	Coroutine
+	Điểm vào
+	Một điểm vào duy nhất
+	Nhiều điểm vào
+	Thực thi
+	Chạy tuần tự từ đầu đến cuối
+	Có thể tạm dừng và tiếp tục
+	Kết quả
+	Trả về một lần duy nhất bằng lệnh return
+	Có thể trả về (yield) dữ liệu nhiều lần
+	Điều khiển
+	Gọi → chạy → trả về
+	Có thể chuyển quyền điều khiển cho một coroutine khác
+	 
+Trong một hệ thống tính toán lớn, chương trình thường được chia thành các chương trình con để thực hiện từng nhiệm vụ cụ thể. Coroutine nâng tầm khái niệm này: nó cho phép tạm dừng luồng thực thi, chuyển quyền điều khiển sang đơn vị khác, và tự động liên kết với nhau tạo thành một quy trình (pipeline) hoạt động trơn tru.
+3.2. Bốn đặc tính quan trọng của Coroutine
+1.   Khả năng tạm dừng và tiếp tục: Một coroutine có thể bị treo (suspend) khi đang chờ xử lý thao tác I/O. Sau khi I/O hoàn tất, nó sẽ thức dậy và tiếp tục thực thi từ đúng điểm dừng trước đó.
+2.   Chạy đồng thời trên một luồng duy nhất: Các coroutine được thực thi cùng nhau trên một thread duy nhất. Cơ chế chuyển đổi (context switch) diễn ra nhẹ nhàng ở cấp độ ngôn ngữ lập trình bất cứ khi nào xuất hiện lệnh await.
+3.   Tự động liên kết: Coroutine có khả năng tự liên kết với nhau thành một đường ống, không yêu cầu bất kỳ hàm trung tâm nào đóng vai trò giám sát thứ tự thực thi nghiêm ngặt.
+4.   Nhường quyền điều khiển (Yielding a value): Coroutine có thể tạm ngưng đồng thời chuyển giá trị dữ liệu và luồng điều khiển sang một coroutine khác.
+3.3. Hai phương pháp khai báo Coroutine
+Cách 1: Sử dụng decorator @asyncio.coroutine (Python 3.4 – Cú pháp cũ dựa trên generator)
+import asyncio
+
+@asyncio.coroutine
+def fetch_data():
+        """Coroutine theo cú pháp cũ – dựa trên generator"""
+        print("Bắt đầu tải dữ liệu...")
+        yield from asyncio.sleep(2)  # Tạm dừng 2 giây
+        print("Tải xong!")
+        return {"data": [1, 2, 3]}
+
+loop = asyncio.get_event_loop()
+result = loop.run_until_complete(fetch_data())
+print(f"Kết quả: {result}")
+loop.close()
+Ghi chú: Decorator @asyncio.coroutine đã bị đánh dấu là lỗi thời (deprecated) từ Python 3.8 và chính thức bị loại bỏ trong Python 3.11. Việc tìm hiểu cách này chủ yếu để hỗ trợ việc bảo trì các hệ thống cũ.
+Cách 2: Sử dụng cú pháp async def (Python 3.5+ – Coroutine nguyên bản)
+import asyncio
+
+async def fetch_data():
+        """Coroutine nguyên bản – native"""
+        print("Bắt đầu tải dữ liệu...")
+        await asyncio.sleep(2)  # Tạm dừng 2 giây
+        print("Tải xong!")
+        return {"data": [1, 2, 3]}
+
+asyncio.run(fetch_data())
+3.4. So sánh hai cú pháp
+Tiêu chí
+	@asyncio.coroutine + yield from
+	async def + await
+	Phiên bản hỗ trợ
+	Python 3.4+
+	Python 3.5+
+	Nền tảng
+	Dựa trên Generator
+	Native coroutine
+	Trạng thái
+	Đã lỗi thời (3.8), Bị xóa (3.11)
+	Tiêu chuẩn hiện hành
+	Từ khóa tạm dừng
+	yield from
+	await
+	Phân tích kiểu
+	Hạn chế, khó phát hiện lỗi
+	Được các IDE và Type Checker hỗ trợ đầy đủ
+	Hiệu năng thực thi
+	Chậm hơn do chi phí overhead của generator
+	Nhanh hơn, tối ưu hơn
+	 
+3.5. Ví dụ: Coroutine chạy đồng thời
+import asyncio
+import time
+
+async def download_file(filename, duration):
+        """Mô phỏng thao tác tải file bất đồng bộ"""
+        print(f"Bắt đầu tải: {filename}")
+        await asyncio.sleep(duration)
+        print(f"Hoàn tất: {filename} ({duration}s)")
+        return f"{filename} - OK"
+
+async def main():
+        start = time.time()
+        
+        # Thực thi đồng thời 3 coroutine
+        results = await asyncio.gather(
+        download_file("report.pdf", 3),
+        download_file("image.png", 2),
+        download_file("data.csv", 1),
+    )
+        
+        elapsed = time.time() - start
+        print(f"\nKết quả: {results}")
+        print(f"Tổng thời gian: {elapsed:.1f}s")
+
+asyncio.run(main())
+3.6. Câu hỏi vấn đáp
+Câu hỏi 1: Coroutine có điểm gì khác biệt cốt lõi so với hàm thông thường?
+Trả lời: Một hàm thông thường luôn chạy mạch lạc từ đầu đến cuối rồi mới trả về kết quả. Ngược lại, một coroutine có khả năng tạm dừng ở giữa chừng (tại các từ khóa await), nhường quyền điều khiển CPU cho một tác vụ khác, rồi sau đó tự động khôi phục và chạy tiếp từ vị trí đã dừng.
+Câu hỏi 2: So sánh @asyncio.coroutine và async def?
+Trả lời: @asyncio.coroutine là một cú pháp cũ ra mắt ở Python 3.4, tận dụng tính năng generator và đi kèm từ khóa yield from. Trong khi đó, async def (có từ Python 3.5) là cú pháp coroutine nguyên bản của ngôn ngữ, đi liền với await. Cú pháp mới giúp cải thiện tốc độ, giúp mã dễ đọc hơn, hỗ trợ kiểm tra kiểu nghiêm ngặt và đã trở thành tiêu chuẩn chung. Việc sử dụng @asyncio.coroutine đã không còn được hỗ trợ từ bản Python 3.11.
+Câu hỏi 3: Hành động "Yielding a value" trong môi trường coroutine mang ý nghĩa gì?
+Trả lời: Đó là quá trình mà một coroutine tự nguyện tạo ra và gửi lại một giá trị cho hệ thống, đồng thời nhường lại quyền điều khiển (CPU) cho một coroutine khác thực thi. Hành động này giúp luồng xử lý không bị chặn lại khi hệ thống cần giải quyết các công việc tiêu tốn thời gian chờ đợi.
+Câu hỏi 4: Bằng cách nào hàng loạt coroutine có thể cùng chạy trên một luồng duy nhất?
+Trả lời: Nhờ vào bản chất tạm dừng tại các điểm await (nơi chờ kết quả I/O). Khi một coroutine dừng lại để chờ dữ liệu tải xuống, CPU sẽ ở trạng thái nhàn rỗi. Event Loop nắm bắt được điều này và ngay lập tức lấy một coroutine khác đang nằm trong hàng đợi để cung cấp CPU cho nó chạy. Không có chi phí xử lý chuyển đổi giữa các luồng hệ điều hành, tạo nên một hiệu suất cực kỳ cao.
+ 
+4. Quản lý Tác vụ (Task) – asyncio.Task
+4.1. Bản chất của Task
+Task là một lớp con trong thư viện asyncio được thiết kế đặc biệt nhằm mục đích đóng gói và quản lý các coroutine thực thi trong môi trường đa nhiệm.
+Sự khác nhau cơ bản giữa Task và Coroutine:
+·     Lời gọi một Coroutine (như my_func()) chỉ tạo ra một đối tượng coroutine tĩnh (blueprint). Nó sẽ không tự khởi chạy.
+·     Một Task sẽ nhận lấy đối tượng coroutine đó, đóng gói nó, và chủ động lên lịch thực thi với Event Loop. Task nắm giữ trạng thái sống của coroutine (đang chờ, hoàn thành, bị lỗi, bị hủy).
+4.2. Khởi tạo và quản lý Task
+import asyncio
+
+async def worker(name, delay):
+        print(f"{name}: bắt đầu")
+        await asyncio.sleep(delay)
+        print(f"{name}: hoàn tất sau {delay}s")
+        return f"Kết quả từ {name}"
+
+async def main():
+        # Cách 1: Sử dụng asyncio.create_task() (Từ Python 3.7 trở đi)
+        task1 = asyncio.create_task(worker("Task-A", 2))
+        task2 = asyncio.create_task(worker("Task-B", 1))
+        
+        # Cách 2: Sử dụng asyncio.ensure_future() (Hỗ trợ từ Python 3.4)
+        task3 = asyncio.ensure_future(worker("Task-C", 3))
+        
+    # Sử dụng gather để đợi toàn bộ các task
+        results = await asyncio.gather(task1, task2, task3)
+        print(f"Tất cả kết quả: {results}")
+
+asyncio.run(main())
+4.3. Các phương thức thao tác với Task
+Phương thức
+	Tác dụng
+	task.cancel()
+	Phát lệnh hủy tác vụ (kích hoạt lỗi CancelledError bên trong coroutine)
+	task.cancelled()
+	Kiểm tra xem tác vụ đã bị hủy bỏ hay chưa
+	task.done()
+	Kiểm tra tác vụ đã hoàn thành chưa (bao gồm cả trạng thái xong, lỗi, hủy)
+	task.result()
+	Lấy giá trị trả về của tác vụ (Sẽ báo lỗi nếu gọi khi tác vụ chưa hoàn thành)
+	task.exception()
+	Lấy đối tượng lỗi nếu coroutine phát sinh ngoại lệ
+	task.add_done_callback(fn)
+	Đăng ký một hàm tự động chạy sau khi tác vụ hoàn thành
+	task.get_name()
+	Lấy chuỗi định danh của task (Từ Python 3.8)
+	task.set_name(name)
+	Đặt lại định danh cho task
+	 
+4.4. Cơ chế hủy (Cancel) tác vụ
+Khi hệ thống không cần kết quả của một tác vụ nữa hoặc tác vụ chạy quá lâu, chúng ta có thể gọi task.cancel(). Phương thức này sẽ gửi một ngoại lệ asyncio.CancelledError vào chính vị trí await hiện hành bên trong coroutine.
+import asyncio
+
+async def long_running_task():
+        try:
+            print("Task đang chạy...")
+            await asyncio.sleep(10)
+            return "Hoàn tất"
+        except asyncio.CancelledError:
+            print("Task bị hủy! Bắt đầu dọn dẹp tài nguyên...")
+            raise  # Nên re-raise lỗi để Event Loop ghi nhận trạng thái cancelled một cách chính xác
+
+async def main():
+        task = asyncio.create_task(long_running_task())
+        
+        await asyncio.sleep(2)  # Mô phỏng chờ 2 giây
+        task.cancel()  # Chủ động hủy task
+        
+    try:
+            await task
+        except asyncio.CancelledError:
+            print(f"Xác nhận task đã bị hủy: {task.cancelled()}")
+
+asyncio.run(main())
+4.5. Câu hỏi vấn đáp
+Câu hỏi 1: Task và Coroutine đóng vai trò như thế nào với nhau?
+Trả lời: Coroutine đóng vai trò định nghĩa logic công việc. Task bao bọc lấy Coroutine để lập lịch chạy cho hệ thống Event Loop. Nếu không bọc coroutine lại hoặc không await, logic bên trong sẽ mãi nằm yên không được khởi động. Task đồng thời cho phép theo dõi trạng thái sống và đọc kết quả của công việc.
+Câu hỏi 2: Đâu là cách thức tạo Task an toàn và hiện đại nhất?
+Trả lời: Cách tốt nhất hiện nay là gọi hàm asyncio.create_task(). Phương thức này đảm bảo tính tương thích và dễ đọc, trở thành tiêu chuẩn từ Python 3.7. Hàm asyncio.ensure_future() hoặc loop.create_task() chủ yếu xuất hiện ở các nền tảng Python cũ hơn.
+Câu hỏi 3: Hoạt động hủy Task sẽ ảnh hưởng thế nào đến luồng chạy?
+Trả lời: Khi task.cancel() được gọi, một lỗi có tên asyncio.CancelledError sẽ được chủ động "tiêm" vào coroutine đúng tại thời điểm nó gọi await để chờ I/O. Lập trình viên có thể bọc câu lệnh try/except bên trong coroutine để bắt lỗi này và đóng các kết nối dang dở trước khi coroutine thực sự kết thúc.
+Câu hỏi 4: Hàm asyncio.gather() có công dụng cụ thể là gì?
+Trả lời: asyncio.gather() hỗ trợ tập hợp nhiều đối tượng có thể chờ (awaitables như coroutine, task, future) thành một nhóm và chạy toàn bộ chúng một cách song song. Khi chạy xong, kết quả trả về luôn được xếp thành một mảng đúng với thứ tự danh sách các tham số đầu vào ban đầu.
+ 
+5. Lớp asyncio.Future và cách gắn hàm gọi lại (Callback)
+5.1. Bản chất đối tượng Future
+Future là một khái niệm trừu tượng, đại diện cho giá trị kết quả của một hoạt động bất đồng bộ sẽ hoàn thành tại một thời điểm nào đó trong tương lai. Có thể coi Future giống như một chiếc hộp trống:
+·     Ban đầu hộp chưa có kết quả (trạng thái chờ).
+·     Khi tính toán xong, kết quả sẽ được đặt vào hộp.
+·     Những đoạn mã khác có thể lấy hộp này ra xem, hoặc chờ đến khi hộp có dữ liệu để hoạt động tiếp.
+Trạng thái sống của Future diễn biến từ PENDING (đang chờ) sang FINISHED (khi đã nhận kết quả qua set_result hoặc nhận lỗi qua set_exception) hoặc CANCELLED (khi bị gọi lệnh cancel()).
+5.2. So sánh asyncio.Future và concurrent.futures.Future
+Đặc điểm
+	asyncio.Future
+	concurrent.futures.Future
+	Môi trường sử dụng
+	Vòng lặp sự kiện bất đồng bộ
+	Hệ thống Thread Pool hoặc Process Pool
+	Cơ chế chờ
+	Hỗ trợ chờ thông qua await
+	Không hỗ trợ await, dùng hàm .result() có tính chất khóa luồng (blocking)
+	Tính an toàn luồng
+	Không an toàn (Non thread-safe)
+	An toàn giữa các thread (Thread-safe)
+	Cách khởi tạo
+	Bằng lệnh loop.create_future()
+	Trả về sau lệnh executor.submit()
+	 
+5.3. Sử dụng asyncio.Future cơ bản
+import asyncio
+
+async def set_result_after(future, delay, value):
+        """Mô phỏng công việc và tự gắn dữ liệu vào Future"""
+        await asyncio.sleep(delay)
+        future.set_result(value)
+        print("Dữ liệu đã được lưu vào Future.")
+
+async def main():
+        loop = asyncio.get_event_loop()
+        
+        future = loop.create_future()
+        print(f"Trạng thái chờ ban đầu: {not future.done()}")
+        
+        # Đẩy tác vụ chạy nền
+    asyncio.create_task(set_result_after(future, 2, "Thông điệp trả về"))
+        
+        # Mã chính dùng lệnh await để khóa và đợi kết quả trong Future
+        result = await future
+        print(f"Kết quả thu được: {result}")
+        print(f"Trạng thái sau khi hoàn thành: {future.done()}")
+
+asyncio.run(main())
+5.4. Đăng ký hàm gọi lại (Callback)
+Chức năng add_done_callback(fn) giúp lập trình viên đăng ký một hàm phụ. Hàm phụ này sẽ tự động kích hoạt lập tức ngay khi Future chuyển trạng thái kết thúc (có thể do thành công, phát sinh lỗi, hoặc bị hủy bỏ).
+import asyncio
+
+def on_task_done(future):
+        """Callback – tự chạy khi Future xong việc"""
+        if future.cancelled():
+            print("Tác vụ bị hủy!")
+        elif future.exception():
+            print(f"Tác vụ bị lỗi: {future.exception()}")
+        else:
+            print(f"Tác vụ xong thành công. Dữ liệu: {future.result()}")
+
+async def compute(x, y):
+        await asyncio.sleep(1)
+        return x + y
+
+async def main():
+        # Task là một Future
+        task = asyncio.create_task(compute(10, 20))
+        
+        # Liên kết callback vào Task
+        task.add_done_callback(on_task_done)
+        
+        # Chờ lệnh chạy xong
+        await task
+
+asyncio.run(main())
+Lưu ý: Một thuộc tính cốt lõi của cấu trúc lập trình asyncio là đối tượng asyncio.Task vốn kế thừa hoàn toàn từ lớp asyncio.Future. Do đó mọi Task đều hiển nhiên là một Future, và sở hữu đầy đủ bộ phương thức như set_result(), exception() hay add_done_callback().
+5.5. Câu hỏi vấn đáp
+Câu hỏi 1: Ý nghĩa của khái niệm Future trong kiến trúc bất đồng bộ?
+Trả lời: Nó như một phiếu đặt chỗ tạm thời (placeholder) hứng lấy những giá trị chưa được tính ra. Hệ thống dựa vào đối tượng này để điều phối, thông báo cho các đoạn mã đang bị treo biết rằng dữ liệu đã sẵn sàng để tiếp tục thi hành.
+Câu hỏi 2: Cơ chế Callback thông qua add_done_callback() hoạt động dựa trên nguyên lý nào?
+Trả lời: Một hoặc nhiều hàm callback có thể được đưa vào danh sách đăng ký của một đối tượng Future. Ngay khi trạng thái sự kiện nội bộ của Future chuyển thành FINISHED, Event Loop sẽ gọi lần lượt tất cả các hàm này, tham số truyền vào hàm callback chính là bản thể của Future vừa mới hoàn thành.
+Câu hỏi 3: Future và Task gắn kết với nhau như thế nào?
+Trả lời: Theo sơ đồ thừa kế, asyncio.Task được mở rộng trực tiếp từ asyncio.Future. Nói cách khác, Task chính là một biến thể nâng cao của Future. Task sẽ theo sát một coroutine cho đến khi coroutine này kết thúc công việc, và nó dùng chính bản thân (ở vị thế của một Future) để chứa lại kết quả trả về từ coroutine đó.
+Câu hỏi 4: Có những trường hợp nào ta nên chọn dùng callback thay cho cú pháp await?
+Trả lời: Nên chọn dùng await khi logic thực thi phụ thuộc bắt buộc vào dữ liệu trả về từ bất đồng bộ. Ngược lại, nên tận dụng hàm callback trong trường hợp xử lý kết quả bên lề (side-effect), ví dụ như ghi vào file nhật ký log, theo dõi số liệu giám sát, kích hoạt sự kiện giao diện... mà không muốn việc xử lý đó làm chặn tiến trình hoạt động hiện hành của chuỗi coroutine.

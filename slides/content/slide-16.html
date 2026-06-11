@@ -1,0 +1,52 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 02 · concurrent.futures</span>
+    <h3>3. Đối tượng Future và Vòng đời</h3>
+    <div class="columns">
+        <div class="column" style="flex: 0.9;">
+            <div class="info-box">
+                <h4>Khái niệm Future (Tương lai)</h4>
+                <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-secondary);">
+                    Là đối tượng đóng gói một tác vụ bất đồng bộ, đại diện cho kết quả sẽ có trong tương lai. Được sinh ra tự động khi gọi phương thức <code>Executor.submit()</code>.
+                </p>
+            </div>
+            <div class="example-card" style="margin-top: 0.5rem; padding: 0.8rem;">
+                <span class="example-badge">Ẩn dụ: "Tờ biên lai"</span>
+                <p style="font-size: 0.8rem; line-height: 1.4; color: var(--text-secondary);">
+                    Khi gửi xe, bạn nhận biên lai. Bạn có thể làm việc khác, kiểm tra xem xe lấy chưa, và dùng biên lai để lấy xe khi sẵn sàng.
+                </p>
+            </div>
+            <div class="info-box" style="margin-top: 0.5rem;">
+                <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; font-family: var(--font-heading);">Bộ điều khiển trạng thái:</h4>
+                <div class="sim-controls" style="padding: 0.4rem; justify-content: center; gap: 0.35rem; display: flex; flex-wrap: wrap; border: none; background: transparent;">
+                    <button class="sim-btn" id="futureCreateBtn">1. Gửi việc (Create)</button>
+                    <button class="sim-btn" id="futureStartBtn" disabled>2. Worker chạy</button>
+                    <button class="sim-btn btn-rose" id="futureFinishBtn" disabled>3. Xong việc (Result)</button>
+                    <button class="sim-btn btn-sec" id="futureCancelBtn" disabled>Hủy việc (Cancel)</button>
+                </div>
+            </div>
+        </div>
+        <div class="column" style="flex: 1.1;">
+            <div class="glass-card" style="padding: 1.25rem; background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; height: 100%; justify-content: flex-start;">
+                <h4 style="font-size: 1.05rem; color: var(--accent-sky); margin-bottom: 0.5rem; text-align: center; font-family: var(--font-heading);">Trực quan hóa Máy Trạng thái Future</h4>
+                
+                <div class="lifecycle-flow" style="padding: 0.2rem 0; gap: 0.3rem;">
+                    <div class="state-card pnd" id="futureStatePending">PENDING<span class="state-desc">Đang xếp trong Task Queue</span></div>
+                    <div class="l-arrow" style="font-size: 1rem;">&darr;</div>
+                    <div class="state-card rng" id="futureStateRunning">RUNNING<span class="state-desc">Worker đang thực thi ngầm</span></div>
+                    <div class="l-arrow" style="font-size: 1rem;">&darr;</div>
+                    <div class="lifecycle-ends">
+                        <div class="state-card dn" id="futureStateFinished">FINISHED<span class="state-desc">Đã xong / Có kết quả</span></div>
+                        <div class="state-card cnc" id="futureStateCancelled">CANCELLED<span class="state-desc">Đã hủy bỏ thành công</span></div>
+                    </div>
+                </div>
+                
+                <div class="info-box" style="margin-top: 0.5rem; background: #1e293b; border: 1px solid rgba(0,0,0,0.08); padding: 0.6rem;">
+                    <strong style="font-size: 0.8rem; color: var(--accent-sky);">Giải thích kỹ thuật dưới nền:</strong>
+                    <p id="futureExplainText" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; line-height: 1.35;">
+                        Nhấp nút "Gửi việc" ở bộ điều khiển để bắt đầu khởi tạo Future.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

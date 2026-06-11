@@ -1,0 +1,41 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 03 · asyncio</span>
+    <h3>2. Vòng lặp sự kiện (Event Loop)</h3>
+    <div class="columns">
+        <div class="column">
+            <div class="info-box">
+                <h4>2.1. Khái niệm lập trình sự kiện (Event-driven Programming)</h4>
+                <p>Là mô hình lập trình mà luồng thực thi của chương trình được quyết định bởi các sự kiện phát sinh từ bên ngoài hoặc bên trong hệ thống (như nhấn phím, nhấp chuột, nhận dữ liệu mạng, hết giờ hẹn timer).</p>
+                <p style="margin-top: 0.5rem;"><strong>Nguyên lý:</strong> Chương trình không đứng đợi một tác vụ hoàn tất. Khi có sự kiện xảy ra, hệ thống tự động kích hoạt bộ xử lý sự kiện tương ứng để giải quyết.</p>
+            </div>
+            <div class="info-box" style="margin-top: 0.5rem; background: rgba(56, 189, 248, 0.03); border-color: rgba(56, 189, 248, 0.1);">
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Một sự kiện (Event) được tạo ra và xử lý nhịp nhàng thông qua sự tương tác chặt chẽ của 4 thực thể cốt lõi trong hệ thống điều phối.
+                </p>
+            </div>
+        </div>
+        <div class="column">
+            <div class="info-box" style="height: 100%;">
+                <h4>2.2. Bốn thực thể vận hành cốt lõi</h4>
+                <ul style="padding-left: 1rem;">
+                    <li style="margin-bottom: 0.5rem;">
+                        <strong>Nguồn sự kiện (Event Source):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Nơi khởi tạo và phát đi các sự kiện vào trong hệ thống (Hệ điều hành, bàn phím, card mạng).</p>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <strong>Hàng đợi sự kiện (Event Queue):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Cấu trúc dữ liệu dạng hàng đợi (FIFO) lưu trữ tạm thời các sự kiện vừa phát sinh để chờ xử lý.</p>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <strong>Vòng lặp sự kiện (Event Loop):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Cấu trúc điều phối trung tâm chạy vòng lặp vô tận, liên tục kiểm tra hàng đợi để lấy sự kiện ra phân phát.</p>
+                    </li>
+                    <li>
+                        <strong>Bộ xử lý sự kiện (Event Handler):</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Bản chất là một hàm gọi lại (callback/coroutine) để xử lý sự kiện, được gọi lên khi luồng chính rảnh rỗi.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

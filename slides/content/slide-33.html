@@ -1,0 +1,32 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 03 · asyncio</span>
+    <h3>4. Quản lý Tác vụ - asyncio.Task</h3>
+    <div class="columns">
+        <div class="column" style="flex: 1.1;">
+            <div class="code-wrapper" style="margin-top: 0; max-height: 440px; overflow-y: auto;">
+                <pre><code><div class="code-line" id="s33-l1"><span class="keyword">async def</span> <span class="func">background_job</span>():</div><div class="code-line" id="s33-l2">    <span class="keyword">try</span>:</div><div class="code-line" id="s33-l3">        print(<span class="str">"-> [Task]: Đang chạy ngầm..."</span>)</div><div class="code-line" id="s33-l4">        <span class="keyword">await</span> asyncio.sleep(<span class="str">5</span>)</div><div class="code-line" id="s33-l5">        <span class="keyword">return</span> <span class="str">"Xong!"</span></div><div class="code-line" id="s33-l6">    <span class="keyword">except</span> asyncio.CancelledError:</div><div class="code-line" id="s33-l7">        print(<span class="str">"-> [Task]: Đã bắt được sự kiện HỦY!"</span>)</div><div class="code-line" id="s33-l8">        <span class="keyword">raise</span></div><div class="code-line" id="s33-l9"></div><div class="code-line" id="s33-l10"><span class="keyword">async def</span> <span class="func">main</span>():</div><div class="code-line" id="s33-l11">    task = asyncio.create_task(background_job())</div><div class="code-line" id="s33-l12">    <span class="keyword">await</span> asyncio.sleep(<span class="str">1</span>)</div><div class="code-line" id="s33-l13">    </div><div class="code-line" id="s33-l14">    print(f<span class="str">"Hoàn thành chưa? {task.done()} | Yêu cầu hủy..."</span>)</div><div class="code-line" id="s33-l15">    task.cancel()  <span class="comment"># Kích hoạt CancelledError</span></div><div class="code-line" id="s33-l16">    </div><div class="code-line" id="s33-l17">    <span class="keyword">try</span>: <span class="keyword">await</span> task</div><div class="code-line" id="s33-l18">    <span class="keyword">except</span> asyncio.CancelledError:</div><div class="code-line" id="s33-l19">        print(<span class="str">"Đã xác nhận hủy thành công."</span>)</div></code></pre>
+            </div>
+        </div>
+        <div class="column" style="flex: 0.9;">
+            <div class="info-box" style="padding: 1rem;">
+                <h4>Định nghĩa Task & So sánh</h4>
+                <p style="font-size: 0.82rem; line-height: 1.45;"><strong>asyncio.Task:</strong> Con của <code>asyncio.Future</code>, dùng để đóng gói và quản lý trạng thái của coroutine.</p>
+                <p style="font-size: 0.82rem; line-height: 1.45; margin-top: 0.25rem;"><strong>So sánh:</strong> Coroutine là bản thiết kế tĩnh. **Task = Coroutine + Đã lên lịch + Theo dõi trạng thái**.</p>
+            </div>
+            
+            <div class="info-box" style="display: flex; flex-direction: column; flex: 1;">
+                <h4>KẾT QUẢ OUTPUT (Chạy thử)</h4>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <button class="sim-btn btn-rose" id="runCancelCodeBtn">Chạy Code</button>
+                    <button class="sim-btn btn-sec" id="resetCancelCodeBtn">Reset</button>
+                </div>
+                <div class="ascii-timeline" style="flex: 1; min-height: 120px; padding: 0.5rem 0.75rem; border-radius: 8px;">
+                    <pre id="cancelTerminalLogs" style="font-size: 0.68rem; font-family: var(--font-code); line-height: 1.35; white-space: pre-wrap;">Chờ chạy code...</pre>
+                </div>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.3;">
+                    *Hủy Task bằng <code>cancel()</code> sẽ tiêm lỗi <code>CancelledError</code> tại vị trí <code>await</code>, bắt buộc dùng try/except để dọn dẹp tài nguyên.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

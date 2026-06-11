@@ -1,0 +1,30 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 03 · asyncio</span>
+    <h3>5. asyncio.Future và add_done_callback()</h3>
+    <div class="columns">
+        <div class="column" style="flex: 1.15;">
+            <div class="code-wrapper" style="margin-top: 0; max-height: 440px; overflow-y: auto;">
+                <pre><code><div class="code-line" id="s34-l1"><span class="keyword">def</span> <span class="func">khi_hoan_thanh</span>(future):</div><div class="code-line" id="s34-l2">    print(<span class="str">"-> [Callback]: Nhận tín hiệu!"</span>)</div><div class="code-line" id="s34-l3">    print(f<span class="str">"-> [Callback]: Kết quả = '{future.result()}'"</span>)</div><div class="code-line" id="s34-l4"></div><div class="code-line" id="s34-l5"><span class="keyword">async def</span> <span class="func">gia_lap_tinh_toan</span>(future):</div><div class="code-line" id="s34-l6">    print(<span class="str">"-> [Coroutine]: Đang xử lý ngầm..."</span>)</div><div class="code-line" id="s34-l7">    <span class="keyword">await</span> asyncio.sleep(<span class="str">1.5</span>)</div><div class="code-line" id="s34-l8">    print(<span class="str">"-> [Coroutine]: Đã xong! Thiết lập kết quả..."</span>)</div><div class="code-line" id="s34-l9">    future.set_result(<span class="str">"KẾT QUẢ THÀNH CÔNG"</span>)</div><div class="code-line" id="s34-l10"></div><div class="code-line" id="s34-l11"><span class="keyword">async def</span> <span class="func">main</span>():</div><div class="code-line" id="s34-l12">    loop = asyncio.get_running_loop()</div><div class="code-line" id="s34-l13">    future = loop.create_future()</div><div class="code-line" id="s34-l14">    </div><div class="code-line" id="s34-l15">    <span class="comment"># Đính kèm callback phản ứng</span></div><div class="code-line" id="s34-l16">    future.add_done_callback(khi_hoan_thanh)</div><div class="code-line" id="s34-l17">    asyncio.create_task(gia_lap_tinh_toan(future))</div><div class="code-line" id="s34-l18">    </div><div class="code-line" id="s34-l19">    print(<span class="str">"Main đang chờ Future..."</span>)</div><div class="code-line" id="s34-l20">    <span class="keyword">await</span> future</div></code></pre>
+            </div>
+        </div>
+        <div class="column" style="flex: 0.85;">
+            <div class="info-box">
+                <h4>Cơ chế Callback & Trạng thái</h4>
+                <p style="font-size: 0.82rem; line-height: 1.45;">Gắn hàm xử lý tự động bằng <code>add_done_callback(fn)</code> khi Future/Task hoàn tất. Có thể gắn **nhiều callback** cùng lúc.</p>
+                <p style="font-size: 0.8rem; margin-top: 0.25rem; color: var(--text-muted);">
+                    Các API chính: <code>set_result()</code>, <code>result()</code>, <code>done()</code>, <code>cancel()</code>.
+                </p>
+            </div>
+            <div class="info-box" style="display: flex; flex-direction: column; flex: 1;">
+                <h4>KẾT QUẢ OUTPUT</h4>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <button class="sim-btn btn-rose" id="runFutureCodeBtn">Chạy Code</button>
+                    <button class="sim-btn btn-sec" id="resetFutureCodeBtn">Reset</button>
+                </div>
+                <div class="ascii-timeline" style="flex: 1; min-height: 140px; padding: 0.5rem 0.75rem; border-radius: 8px;">
+                    <pre id="futureTerminalLogs" style="font-size: 0.68rem; font-family: var(--font-code); line-height: 1.35; white-space: pre-wrap;">Chờ chạy code...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

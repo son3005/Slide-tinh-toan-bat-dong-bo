@@ -1,0 +1,36 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 02 · concurrent.futures</span>
+    <h3>Kết quả chạy thử nghiệm đo thời gian</h3>
+    <div class="columns">
+        <div class="column">
+            <div class="info-box" style="border-left: 4px solid var(--accent-sky); height: 100%;">
+                <h4 style="color: var(--accent-sky);">[1. Tác vụ I/O-bound (3 URLs)]</h4>
+                <div class="ascii-timeline">
+                    <pre>
+-> [Tuần tự] tốn: <b>3.00 giây</b>
+-> [ThreadPool] tốn: <b>1.00 giây</b>
+                    </pre>
+                </div>
+                <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">
+                    Do 3 task chạy đan xen song song ngầm trên 3 thread, tổng thời gian tốn chỉ bằng thời gian của task lâu nhất (1 giây so với 3 giây tuần tự).
+                </p>
+            </div>
+        </div>
+        <div class="column">
+            <div class="info-box" style="border-left: 4px solid var(--accent-rose); height: 100%;">
+                <h4 style="color: var(--accent-rose);">[2. Tác vụ CPU-bound (4 inputs)]</h4>
+                <div class="ascii-timeline">
+                    <pre>
+-> [Tuần tự] tốn: <b>2.22 giây</b>
+-> [ThreadPool] tốn: <b>2.62 giây</b> (Tệ hơn!)
+-> [ProcessPool] tốn: <b>0.70 giây</b> (Tối ưu!)
+                    </pre>
+                </div>
+                <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">
+                    *   **ThreadPool** tốn nhiều thời gian hơn cả tuần tự do khóa **GIL** của Python ngăn cản đa luồng chạy CPU thực tế, cộng thêm chi phí chuyển ngữ cảnh (context switch).
+                    *   **ProcessPool** tăng tốc rõ rệt nhờ chia việc chạy trên 4 nhân CPU thực tế, lách hoàn toàn rào cản khóa GIL.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

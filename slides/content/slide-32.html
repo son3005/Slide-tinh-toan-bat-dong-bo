@@ -1,0 +1,37 @@
+<div class="glass-card simulation-card">
+    <span class="slide-header">Phần 03 · Mô phỏng</span>
+    <h3>Mô phỏng 03: Trực quan hóa hoạt động Coroutines với async/await</h3>
+    <div class="sim-wrapper">
+        <div class="sim-controls">
+            <button class="sim-btn btn-rose" id="runCoroSimBtn">Chạy mô phỏng async/await</button>
+            <button class="sim-btn btn-sec" id="resetCoroSimBtn">Đặt lại</button>
+        </div>
+        <div class="coro-sim-container" id="coroSimContainer">
+            <div class="coro-column">
+                <h5>Mã lệnh thực thi</h5>
+                <div class="coro-code-exec">
+                    <div class="code-line" id="line-a1">async def task_a():</div>
+                    <div class="code-line ind" id="line-a2">print("A bắt đầu")</div>
+                    <div class="code-line ind highlight-await" id="line-a3">await asyncio.sleep(1)</div>
+                    <div class="code-line ind" id="line-a4">print("A kết thúc")</div>
+                    <div class="code-line" id="line-b1">async def task_b():</div>
+                    <div class="code-line ind" id="line-b2">print("B bắt đầu")</div>
+                    <div class="code-line ind highlight-await" id="line-b3">await asyncio.sleep(1)</div>
+                    <div class="code-line ind" id="line-b4">print("B kết thúc")</div>
+                </div>
+            </div>
+            <div class="coro-column">
+                <h5>Single Thread (Luồng chạy)</h5>
+                <div class="thread-exec-box" id="threadExecBox">
+                    <div class="thread-indicator-active" id="threadCurrentState">RẢNH RỖI</div>
+                </div>
+            </div>
+            <div class="coro-column">
+                <h5>RAM: Trạng thái đóng băng (Stack Frame)</h5>
+                <div class="memory-stack-box" id="memoryStackBox">
+                    <span class="stack-empty-text">Bộ nhớ trống...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

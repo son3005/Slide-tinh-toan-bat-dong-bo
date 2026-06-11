@@ -1,0 +1,57 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 02 · concurrent.futures</span>
+    <h3>4.2. So sánh Executor & 4.3. Lưu ý kỹ thuật</h3>
+    <div class="table-responsive" style="margin-bottom: 1rem;">
+        <table class="premium-table font-sm">
+            <thead>
+                <tr>
+                    <th>Tiêu chí</th>
+                    <th>ThreadPoolExecutor</th>
+                    <th>ProcessPoolExecutor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Worker bên dưới</strong></td>
+                    <td>Luồng (Threads) hệ điều hành</td>
+                    <td>Tiến trình (Processes) độc lập</td>
+                </tr>
+                <tr>
+                    <td><strong>Không gian bộ nhớ</strong></td>
+                    <td>Dùng chung bộ nhớ của tiến trình cha</td>
+                    <td>Độc lập, không dùng chung bộ nhớ</td>
+                </tr>
+                <tr>
+                    <td><strong>Rào cản khóa GIL</strong></td>
+                    <td>Bị giới hạn bởi khóa GIL (chỉ chạy trên 1 lõi CPU)</td>
+                    <td>Lách qua được khóa GIL (chạy song song thực sự)</td>
+                </tr>
+                <tr>
+                    <td><strong>Tác vụ phù hợp</strong></td>
+                    <td>Nặng về I/O (I/O-bound: đọc ghi file, mạng)</td>
+                    <td>Nặng về CPU (CPU-bound: thuật toán, giải toán)</td>
+                </tr>
+                <tr>
+                    <td><strong>Số worker mặc định</strong></td>
+                    <td><code>min(32, os.cpu_count() + 4)</code></td>
+                    <td>Bằng chính số lõi CPU logic của máy tính</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="columns">
+        <div class="column">
+            <div class="error-box deadlock" style="padding: 0.8rem;">
+                <span class="error-badge">ThreadPool Deadlock</span>
+                <p style="font-size: 0.78rem; line-height: 1.4;">Xảy ra khi một tác vụ đang chạy trong Pool lại đứng im chờ đợi kết quả của một tác vụ khác đang xếp hàng chờ worker rảnh trong chính Pool đó, gây khóa chéo tài nguyên vĩnh viễn.</p>
+            </div>
+        </div>
+        <div class="column">
+            <div class="error-box broken-pool" style="padding: 0.8rem;">
+                <span class="error-badge">Process Requirements</span>
+                <p style="font-size: 0.78rem; line-height: 1.4;">**Yêu cầu Picklable:** Tham số truyền vào hàm phải tuần tự hóa được (serialize) để gửi qua IPC. **BrokenProcessPool:** Lỗi nghiêm trọng khi một worker tiến trình bị chết đột ngột (hết RAM) làm hỏng toàn bộ bể chứa.</p>
+            </div>
+        </div>
+    </div>
+</div>

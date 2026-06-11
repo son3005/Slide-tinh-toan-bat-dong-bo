@@ -1,0 +1,284 @@
+﻿Thẻ 1
+ NỘI DUNG TRIỂN KHAI BẤT ĐỒNG BỘ QUA MODULE CONCURRENT.FUTURES
+
+
+1.Tổng quan về module Concurrent.futures
+- Module concurrent.futures được thêm vào từ phiên bản Python 3.2, cung cấp một giao diện cấp cao giúp lập trình viên thực thi các hàm một cách bất đồng bộ. Thay vì phải tự quản lý luồng lập trình viên có thể dễ dàng xử lý task đa luồng hoặc tận dụng tính đa lõi của những CPU đời mới xử lý tính toán nặng thông qua cơ chế hồ chứa một cách dễ dàng và nhanh chóng.
+
+
+
+
+
+
+________________
+
+
+2.Lớp trừu tượng Executor và các phương thức thực thi lệnh gọi bất đồng bộ: submit, map, shutdown. 
+- Lớp trừu tượng Executor: Trong module concurrent.futures, Executor là một lớp trừu tượng đóng vai trò cung cấp các phương thức để thực hiện gọi bất đồng bộ, các lập trình viên không nên sử dụng trực tiếp đối tượng từ lớp này mà phải sử dụng thông qua các lớp con cụ thể của nó.
+* submit(function, argument)  : đây là phương thức dùng để đẩy một hàm function vào lịch trình để thực thi bất đồng bộ. Đặc điểm quan trọng nhất của phương thức này là nó lập tức trả về một đối tượng Future. Đối tượng Future này đại diện cho trạng thái thực thi của hàm, cho phép ta theo dõi tiến độ hoặc lấy kết quả sau khi hàm chạy xong. 
+#Future: đóng gói quá trình thực thi bất đồng bộ của một hàm.
+
+
+Đoạn code: sử dụng submit() và gọi shutdown() thủ công 
+  
+
+
+
+* map (function,argument): hoạt động tương tự như hàm map() tích hợp sẵn của Python, nhưng nó thực thi hàm function một cách bất đồng bộ và đồng thời trên nhiều phần tử của iterables, khi sử dụng hồ chứa đa tiến trình (ProcessPoolExecutor), phương thức map() sẽ tự động "băm" các tập iterables đầu vào thành nhiều khối nhỏ (chunks) và ném chúng vào hồ chứa (pool) dưới dạng các tác vụ hoàn toàn riêng biệt để phần cứng xử lý song song. Phương thức này sẽ gom dữ liệu và trả về một luồng (iterator) chứa kết quả. Nếu quá thời gian timeout mà chưa có kết quả, nó sẽ ném ra lỗi TimeoutError.
+#iterator: là đối tượng được trả về khi sử dụng hai phương thức phân phối và giám sát tác vụ.
+#iterables: là các cấu trúc dữ liệu, tập hợp hoặc mảng chứa nhiều phần tử bên trong mà ngôn ngữ lập trình có thể duyệt (lặp) qua từng phần tử một.
+
+
+Đoạn code sử dụng map() kết hợp với khối lệnh with 
+
+
+  
+[a]
+
+
+* shutdown (Wait = True): ra tín hiệu cho Executor biết rằng nó cần giải phóng tất cả các tài nguyên đang sử dụng sau khi các tác vụ đang chờ xử lý hoàn thành. Nếu wait=True, chương trình sẽ chặn lại (block) cho đến khi mọi tác vụ chạy xong; nếu cancel_futures=True, nó sẽ cố gắng hủy các tác vụ đang xếp hàng nhưng chưa kịp chạy. Việc tiếp tục giao việc (gọi hàm submit() hoặc map() ) cho Executor sau khi nó đã bị shutdown sẽ lập tức ném ra ngoại lệ RuntimeError .Lập trình viên được khuyến cáo nên khởi tạo Executor bên trong câu lệnh with (context manager). Khi đó, phương thức shutdown(wait=True) sẽ được hệ thống tự động gọi một cách an toàn khi thoát khỏi khối lệnh. 
+#RuntimError: là một cơ chế phòng vệ chủ động (defensive mechanism) của hệ thống.
+        
+Câu hỏi vấn đáp dành cho phần 2:
+
+
+Q1: Lớp Executor là gì? Tại sao lại khuyến cáo không được khởi tạo trực tiếp lớp này? 
+        A: Executor là một lớp trừu tượng (abstract class). Vai trò của nó là định nghĩa một "giao diện chuẩn" gồm các phương thức để giao việc bất đồng bộ (như submit, map, shutdown). Người lập trình không được khởi tạo nó trực tiếp vì bản thân lớp trừu tượng này chưa có logic lõi để quản lý luồng hay tiến trình ở bên dưới. Nó bắt buộc phải được sử dụng thông qua các lớp con cụ thể 
+
+
+Q2: Khi gọi phương thức submit(), chương trình có bị chặn (block) lại để đợi hàm chạy xong không? Hàm này trả về cái gì? 
+        A: phương thức hoạt động của submit() là không chặn (non-blocking). Khi ta đẩy một hàm vào submit(), nó chỉ làm nhiệm vụ lên lịch (schedule) cho hàm đó chạy ngầm. Ngay lập tức, nó trả về một đối tượng Future. Đối tượng Future này giống như một "biên lai" đại diện cho quá trình thực thi của tác vụ, giúp ta không phải đứng đợi mà vẫn có thể kiểm tra trạng thái hoặc lấy kết quả sau này 
+
+
+Q3: Nếu có 1.000 hình ảnh cần áp dụng chung một bộ lọc, nên dùng submit hay map? Sự khác biệt giữa chúng là gì?
+        A: Trong trường hợp này, dùng phương thức map() là tối ưu nhất.
+* submit() dùng để phân phối các tác vụ đơn lẻ, hỗ trợ truyền nhiều tham số linh hoạt.
+* map() được thiết kế để phân phối tác vụ hàng loạt. Nó tự động lặp qua một mảng dữ liệu (iterables) và áp dụng chung một hàm lên các phần tử đó một cách bất đồng bộ. 
+=> Tóm lại dùng map() cho 1.000 hình ảnh sẽ giúp mã nguồn ngắn gọn hơn rất nhiều và nó trả về kết quả dưới dạng một luồng (iterator)
+
+
+
+
+
+
+________________
+
+
+3.Khái niệm Pooling (Hồ chứa): ThreadPoolExecutor và ProcessPoolExecutor,.
+- Khái niệm Pooling (Hồ chứa): trong lập trình đồng thời, nhóm tiến trình hoặc luồng (còn gọi là Pool/Hồ chứa) biểu thị một trình quản lý phần mềm được sử dụng để tối ưu hóa và đơn giản hóa việc sử dụng luồng và tiến trình trong một chương trình. Một hồ chứa sẽ duy trì sẵn một số lượng các tiến trình đang ở trạng thái rảnh rỗi, chờ đợi các tác vụ được chương trình giám sát phân bổ để thực thi đồng thời.
+* Mục đích cốt lõi: Việc sử dụng Pool giúp tăng hiệu suất và tránh được độ trễ (latency) sinh ra do quá trình tạo mới và hủy tiến trình/luồng thường xuyên đối với các tác vụ có thời gian sử dụng ngắn.
+* Cơ chế Tái sử dụng (Reuse): Một tiến trình/luồng trong Pool sẽ được sử dụng đi sử dụng lại nhiều lần cho các tác vụ khác nhau trong suốt vòng đời của nó. Đồng thời, số lượng worker trong nhóm cũng được hệ thống tự động điều chỉnh sao cho phù hợp với tài nguyên phần cứng có sẵn
+#worker: là tiến trình (process) hoặc một luồng (thread) độc lập chạy ngầm bên dưới hệ thống 
+- ThreadPoolExecutor:là một lớp con cụ thể (concrete subclass) kế thừa từ lớp trừu tượng Executor, sử dụng một nhóm (pool) các luồng (threads) để thực thi các lệnh gọi hàm một cách bất đồng bộ. Lớp này chia sẻ chung không gian bộ nhớ của chương trình chính, do đó đặc biệt phù hợp với các bài toán nặng về I/O (như tải file từ mạng, đọc/ghi tệp) thay vì các bài toán tính toán quá nặng nề về CPU.
+Ví dụ thực tế dễ hiểu: tưởng tượng hồ chứa này là một quán trà sữa có 3 nhân viên phục vụ (3 threads). Cả 3 nhân viên này dùng chung một không gian quán, chung một quầy pha chế và chung nguyên liệu (chia sẻ chung bộ nhớ không gian của 1 tiến trình). Do vướng cơ chế khóa (chỉ 1 người được dùng máy dập nắp tại một thời điểm), họ làm việc hiệu quả nhất khi được giao các công việc có tính chất "chờ đợi" như: Đợi khách order, đợi máy tính in hóa đơn (đây gọi là tác vụ nặng về I/O - I/O bound).
+  
+[b]
+Cơ chế cấp phát worker: Theo mặc định, số lượng luồng tối đa (max_workers) được hệ thống thiết lập bằng công thức min(32, (os.process_cpu_count() or 1) + 4). Mức mặc định này giúp duy trì ít nhất 5 worker cho các tác vụ I/O, sử dụng tối đa 32 lõi CPU, và tránh việc ngốn quá nhiều tài nguyên trên các máy chủ có số lượng lõi quá lớn. Nó cũng ưu tiên tái sử dụng các luồng rảnh rỗi trước khi tạo thêm luồng mới.
+- Tình trạng bế tắc - deadlocks: có thể xảy ra nếu một hàm (được liên kết với một Future) lại đứng chờ kết quả của một Future khác đang nằm trong cùng một Hồ chứa. 
+
+
+
+
+
+________________
+
+Ví dụ 1: hai tác vụ chờ đợi lẫn nhau (Circular Dependency) Tình trạng này xảy ra khi tác vụ A chờ tác vụ B hoàn thành, trong khi tác vụ B lại đang chờ tác vụ A hoàn thành.
+  
+
+- ProcessPoolExecutor: là một lớp con Executor sử dụng một nhóm các tiến trình để thực hiện các lệnh gọi không đồng bộ. Khác với luồng, lớp này sử dụng module multiprocessing ở bên dưới, cho phép nó lách qua được rào cản Global Interpreter Lock (GIL) của Python. Điều này giúp nó tận dụng được sức mạnh đa nhân thực sự của hệ thống. 
+- Nếu không chỉ định số lượng worker, hệ thống sẽ mặc định gán số lượng tiến trình bằng với số lõi CPU logic của máy tính (os.process_cpu_count(), các tiến trình là độc lập, lớp này chỉ cho phép thực thi và trả về các đối tượng có khả năng tuần tự hóa (picklable). Ngoài ra, một tiến trình worker bị kết thúc đột ngột hoặc chết ngang, hệ thống sẽ ném ra lỗi BrokenProcessPool.
+#picklable: các đối tượng, hàm hoặc tham số có khả năng đóng gói (tuần tự hóa) thành các chuỗi byte 
+#BrokenProcessPool: là một lớp ngoại lệ (exception) nghiêm trọng báo hiệu rằng Hồ chứa (Pool) đã bị hỏng và hoàn toàn mất khả năng nhận hoặc thực thi các tác vụ mới
+#Global Interpreter Lock (GIL): [c][d][e]là cơ chế khóa đặc thù của Python ngăn cản nhiều luồng (threads) thực thi lệnh tính toán cùng lúc bên trong một tiến trình. Lớp ProcessPoolExecutor lách qua cơ chế này bằng cách sinh ra nhiều tiến trình độc lập, giúp mỗi tiến trình tự sở hữu một khóa GIL riêng.
+Ví dụ thực tế dễ hiểu: Lần này, thay vì 1 quán có 3 nhân viên, bạn mở hẳn 3 chi nhánh quán trà sữa hoàn toàn độc lập (3 processes). Mỗi chi nhánh có quầy pha chế riêng, nguyên liệu riêng, máy dập nắp riêng (mỗi tiến trình có một vùng nhớ và một khóa GIL riêng biệt). Vì không ai tranh giành tài nguyên của ai, họ có thể pha chế hết tốc lực cùng một lúc. Mô hình này sinh ra để vắt kiệt sức mạnh đa nhân của CPU máy tính, chuyên dùng cho các công việc tính toán nặng nhọc (CPU bound).
+  
+[f]
+Câu hỏi vấn đáp cho phần 3:
+Q1: Cơ chế Pooling (Hồ chứa) giải quyết vấn đề cốt lõi gì so với việc lập trình viên tự tạo luồng/tiến trình thủ công? 
+        A: Việc tạo mới và hủy tiến trình/luồng liên tục cho các tác vụ ngắn sẽ gây ra độ trễ (latency) lớn cho hệ thống cơ chế Pooling tạo sẵn một nhóm quản lý các worker và áp dụng nguyên tắc "Reuse" (Tái sử dụng) – tức là một tiến trình/luồng làm xong việc sẽ không bị hủy mà được sử dụng đi sử dụng lại nhiều lần cho các tác vụ khác nhau trong vòng đời của nó. Điều này giúp triệt tiêu độ trễ khởi tạo và tăng hiệu suất đáng kể
+
+
+Q2: Hãy so sánh sự khác biệt lớn nhất giữa ThreadPoolExecutor và ProcessPoolExecutor khi nào nên dùng loại nào? 
+        A: 
+-  ThreadPoolExecutor sử dụng một nhóm các luồng (threads) để thực thi. Nó phù hợp để dùng cho các tác vụ chờ I/O.
+- ProcessPoolExecutor sử dụng module multiprocessing để tạo ra các tiến trình (processes) độc lập. Việc này giúp nó lách qua được rào cản GIL (Global Interpreter Lock) của Python để thực sự tận dụng sức mạnh đa nhân CPU cho các tác vụ tính toán nặng. Tuy nhiên, dữ liệu đưa vào đây bắt buộc phải là đối tượng có thể đóng gói được (picklable).
+
+
+Q3: Thuật ngữ "picklable" trong ProcessPoolExecutor nghĩa là gì và tại sao lại bắt buộc phải có? 
+        A: Do các tiến trình (processes) trong Hồ chứa hoạt động hoàn toàn độc lập với nhau. Vì sự độc lập này, hệ thống không thể dùng chung bộ nhớ, nên lớp ProcessPoolExecutor chỉ cho phép thực thi và trả về các đối tượng có khả năng tuần tự hóa (picklable) để có thể trao đổi dữ liệu. 
+Note: Tải file, đọc ghi file, cào dữ liệu mạng (chờ đợi) -> dùng ThreadPoolExecutor. Còn tính toán toán học, xử lý ảnh, học máy (tốn CPU) -> dùng ProcessPoolExecutor. 
+
+
+________________
+
+
+4.CƠ CHẾ QUẢN LÝ HÀNG ĐỢI TÁC VỤ (TASK QUEUE) VÀ TỐI ƯU HÓA HIỆU SUẤT BẰNG CÁCH TÁI SỬ DỤNG (REUSE) TÀI NGUYÊN.
+- Cơ chế quản lý hàng đợi tác vụ: khi người dùng gửi các tác vụ (thông qua hàm submit hoặc map), các tác vụ này không được gán ép ngay lập tức vào CPU mà sẽ được xếp hàng tuần tự vào một "Task Queue". Hệ thống duy trì một nhóm các tiến trình hoặc luồng (gọi là Pool). Trình quản lý phần mềm sẽ giám sát và phân bổ các tác vụ từ hàng đợi này cho các tiến trình/luồng đang ở trạng thái chờ (rảnh rỗi) để chúng thực thi đồng thời.
+
+
+- Tối ưu hóa hiệu suất bằng cơ chế tái sử dụng (Reuse): là cơ chế mà trong đó một tiến trình hoặc một luồng được sử dụng đi sử dụng lại nhiều lần cho các tác vụ khác nhau trong suốt vòng đời của nó, Nhờ cơ chế tái sử dụng (Reuse), nhóm (pool) chỉ cần khởi tạo lượng worker một lần duy nhất. Các worker sau khi hoàn thành nhiệm vụ sẽ không bị hệ điều hành tiêu diệt mà chuyển về trạng thái chờ. Điều này giúp loại bỏ hoàn toàn độ trễ (latency) sinh ra do quá trình tạo/hủy phần cứng, từ đó gia tăng hiệu suất thực thi một cách rõ rệt.Đồng thời, số lượng tiến trình/luồng trong nhóm luôn được hệ thống tự động điều chỉnh sao cho phù hợp nhất với tài nguyên phần cứng hiện có của máy tính, tránh hiện tượng quá tải.
+
+
+Câu hỏi vấn đáp cho phần 4:
+Q1: Trong mô hình Pool, Task Queue đóng vai trò gì? Tại sao không giao thẳng việc cho các worker?
+A: Task Queue (Hàng đợi tác vụ) đóng vai trò như một bộ đệm (buffer) trung gian. Nếu ta giao thẳng việc trong khi số lượng tác vụ (ví dụ 10.000 tác vụ) vượt quá số lượng worker (ví dụ chỉ có 8 worker), hệ thống sẽ bị quá tải hoặc đánh rơi tác vụ. Việc xếp vào Task Queue giúp trình quản lý phân bổ công việc nhịp nhàng: worker nào rảnh thì mới được "bốc" tác vụ ra để làm, đảm bảo an toàn cho hệ thống
+Q2: Hãy giải thích rõ khái niệm "Reuse" (Tái sử dụng) trong tính toán bất đồng bộ. Nó giải quyết "nỗi đau" gì của hệ thống?
+A: "Reuse" nghĩa là một tiến trình hoặc luồng sau khi chạy xong một tác vụ sẽ không bị hủy đi, mà được giữ lại để tiếp tục chạy các tác vụ khác trong suốt vòng đời của nó. Nó giải quyết "nỗi đau" về độ trễ (latency). Việc ra lệnh cho hệ điều hành cấp phát RAM và tạo một luồng/tiến trình mới tốn rất nhiều thời gian. Đối với các tác vụ siêu ngắn, thời gian tạo/hủy luồng còn lâu hơn cả thời gian chạy tác vụ. Việc "Reuse" loại bỏ hoàn toàn khoảng thời gian thừa thãi này
+
+
+________________
+
+
+5.ĐỐI TƯỢNG FUTURE: ĐÓNG GÓI VIỆC THỰC THI BẤT ĐỒNG BỘ CỦA CÁC HÀM (CALLABLE).
+- Khái niệm : Lớp Future (Tương lai) đóng gói việc thực thi bất đồng bộ, hay nói cách khác, nó đại diện cho kết quả của một tác vụ đang được chạy ngầm. Để dễ hình dung, cơ chế này hoạt động giống hệt như một "tờ biên lai". Khi giao một tác vụ tốn nhiều thời gian cho hệ thống, hệ thống sẽ không bắt chương trình chính phải đứng chờ mà lập tức trả về một tờ biên lai (chính là đối tượng Future). Tại thời điểm nhận biên lai, công việc có thể chưa hoàn thành, nhưng chương trình sẽ dùng chính tờ biên lai này để theo dõi tiến độ, kiểm tra trạng thái lỗi, và trích xuất kết quả khi tác vụ thực sự xử lý xong.
+- Lập trình viên không được phép tự khởi tạo đối tượng này bằng phương pháp thủ công thông thường (tức là không gọi trực tiếp lớp Future()), ngoại trừ khi dùng cho mục đích kiểm thử (testing). Thay vào đó, các phiên bản (instances) của Future sẽ được hệ thống tự động sinh ra và trả về ngay tại khoảnh khắc lệnh giao việc được phát động thông qua phương thức Executor.submit() 
+Ví dụ thực tế: dùng hình ảnh "Biên lai chờ lấy đồ uống". Khi đến quán trà sữa gọi món, nhân viên (Hệ thống) không bắt bạn đứng đợi lấy ly trà sữa ngay, mà đưa cho một tờ biên lai/thẻ rung (Đối tượng Future). Có thể cầm biên lai này đi làm việc khác trong lúc hệ thống pha chế ngầm ở phía sau.
+Code minh họa:
+  
+
+
+- Các nhóm phương thức cốt lõi:
+* running(): Trả về True nếu tác vụ hiện đang được thực thi và không thể bị hủy bỏ.
+* done(): Trả về True nếu tác vụ đã chạy xong hoàn toàn hoặc đã bị hủy thành công.
+* cancelled(): Trả về True nếu tác vụ đã được hủy thành công
+Ví dụ thực tế: Tương tự như việc bạn thỉnh thoảng liếc nhìn lên màn hình điện tử ở quán xem số thứ tự trên biên lai của mình đang ở mục "Đang chuẩn bị" (running() = True) hay "Đã hoàn thành" (done() = True).
+  
+
+- Nhóm điều khiển và trích xuất kết quả:
+* cancel(): Cố gắng hủy bỏ cuộc gọi tác vụ. Sẽ trả về False nếu tác vụ đang chạy hoặc đã xong (không thể hủy); trả về True nếu tác vụ đang ở hàng đợi và hủy thành công.
+* result(timeout=None): Dùng để chờ và lấy giá trị trả về của hàm chạy ngầm. Nếu vượt quá thời gian timeout quy định mà chưa có kết quả, hệ thống sẽ ném ra ngoại lệ TimeoutError.
+* exception(timeout=None): Hoạt động tương tự result(), nhưng dùng để trích xuất ngoại lệ (lỗi) nếu tác vụ chạy thất bại
+Ví dụ thực tế nên chèn: Đây là lúc bạn mang biên lai ra quầy đòi đồ uống. Nếu đồ uống chưa pha xong, bạn bắt buộc phải đứng chờ tại quầy (bị chặn - blocking). Nếu bạn đợi quá lâu (vượt quá timeout), bạn sẽ phàn nàn và bỏ đi (báo lỗi TimeoutError).
+  
+
+- Nhóm phản hồi tự động (Callback): 
+* add_done_callback(fn): Đính kèm một hàm fn vào đối tượng Future. Hàm này sẽ tự động được kích hoạt ngay khi tác vụ hoàn thành hoặc bị hủy. Cơ chế này giúp luồng chính không phải đứng chờ kết quả mà chuyển sang kiến trúc phản ứng tự động.
+Ví dụ thực tế nên chèn: Thay vì phải tự đi kiểm tra xem đồ uống xong chưa (done()) hay đứng chờ ở quầy (result()), bạn để lại số điện thoại cho nhân viên. Khi nào đồ uống pha xong, nhân viên sẽ chủ động nhắn tin gọi bạn ra lấy (Callback).
+  
+
+
+
+Câu hỏi vấn đáp phần 5:
+Q1: Đối tượng Future đóng vai trò gì? Lập trình viên có nên tự khởi tạo đối tượng này bằng cách gọi trực tiếp lớp Future() không?
+A: Đối tượng Future đóng gói quá trình thực thi bất đồng bộ của một hàm, đại diện cho một kết quả tính toán vẫn chưa được hoàn thành ở thời điểm hàm được gọi. Lập trình viên không được tạo trực tiếp lớp này (trừ khi dùng để kiểm thử), mà các phiên bản của Future phải được hệ thống sinh ra và trả về tự động thông qua hàm Executor.submit().
+Q2: Lệnh cancel() có thể hủy bỏ bất kỳ tác vụ nào đang nằm trong hệ thống Executor không?
+A: Không. Lệnh cancel() chỉ hủy thành công khi tác vụ vẫn đang nằm chờ trong hàng đợi. Nếu tác vụ đang trong quá trình thực thi (running) hoặc đã chạy xong (done), lệnh này sẽ không thể hủy tác vụ và trả về kết quả False
+
+
+
+
+Thẻ 2
+TÓM TẮT TRIỂN KHAI BẤT ĐỒNG BỘ QUA MODULE CONCURRENT.FUTURES
+
+
+Tóm tắt tổng quan về module nội dung vào slide
+Slide: Tổng quan về module concurrent.futures
+* Lịch sử & Đặc tính: Ra mắt từ phiên bản Python 3.2, cung cấp một giao diện cấp cao (high-level interface).
+* Mục đích cốt lõi: Giúp lập trình viên thực thi các hàm/lệnh gọi một cách bất đồng bộ.
+* Nền tảng kiến trúc: Xây dựng dựa trên sức mạnh của hai module cơ sở là threading và multiprocessing.
+* Ưu điểm vượt trội:
+   * Loại bỏ gánh nặng tự quản lý luồng thủ công.
+   * Dễ dàng xử lý các tác vụ đa luồng (multi-threading).
+   * Khai thác triệt để tính đa lõi CPU cho các bài toán tính toán nặng thông qua cơ chế Hồ chứa (Pool).
+
+
+Tóm tắt phần 2 trừu tượng Executor nội dung đưa vào slide
+Slide: Lớp trừu tượng Executor
+* Bản chất: Là một lớp trừu tượng (abstract class) định nghĩa "giao diện chuẩn" để thực hiện các lệnh gọi bất đồng bộ.
+* Nguyên tắc sử dụng: KHÔNG được khởi tạo trực tiếp (do chưa có logic lõi). Bắt buộc phải sử dụng thông qua các lớp con cụ thể.
+* Ba phương thức cốt lõi: submit, map, và shutdown.
+Slide: Các phương thức phân phối và quản lý tác vụ
+* submit() - Giao việc đơn lẻ:
+   * Lên lịch chạy ngầm một tác vụ (non-blocking).
+   * Trả về lập tức đối tượng Future ("biên lai" theo dõi tiến độ/kết quả).
+* map() - Giao việc hàng loạt:
+   * Tự động lặp và thực thi tác vụ đồng thời trên một mảng dữ liệu (VD: áp dụng bộ lọc cho 1.000 hình ảnh).
+   * Trả về bộ lặp (iterator) chứa kết quả. Ném lỗi TimeoutError nếu quá hạn.
+* shutdown() - Giải phóng tài nguyên:
+   * Ra tín hiệu dọn dẹp hệ thống. Nếu cố tình giao thêm việc sẽ báo lỗi RuntimeError.
+   * Khuyến cáo: Luôn khởi tạo Executor trong khối lệnh with để hệ thống tự động gọi shutdown an toàn.
+
+
+Tóm tắt phần 3 Pooling (Hồ chứa) nội dung vào slide
+Slide: Khái niệm Pooling (Hồ chứa)
+   * Định nghĩa: Là trình quản lý phần mềm duy trì sẵn một số lượng worker (luồng/tiến trình) rảnh rỗi để phân bổ thực thi tác vụ đồng thời.
+   * Mục đích cốt lõi: * Tăng hiệu suất hệ thống.
+   * Tránh độ trễ (latency) do việc tạo mới và hủy luồng/tiến trình liên tục mang lại.
+   * Cơ chế Tái sử dụng (Reuse): Worker làm xong việc không bị hủy mà được giữ lại để thực hiện tác vụ khác. Số lượng worker tự động điều chỉnh theo phần cứng.
+Slide: So sánh ThreadPoolExecutor và ProcessPoolExecutor
+Có thể tạo một bảng so sánh trên slide với các thông tin sau:
+Tiêu chí
+	ThreadPoolExecutor
+	ProcessPoolExecutor
+	Worker bên dưới
+	Luồng (Threads)
+	Tiến trình (Processes)
+	Không gian bộ nhớ
+	Dùng chung bộ nhớ chương trình chính
+	Độc lập, không dùng chung bộ nhớ
+	Rào cản GIL
+	Bị ảnh hưởng bởi GIL của Python
+	Lách qua được GIL (Đa nhân thực sự)
+	Loại tác vụ phù hợp
+	Nặng về I/O (Tải file, đọc/ghi tệp...)
+	Nặng về CPU (Tính toán toán học...)
+	Số worker mặc định
+	min(32, lõi CPU + 4)
+	Bằng số lõi CPU logic
+	Slide: Lưu ý kỹ thuật & Thuật ngữ quan trọng
+   * ThreadPoolExecutor:
+   * Tình trạng bế tắc (Deadlocks): Xảy ra nếu một hàm đang chạy lại đứng chờ kết quả của một Future khác trong cùng một Pool.
+   * ProcessPoolExecutor:
+   * Yêu cầu Picklable: Các tham số/đối tượng truyền vào phải có khả năng tuần tự hóa (đóng gói thành chuỗi byte) để truyền giữa các tiến trình độc lập.
+   * Lỗi BrokenProcessPool: Ngoại lệ nghiêm trọng khi một tiến trình worker bị chết đột ngột, làm sập toàn bộ hồ chứa.
+
+
+
+
+
+
+Tóm tắt phần 4 Task Queue vào slide (PowerPoint)
+Slide: Quản lý Hàng đợi (Task Queue) & Cơ chế Tái sử dụng (Reuse)
+1. Hàng đợi tác vụ (Task Queue)
+   * Đóng vai trò là bộ đệm lưu trữ các lệnh gọi (hàm) chưa được thực thi.
+   * Trình quản lý giám sát Task Queue và phân bổ công việc tuần tự cho các tiến trình/luồng đang rảnh rỗi trong Hồ chứa (Pool).
+2. Cơ chế Tái sử dụng (Reuse) để tối ưu hiệu suất
+   * Vấn đề cũ: Việc liên tục tạo mới và hủy tiến trình/luồng cho các tác vụ ngắn sinh ra độ trễ (latency) rất lớn.
+   * Giải pháp Reuse: Một tiến trình/luồng không bị tiêu diệt mà được sử dụng nhiều lần cho các tác vụ khác nhau trong vòng đời của nó.
+   * Hiệu quả:
+   * Triệt tiêu độ trễ (latency) cấp phát phần cứng.
+   * Tự động điều chỉnh số lượng worker khớp với sức mạnh tài nguyên máy tính.
+
+
+
+
+
+
+Tóm tắt phần 5 đối tượng future nội dung đưa vào slide
+Slide: Khái niệm đối tượng Future (Tương lai)
+   * Định nghĩa: Là đối tượng đóng gói việc thực thi bất đồng bộ, đại diện cho kết quả của một tác vụ đang chạy ngầm.
+   * Hình tượng "Tờ biên lai": * Khi giao tác vụ tốn thời gian, hệ thống trả ngay về một "biên lai" (Future) mà không bắt luồng chính phải chờ.
+   * Luồng chính dùng "biên lai" này để theo dõi tiến độ, kiểm tra lỗi và lấy kết quả khi tác vụ xong.
+   * Lưu ý khởi tạo: Lập trình viên không tự khởi tạo thủ công (trừ khi testing). Hệ thống sẽ tự động sinh ra và trả về qua phương thức Executor.submit().
+Slide: Các nhóm phương thức kiểm tra trạng thái
+   * running(): Trả về True nếu tác vụ đang chạy và không thể hủy.
+   * done(): Trả về True nếu tác vụ đã hoàn thành hoặc đã bị hủy thành công.
+   * cancelled(): Trả về True nếu tác vụ đã được hủy bỏ thành công.
+Slide: Nhóm điều khiển và trích xuất kết quả
+   * cancel(): Cố gắng hủy tác vụ trong hàng đợi.
+   * Trả về True: Hủy thành công (khi tác vụ chưa chạy).
+   * Trả về False: Không thể hủy (khi tác vụ đang chạy hoặc đã xong).
+   * result(timeout=None): Chờ và lấy kết quả của hàm chạy ngầm. Ném ra lỗi TimeoutError nếu quá thời gian quy định.
+   * exception(timeout=None): Tương tự result(), nhưng dùng để lấy ra ngoại lệ (lỗi) nếu tác vụ thất bại.
+Slide: Cơ chế phản hồi tự động (Callback)
+   * Phương thức add_done_callback(fn): Đính kèm một hàm fn vào đối tượng Future.
+   * Cơ chế hoạt động: Hàm fn tự động kích hoạt ngay khi tác vụ hoàn thành hoặc bị hủy.
+   * Lợi ích: Giúp luồng chính không cần đứng chờ (non-blocking), chuyển sang kiến trúc phản ứng tự động (event-driven).
+
+
+[a]:)))
+[b]compile với cả code mà nhìn vậy thì tày
+[c]- ProcessPoolExecutor là tiến trình mà nhỉ, kiểm tra lại xem lỗi này
+[d]_Được đánh dấu là đã được giải quyết_
+[e]_Được mở lại_
+[f]tày rồi

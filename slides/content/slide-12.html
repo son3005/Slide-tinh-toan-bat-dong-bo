@@ -1,0 +1,30 @@
+<div class="glass-card">
+    <span class="slide-header">Phần 01 · Tổng quan</span>
+    <h3>4.5. Lợi ích hệ thống & Ứng dụng thực tế</h3>
+    <div class="columns">
+        <div class="column">
+            <div class="info-box" style="height: 100%;">
+                <h4>Lợi ích hệ thống</h4>
+                <ul>
+                    <li><strong>Tăng thông lượng (Throughput):</strong> Có khả năng phục vụ hàng vạn kết nối/yêu cầu đồng thời bằng cách tận dụng tối đa chu kỳ trống của CPU trong lúc chờ I/O.</li>
+                    <li><strong>Giảm độ trễ (Latency):</strong> Thời gian phản hồi nhanh hơn nhờ các tác vụ nặng được đẩy xuống nền xử lý ngầm hoặc thực thi song song thực tế trên đa nhân.</li>
+                </ul>
+                <div class="example-card" style="margin-top: 1rem; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.15);">
+                    <span class="example-badge" style="color: var(--accent-sky);">Nhận định cốt lõi</span>
+                    <p style="font-size: 0.85rem;">Pool giúp duy trì và tái sử dụng các worker (luồng/tiến trình con ngầm), giảm thiểu chi phí tốn kém do việc liên tục tạo mới và hủy bỏ worker của hệ điều hành, từ đó cải thiện Throughput và giảm Latency.</p>
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="info-box" style="height: 100%;">
+                <h4>Ứng dụng thực tế</h4>
+                <ul>
+                    <li><strong>Web Server hiệu năng cao:</strong> FastAPI (Python), Nginx, Node.js sử dụng kiến trúc bất đồng bộ không chặn để xử lý hàng triệu connection.</li>
+                    <li><strong>Hệ thống thời gian thực (Real-time):</strong> Chat apps (Socket.io), Video/Audio Streaming nhờ truyền tải dữ liệu dạng luồng không chặn.</li>
+                    <li><strong>Xử lý dữ liệu lớn (Big Data):</strong> Tải đồng thời dữ liệu từ hàng trăm API/Database rồi xử lý tính toán đan xen.</li>
+                    <li><strong>Tác vụ nền nặng (Background tasks):</strong> Các công cụ Web Crawling thu thập thông tin, render ảnh/video ngầm dưới server.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
