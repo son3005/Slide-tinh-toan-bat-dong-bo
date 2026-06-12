@@ -1970,4 +1970,210 @@ function initializeSimulations() {
         
         resetCpuSim();
     }
+
+    // =================================================================
+    // --- SIMULATION: ASYNCIO CONTEXT SWITCH (Slide 25) ---
+    // =================================================================
+    const runAsyncioLoopBtn = document.getElementById('runAsyncioLoopBtn');
+    const nextAsyncioStepBtn = document.getElementById('nextAsyncioStepBtn');
+    const resetAsyncioLoopBtn = document.getElementById('resetAsyncioLoopBtn');
+    const asyncioTokens = document.getElementById('asyncioTokens');
+    
+    // Nodes
+    const asyLoop = document.getElementById('asyLoop');
+    const asyCpu = document.getElementById('asyCpu');
+    const asyIoWait = document.getElementById('asyIoWait');
+    const asyStepDesc = document.getElementById('asyStepDesc');
+
+    if (runAsyncioLoopBtn) {
+        let asyncioTimers = [];
+        let isAsyncioRunning = false;
+        let currentAsyncioStep = 0;
+        let tokens = [];
+        
+        function updateAsyncioDesc(text) {
+            if (!asyStepDesc) return;
+            asyStepDesc.innerHTML = text;
+            asyStepDesc.style.opacity = '1';
+        }
+
+        function resetAsyncioSim() {
+            asyncioTimers.forEach(clearTimeout);
+            asyncioTimers = [];
+            isAsyncioRunning = false;
+            currentAsyncioStep = 0;
+            tokens = [];
+            runAsyncioLoopBtn.disabled = false;
+            if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = true;
+            if (asyncioTokens) asyncioTokens.innerHTML = '';
+            if (asyLoop) asyLoop.classList.remove('active-node');
+            if (asyCpu) asyCpu.classList.remove('active-node');
+            if (asyIoWait) asyIoWait.classList.remove('active-node');
+            if (asyStepDesc) asyStepDesc.style.opacity = '0';
+        }
+
+        function runAsyncioSim() {
+            if (isAsyncioRunning) return;
+            resetAsyncioSim();
+            isAsyncioRunning = true;
+            currentAsyncioStep = 1;
+            
+            runAsyncioLoopBtn.disabled = true;
+            if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = false;
+
+            updateAsyncioDesc('<strong>Bước 1: Hàng đợi Sẵn sàng</strong><br>Hàng loạt 10 Task được tạo ra. Trong đó T2, T5, T8 chỉ tính toán CPU (không cần đợi mạng), còn lại là các Task có `await` (phải tải mạng).');
+            
+            for (let i = 0; i < 10; i++) {
+                let tk = document.createElement('div');
+                tk.className = 'anim-token';
+                const colors = ['var(--accent-sky)', 'var(--accent-emerald)', 'var(--accent-rose)', '#f59e0b', '#8b5cf6'];
+                tk.style.background = colors[i % colors.length];
+                tk.style.width = '24px';
+                tk.style.height = '24px';
+                tk.style.fontSize = '0.65rem';
+                
+                // Ready Queue Grid: 2 cols
+                let c = i % 2;
+                let r = Math.floor(i / 2);
+                tk.style.top = (60 + r * 40) + 'px';
+                tk.style.left = (45 + c * 50) + 'px';
+                tk.style.transition = 'top 0.4s ease, left 0.4s ease, opacity 0.3s ease';
+                tk.style.opacity = '1';
+                tk.textContent = 'T' + (i + 1);
+                tk.isIO = ![1, 4, 7].includes(i); // T2, T5, T8 are CPU-bound
+                
+                if (asyncioTokens) asyncioTokens.appendChild(tk);
+                tokens.push(tk);
+            }
+        }
+
+        function nextAsyncioStep() {
+            if (!isAsyncioRunning) return;
+            if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = true; // prevent double clicks during anim
+
+            if (currentAsyncioStep === 1) {
+                currentAsyncioStep = 2;
+                updateAsyncioDesc('<strong>Bước 2: Phân loại thông minh!</strong><br>Event Loop bốc Task chạy. Task nào có `await` sẽ bị ném ra góc Chờ I/O. Task tính toán thuần (T2, T5, T8) thì chạy thẳng trong CPU rồi xong luôn!');
+                if (asyLoop) asyLoop.classList.add('active-node');
+                
+                let ioIndex = 0;
+                for (let i = 0; i < 10; i++) {
+                    let baseTime = i * 400; // Chậm hơn 1 chút để dễ nhìn
+                    
+                    // Loop pulls
+                    asyncioTimers.push(setTimeout(() => {
+                        tokens[i].style.top = '148px';
+                        tokens[i].style.left = '268px'; // In loop
+                    }, baseTime));
+
+                    // CPU
+                    asyncioTimers.push(setTimeout(() => {
+                        if (asyCpu) asyCpu.classList.add('active-node');
+                        tokens[i].style.top = '48px';
+                        tokens[i].style.left = '498px'; // In CPU
+                    }, baseTime + 150));
+
+                    if (tokens[i].isIO) {
+                        // IO Wait
+                        asyncioTimers.push(setTimeout(() => {
+                            if (asyCpu) asyCpu.classList.remove('active-node');
+                            if (asyIoWait) asyIoWait.classList.add('active-node');
+                            
+                            // Grid in IO Wait: 4 cols
+                            let ioC = ioIndex % 4;
+                            let ioR = Math.floor(ioIndex / 4);
+                            tokens[i].style.top = (180 + ioR * 50) + 'px';
+                            tokens[i].style.left = (425 + ioC * 45) + 'px';
+                            ioIndex++;
+                        }, baseTime + 350));
+                    } else {
+                        // CPU bound -> finish immediately
+                        asyncioTimers.push(setTimeout(() => {
+                            tokens[i].style.opacity = '0';
+                            if (asyCpu) asyCpu.classList.remove('active-node');
+                        }, baseTime + 350));
+                    }
+                }
+
+                // Unlock next step when done
+                asyncioTimers.push(setTimeout(() => {
+                    if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = false;
+                }, 9 * 400 + 400));
+            } 
+            else if (currentAsyncioStep === 2) {
+                currentAsyncioStep = 3;
+                if (asyLoop) asyLoop.classList.remove('active-node');
+                updateAsyncioDesc('<strong>Bước 3: Tận dụng cực hạn (Concurrency)</strong><br>Dù 7 Task kia đang bị nghẽn I/O, chương trình vẫn không đứng im. Các Task thuần CPU đã được xử lý xong, Event Loop hoàn toàn rảnh tay làm việc khác.');
+                if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = false;
+            }
+            else if (currentAsyncioStep === 3) {
+                currentAsyncioStep = 4;
+                updateAsyncioDesc('<strong>Bước 4: I/O Hoàn tất (Bất đồng bộ)</strong><br>Thời gian tải dữ liệu của mỗi Task là khác nhau. Task nào tải xong trước sẽ thức dậy và ùa về Hàng đợi trước, lập tức được Event Loop bốc vào CPU xử lý nốt!');
+                if (asyIoWait) asyIoWait.classList.remove('active-node');
+                if (asyLoop) asyLoop.classList.add('active-node');
+
+                let ioTokens = tokens.filter(tk => tk.isIO);
+                // Pseudo-random wake up order for the 7 IO tokens
+                const wakeOrder = [3, 0, 5, 1, 6, 2, 4];
+                let maxBaseTime = 0;
+
+                for (let i = 0; i < ioTokens.length; i++) {
+                    let tk = ioTokens[i];
+                    
+                    let orderIndex = wakeOrder.indexOf(i);
+                    // Create non-uniform gaps between wake-ups
+                    let baseTime = orderIndex * 400 + (orderIndex % 2 === 0 ? 0 : 250);
+                    
+                    if (baseTime > maxBaseTime) maxBaseTime = baseTime;
+
+                    // Back to ready
+                    asyncioTimers.push(setTimeout(() => {
+                        let c = i % 2;
+                        let r = Math.floor(i / 2);
+                        tk.style.top = (75 + r * 38) + 'px';
+                        tk.style.left = (45 + c * 50) + 'px';
+                    }, baseTime));
+
+                    // Loop pulls again
+                    asyncioTimers.push(setTimeout(() => {
+                        tk.style.top = '148px';
+                        tk.style.left = '268px'; // In loop
+                    }, baseTime + 400));
+
+                    // CPU and Finish
+                    asyncioTimers.push(setTimeout(() => {
+                        if (asyCpu) asyCpu.classList.add('active-node');
+                        tk.style.top = '48px';
+                        tk.style.left = '498px'; // In CPU
+                        
+                        // Fade out
+                        asyncioTimers.push(setTimeout(() => {
+                            tk.style.opacity = '0';
+                            if (asyCpu) asyCpu.classList.remove('active-node');
+                        }, 250));
+                    }, baseTime + 600));
+                }
+
+                // Unlock for final step
+                asyncioTimers.push(setTimeout(() => {
+                    if (asyLoop) asyLoop.classList.remove('active-node');
+                    if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = false;
+                }, maxBaseTime + 700));
+            }
+            else if (currentAsyncioStep === 4) {
+                currentAsyncioStep = 5;
+                updateAsyncioDesc('<strong>Hoàn tất:</strong> Hệ thống đã xử lý hỗn hợp cả tác vụ mạng lẫn tính toán cực kỳ nhịp nhàng. Không lãng phí 1 giây nhàn rỗi nào của CPU!');
+                isAsyncioRunning = false; // Done
+                runAsyncioLoopBtn.disabled = false;
+                if (nextAsyncioStepBtn) nextAsyncioStepBtn.disabled = true;
+            }
+        }
+
+        runAsyncioLoopBtn.onclick = runAsyncioSim;
+        if (nextAsyncioStepBtn) nextAsyncioStepBtn.onclick = nextAsyncioStep;
+        resetAsyncioLoopBtn.onclick = resetAsyncioSim;
+
+        resetAsyncioSim();
+    }
+
 }
