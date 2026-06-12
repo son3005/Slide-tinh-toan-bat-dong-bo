@@ -16,7 +16,7 @@ threads = []
     t.join()</code></pre>
                 </div>
                 <ul style="font-size: 0.8rem; padding-left: 1rem; margin-top: 0.5rem;">
-                    <li><strong>Quản lý thủ công:</strong> Lập trình viên phải tự viết code tạo, kích hoạt (`start()`) và chờ thu hồi (`join()`) từng luồng/tiến trình con.</li>
+                    <li><strong>Quản lý thủ công:</strong> Lập trình viên phải tự viết code tạo, kích hoạt (<code>start()</code>) và chờ thu hồi (<code>join()</code>) từng luồng/tiến trình con.</li>
                     <li><strong>Thread Explosion (Bùng nổ luồng):</strong> Nếu có 1,000 URLs, code sẽ tạo ra 1,000 luồng chạy song song, làm nghẽn CPU, cạn kiệt bộ nhớ RAM và gây sập hệ điều hành.</li>
                     <li><strong>Không tái sử dụng:</strong> Luồng bị hủy hoàn toàn ngay khi chạy xong việc, tạo chi phí khởi động rất lớn cho tác vụ tiếp theo.</li>
                 </ul>
@@ -33,10 +33,11 @@ threads = []
                 </div>
                 <ul style="font-size: 0.8rem; padding-left: 1rem; margin-top: 0.5rem;">
                     <li><strong>Tự động quản lý:</strong> Khối lệnh <code>with</code> (context manager) tự động quản lý việc khởi tạo và thu hồi tài nguyên, tự gọi <code>shutdown()</code> an toàn.</li>
-                    <li><strong>Khống chế tài nguyên:</strong> Chỉ duy trì tối đa <code>max_workers=4</code> hoạt động. Nếu có 1,000 URLs, chúng sẽ nằm chờ trong **Task Queue** và được xử lý cuốn chiếu bởi 4 worker.</li>
+                    <li><strong>Khống chế tài nguyên:</strong> Chỉ duy trì tối đa <code>max_workers=4</code> hoạt động. Nếu có 1,000 URLs, chúng sẽ nằm chờ trong <b>Task Queue</b> và được xử lý cuốn chiếu bởi 4 worker.</li>
                     <li><strong>Tái sử dụng (Reuse):</strong> Worker làm xong việc lập tức chuyển sang chế độ rảnh (Idle) chờ nhận việc tiếp theo, triệt tiêu độ trễ cấp phát.</li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+

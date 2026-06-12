@@ -29,9 +29,9 @@ html {
     --accent-sky: #3b82f6;
     --accent-emerald: #10b981;
     --accent-rose: #ef4444;
-    --font-heading: 'Outfit', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-code: 'Fira Code', monospace;
+    --font-heading: 'Montserrat', sans-serif;
+    --font-body: 'Roboto', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
     --transition-speed: 0.5s;
     --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.2);
     --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.3);
@@ -2057,6 +2057,49 @@ body:not(.light-theme) .sim-task-progress-bg {
     background: #64748b;
 }
 
+/* ── Animations for Blocking and Yielding ── */
+.sim-task-progress-bar.blocking {
+    background: repeating-linear-gradient(
+        45deg,
+        #ef4444,
+        #ef4444 10px,
+        #dc2626 10px,
+        #dc2626 20px
+    ) !important;
+    animation: blocking-stripes 1s linear infinite;
+    position: relative;
+}
+
+@keyframes blocking-stripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 28.28px 0; }
+}
+
+.sim-task-progress-bar.blocking::after {
+    content: "🔒 BLOCKING";
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
+    white-space: nowrap;
+}
+
+.thread-exec-box.yielding {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border: 2px dashed #f59e0b !important;
+    color: #f59e0b !important;
+    animation: pulse-yield 1s infinite alternate;
+}
+
+@keyframes pulse-yield {
+    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    100% { box-shadow: 0 0 20px 5px rgba(245, 158, 11, 0); }
+}
+
 /* ── Slide 25: Event Token ── */
 #flowEventToken {
     position: absolute;
@@ -2164,3 +2207,884 @@ body:not(.light-theme) .sim-task-progress-bg {
     color: #ffffff !important;
     font-weight: bold;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE LAYOUT
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet Breakpoint (≤ 768px) ── */
+@media (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+
+    body {
+        padding: 1.5rem 0 5.5rem 0;
+    }
+
+    .presentation-container {
+        width: 98vw;
+        gap: 1rem;
+    }
+
+    /* Stack all two-column layouts vertically */
+    .columns {
+        flex-direction: column !important;
+        gap: 1rem;
+    }
+
+    .column {
+        flex: 1 1 auto !important;
+        width: 100%;
+    }
+
+    /* Coroutine Simulator (Slide 32) – stack vertically */
+    .coro-sim-container {
+        flex-direction: column !important;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .coro-column {
+        min-height: 220px;
+    }
+
+    /* Workflow Timeline (Slide 10) */
+    .workflow-timeline {
+        padding-left: 1.5rem;
+    }
+    .wf-step {
+        margin-bottom: 1rem;
+    }
+
+    /* Glass card */
+    .glass-card {
+        padding: 1rem 0;
+        min-height: auto;
+    }
+
+    /* Titles */
+    .title-card h1 {
+        font-size: 2.4rem;
+    }
+
+    .section-card h2 {
+        font-size: 2rem;
+    }
+
+    h3 {
+        font-size: 1.45rem;
+        margin-bottom: 1rem;
+    }
+
+    .subtitle {
+        font-size: 1.05rem;
+    }
+
+    .meta-info {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    /* Navigation controls – keep visible and usable */
+    .controls {
+        bottom: 0.75rem;
+        gap: 1rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .slide-counter {
+        font-size: 0.85rem;
+        min-width: 50px;
+    }
+
+    /* Simulation controls – wrap buttons */
+    .sim-controls {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .sim-btn {
+        font-size: 0.72rem;
+        padding: 6px 10px;
+    }
+
+    /* Event Loop Simulator (Slide 9) – stack vertically */
+    .sim-container {
+        flex-direction: column !important;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .sim-section {
+        min-height: 180px;
+    }
+
+    /* Pool Simulator (Slide 11) – stack vertically */
+    .pool-sim-container {
+        flex-direction: column !important;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .pool-left, .pool-right {
+        flex: 1 1 auto !important;
+    }
+
+    .pool-workers {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .worker-node {
+        padding: 0.75rem 0.5rem;
+    }
+
+    /* Coroutine Simulator (Slide 32) – stack vertically */
+    .coro-sim-container {
+        flex-direction: column !important;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .coro-column {
+        min-height: 220px;
+    }
+
+    /* Flow Diagram (Slide 25) – stack vertically */
+    .flow-diag-container {
+        flex-direction: column !important;
+        align-items: center;
+        gap: 0;
+        padding: 1.25rem;
+        min-height: auto;
+    }
+
+    .flow-diag-node {
+        min-width: 120px;
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .flow-diag-arrow {
+        width: 6px !important;
+        height: 40px !important;
+        flex: none !important;
+    }
+
+    .flow-diag-arrow.active-arrow::after {
+        background: linear-gradient(180deg, transparent, var(--accent-sky), transparent) !important;
+        animation: arrowSparkVert 1.2s linear infinite !important;
+    }
+
+    /* Stack Memory Diagram (Slide 29) – stack vertically */
+    .stack-diag-container {
+        flex-direction: column !important;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+
+    /* Pool Flow Diagram (Slide 10) – scale down */
+    .pool-flow-container {
+        height: 220px;
+    }
+
+    .pool-flow-node {
+        width: 130px;
+        height: 55px;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.5rem;
+    }
+
+    /* Timeline Diagram (Slide 3) */
+    .timeline-diag-wrapper {
+        padding: 1rem;
+    }
+
+    .timeline-diag-row {
+        flex-direction: column;
+        gap: 0.4rem;
+        align-items: stretch;
+    }
+
+    .timeline-diag-label {
+        width: 100%;
+        font-size: 0.85rem;
+    }
+
+    .timeline-diag-track {
+        height: 32px;
+    }
+
+    .timeline-diag-bar {
+        font-size: 0.65rem !important;
+    }
+
+    /* Workflow Timeline */
+    .workflow-timeline {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    .step-card {
+        max-width: 100%;
+        flex-direction: row;
+        padding: 1rem;
+        gap: 0.75rem;
+        text-align: left;
+    }
+
+    .step-arrow {
+        transform: rotate(90deg);
+        align-self: center;
+    }
+
+    /* Code blocks */
+    .code-wrapper {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .code-wrapper pre code {
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
+
+    /* Tables – horizontal scroll */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .premium-table {
+        min-width: 580px;
+    }
+
+    .premium-table.font-xs {
+        font-size: 0.72rem;
+    }
+
+    /* Circular Orbit (Slide 27) – shrink */
+    .circle-orbit-container {
+        width: 200px;
+        height: 200px;
+        margin: 0.5rem auto;
+    }
+
+    .circle-path {
+        width: 140px;
+        height: 140px;
+    }
+
+    .orbit-particle-wrapper {
+        width: 140px;
+        height: 140px;
+    }
+
+    .orbit-node {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.35rem;
+    }
+
+    .orbit-node.n1 { left: calc(50% - 35px); width: 70px; }
+    .orbit-node.n2 { width: 65px; }
+    .orbit-node.n3 { left: calc(50% - 35px); width: 70px; }
+    .orbit-node.n4 { width: 65px; }
+
+    /* Slide 18 Pool Dispatcher – adjust inner layout */
+    .worker-disp-node {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .dispatch-task-bubble {
+        font-size: 0.6rem;
+        padding: 0.2rem;
+    }
+
+    /* Lifecycle Flow (Slide 16) */
+    .lifecycle-flow {
+        gap: 0.4rem;
+        padding: 0.75rem 0;
+    }
+
+    .state-card {
+        width: 200px;
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .lifecycle-ends {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    /* Comparison columns */
+    .comparison-col {
+        border-radius: 14px;
+    }
+
+    /* ASCII Terminal */
+    .ascii-timeline {
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+
+    .ascii-timeline pre {
+        font-size: 0.68rem !important;
+        line-height: 1.35;
+    }
+
+    /* Info boxes */
+    .info-box {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .info-box h4 {
+        font-size: 1rem;
+    }
+
+    .info-box p, .info-box ul li {
+        font-size: 0.88rem;
+    }
+
+    /* Pool type cards */
+    .pool-type-card {
+        padding: 1.25rem;
+        border-radius: 14px;
+    }
+
+    /* Error boxes */
+    .error-box {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    /* Pattern boxes */
+    .pattern-box {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    /* CPU state cards */
+    .cpu-state-card {
+        padding: 1rem 1rem 1rem 2rem;
+        border-radius: 12px;
+    }
+
+    /* Conclusion */
+    .conclusion-points {
+        max-width: 100%;
+    }
+
+    /* Slide 22 progress bar labels */
+    .sim-task-name {
+        width: 50px;
+        font-size: 0.68rem;
+    }
+}
+
+/* ── Small Phone Breakpoint (≤ 480px) ── */
+@media (max-width: 480px) {
+    html {
+        font-size: 13.5px;
+    }
+
+    body {
+        padding: 1rem 0 5rem 0;
+    }
+
+    .presentation-container {
+        width: 100vw;
+        padding: 0 0.5rem;
+    }
+
+    /* Titles – compact */
+    .title-card h1 {
+        font-size: 1.85rem;
+    }
+
+    .section-card h2 {
+        font-size: 1.65rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
+    }
+
+    .section-desc {
+        font-size: 1rem;
+    }
+
+    .badge {
+        font-size: 0.72rem;
+        padding: 4px 12px;
+        margin-bottom: 1rem;
+    }
+
+    .part-number {
+        font-size: 1.1rem;
+    }
+
+    .slide-header {
+        font-size: 0.7rem;
+    }
+
+    /* Controls – full-width bottom bar */
+    .controls {
+        width: calc(100% - 1.5rem);
+        bottom: 0.5rem;
+        gap: 0.75rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+    }
+
+    .control-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .slide-counter {
+        font-size: 0.8rem;
+    }
+
+    /* Simulation controls */
+    .sim-controls {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        padding: 0.4rem;
+        justify-content: center !important;
+    }
+
+    .sim-btn {
+        font-size: 0.65rem;
+        padding: 5px 8px;
+        border-radius: 6px;
+    }
+
+    .label {
+        font-size: 0.68rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .divider-v {
+        display: none;
+    }
+
+    /* Sim sections */
+    .sim-section {
+        min-height: 140px;
+        padding: 0.75rem;
+    }
+
+    .sim-section h5 {
+        font-size: 0.88rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Pool workers – single column on very small */
+    .pool-workers {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+
+    .worker-node {
+        padding: 0.6rem 0.4rem;
+        border-radius: 10px;
+    }
+
+    .w-label {
+        font-size: 0.78rem;
+    }
+
+    .w-status {
+        font-size: 0.88rem;
+    }
+
+    /* Core graphs */
+    .core-label {
+        font-size: 0.78rem;
+        width: 45px;
+    }
+
+    .core-val {
+        font-size: 0.68rem;
+        width: 30px;
+    }
+
+    /* GIL indicator */
+    .gil-lock-indicator {
+        font-size: 0.6rem;
+        padding: 3px 7px;
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+
+    /* Flow diagram nodes */
+    .flow-diag-node {
+        min-width: 100px;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 12px;
+    }
+
+    .flow-diag-arrow {
+        height: 30px !important;
+    }
+
+    /* Pool flow diagram */
+    .pool-flow-container {
+        height: 190px;
+    }
+
+    .pool-flow-node {
+        width: 110px;
+        height: 48px;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.35rem;
+        border-radius: 10px;
+    }
+
+    /* Timeline diagram bars */
+    .timeline-diag-track {
+        height: 28px;
+    }
+
+    .timeline-diag-bar {
+        font-size: 0.55rem !important;
+    }
+
+    .timeline-diag-label {
+        font-size: 0.78rem;
+    }
+
+    /* Circle orbit – smaller */
+    .circle-orbit-container {
+        width: 170px;
+        height: 170px;
+    }
+
+    .circle-path {
+        width: 120px;
+        height: 120px;
+    }
+
+    .orbit-particle-wrapper {
+        width: 120px;
+        height: 120px;
+    }
+
+    /* Central core of orbit */
+    .circle-orbit-container > div[style*="border-radius: 50%"] {
+        width: 75px !important;
+        height: 75px !important;
+        padding: 0.4rem !important;
+    }
+
+    .orbit-node {
+        font-size: 0.55rem;
+        padding: 0.15rem 0.25rem;
+    }
+
+    .orbit-node.n1 { top: 0; left: calc(50% - 30px); width: 60px; }
+    .orbit-node.n2 { right: 0; width: 55px; }
+    .orbit-node.n3 { bottom: 0; left: calc(50% - 30px); width: 60px; }
+    .orbit-node.n4 { left: 0; width: 55px; }
+
+    /* Code blocks – smaller */
+    .code-wrapper {
+        padding: 0.75rem;
+        border-radius: 10px;
+    }
+
+    .code-wrapper pre code {
+        font-size: 0.68rem;
+        line-height: 1.4;
+    }
+
+    /* Coro columns */
+    .coro-column {
+        min-height: 180px;
+        padding: 0.75rem;
+    }
+
+    .coro-column h5 {
+        font-size: 0.88rem;
+    }
+
+    .coro-code-exec {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    /* State cards (Future lifecycle) */
+    .state-card {
+        width: 160px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .state-desc {
+        font-size: 0.68rem;
+    }
+
+    /* Step cards */
+    .step-card {
+        padding: 0.75rem;
+        border-radius: 14px;
+    }
+
+    .step-num {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+        margin-right: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .step-card h5 {
+        font-size: 0.85rem;
+    }
+
+    .step-card p {
+        font-size: 0.72rem;
+    }
+
+    /* Tables */
+    .premium-table {
+        min-width: 520px;
+    }
+
+    .premium-table th, .premium-table td {
+        padding: 0.4rem 0.6rem;
+    }
+
+    /* Stack diagrams */
+    .stack-diag-col {
+        padding: 0.75rem;
+    }
+
+    .stack-diag-title {
+        font-size: 0.88rem;
+    }
+
+    .stack-diag-frame {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+
+    /* Slide 18 dispatcher */
+    .w-disp-name {
+        font-size: 0.72rem;
+    }
+
+    .w-disp-status {
+        font-size: 0.6rem;
+        padding: 1px 6px;
+    }
+
+    /* Sim task progress */
+    .sim-task-name {
+        width: 42px;
+        font-size: 0.6rem;
+    }
+
+    .sim-task-progress-bg {
+        height: 10px;
+    }
+
+    /* ASCII timeline */
+    .ascii-timeline pre {
+        font-size: 0.6rem !important;
+    }
+
+    /* Info boxes */
+    .info-box {
+        padding: 0.75rem;
+        border-radius: 10px;
+    }
+
+    .info-box h4 {
+        font-size: 0.9rem;
+    }
+
+    .info-box p, .info-box ul li {
+        font-size: 0.82rem;
+    }
+
+    /* Example cards */
+    .example-card {
+        padding: 0.75rem;
+        border-radius: 12px;
+    }
+
+    /* Pool type cards */
+    .pool-type-card {
+        padding: 1rem;
+    }
+
+    .pool-type-card h4 {
+        font-size: 1.05rem;
+    }
+
+    .pool-type-card ul li {
+        font-size: 0.85rem;
+    }
+
+    /* Optimization card */
+    .optimization-card {
+        padding: 1rem;
+    }
+
+    .optimization-card h4 {
+        font-size: 1rem;
+    }
+
+    /* Source nodes (Event Loop sim) */
+    .source-node {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+
+    /* Event task balls */
+    .sim-task-ball {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.72rem;
+    }
+
+    /* Loop spinner */
+    .loop-spinner-wrapper {
+        width: 100px;
+        height: 100px;
+        margin-top: 0.75rem;
+    }
+
+    .loop-pointer {
+        font-size: 1.6rem;
+    }
+
+    /* Main thread cpu */
+    .main-thread-cpu {
+        padding: 0.75rem;
+    }
+
+    .cpu-core-active {
+        font-size: 0.8rem;
+    }
+
+    /* Conclusion */
+    .point-item p {
+        font-size: 0.9rem;
+    }
+
+    .point-bullet {
+        font-size: 1.2rem;
+    }
+
+    /* QnA */
+    .qna-footer h3 {
+        font-size: 1.4rem;
+    }
+}
+
+/* ── Touch-friendly enhancements ── */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .sim-btn {
+        min-height: 36px;
+        min-width: 44px;
+    }
+
+    .control-btn {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    /* Disable hover effects that don't work well on touch */
+    .sim-btn:hover {
+        transform: none;
+    }
+
+    .control-btn:hover {
+        transform: none;
+    }
+
+    .premium-table tbody tr:hover {
+        background: transparent;
+    }
+
+    body:not(.light-theme) .premium-table tbody tr:hover {
+        background: transparent;
+    }
+
+    /* Pool flow nodes – no scale on touch */
+    .pool-flow-node.active-node,
+    .pool-flow-node.active-future {
+        transform: none;
+    }
+
+    .flow-diag-node.active-node {
+        transform: none;
+    }
+}
+
+
+/* ── Workflow Diagram Entities (Slide 10) ── */
+.entity-node {
+    position: absolute;
+    width: 130px;
+    height: 50px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+.entity-node.active-node {
+    border-color: var(--accent-sky);
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    transform: scale(1.05);
+}
+.anim-token {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 3;
+    transition: left 1s ease-in-out, top 1s ease-in-out, opacity 0.3s ease;
+    opacity: 0;
+}
+

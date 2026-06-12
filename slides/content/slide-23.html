@@ -1,4 +1,4 @@
-<div class="glass-card">
+﻿<div class="glass-card">
     <span class="slide-header">Phần 02 · concurrent.futures</span>
     <h3>Kết quả chạy thử nghiệm đo thời gian</h3>
     <div class="columns">
@@ -8,11 +8,13 @@
                 <div class="ascii-timeline">
                     <pre>
 -> [Tuần tự] tốn: <b>3.00 giây</b>
--> [ThreadPool] tốn: <b>1.00 giây</b>
+-> [ThreadPool] tốn: <b>1.00 giây</b> (Tối ưu!)
+-> [ProcessPool] tốn: <b style="color: #f87171 !important;">2.50 giây</b> (Lãng phí!)
                     </pre>
                 </div>
                 <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">
-                    Do 3 task chạy đan xen song song ngầm trên 3 thread, tổng thời gian tốn chỉ bằng thời gian của task lâu nhất (1 giây so với 3 giây tuần tự).
+                    * <b>ThreadPool</b> chạy đan xen 3 task song song ngầm trên 3 luồng cực nhẹ, tổng thời gian tốn chỉ bằng thời gian của task lâu nhất (1 giây).<br>
+                    * <b>ProcessPool</b> tốn tận 2.50 giây vì hệ điều hành mất quá nhiều thời gian khởi tạo tiến trình con và copy bộ nhớ (RAM) một cách vô ích chỉ để "chờ đợi mạng".
                 </p>
             </div>
         </div>
@@ -27,10 +29,11 @@
                     </pre>
                 </div>
                 <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">
-                    *   **ThreadPool** tốn nhiều thời gian hơn cả tuần tự do khóa **GIL** của Python ngăn cản đa luồng chạy CPU thực tế, cộng thêm chi phí chuyển ngữ cảnh (context switch).
-                    *   **ProcessPool** tăng tốc rõ rệt nhờ chia việc chạy trên 4 nhân CPU thực tế, lách hoàn toàn rào cản khóa GIL.
+                    *   <b>ThreadPool</b> tốn nhiều thời gian hơn cả tuần tự do khóa <b>GIL</b> của Python ngăn cản đa luồng chạy CPU thực tế, cộng thêm chi phí chuyển ngữ cảnh (context switch).
+                    *   <b>ProcessPool</b> tăng tốc rõ rệt nhờ chia việc chạy trên 4 nhân CPU thực tế, lách hoàn toàn rào cản khóa GIL.
                 </p>
             </div>
         </div>
     </div>
 </div>
+

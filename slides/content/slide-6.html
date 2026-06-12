@@ -1,4 +1,4 @@
-<div class="glass-card">
+﻿<div class="glass-card">
     <span class="slide-header">Phần 01 · Tổng quan</span>
     <h3>3.3. Phân loại 3 hình thức thực thi</h3>
     <div class="table-responsive">
@@ -14,7 +14,7 @@
                 <tr>
                     <td><strong>Đơn luồng<br>(Single-threaded)</strong></td>
                     <td><strong>Chạy xen kẽ (Interleaved):</strong> Các tác vụ luân phiên chạy trên 1 luồng chính thông qua sự điều phối của Event Loop.</td>
-                    <td>Rất nhẹ, tiêu tốn ít tài nguyên bộ nhớ, loại bỏ hoàn toàn rủi ro **Race Condition** (Tranh chấp dữ liệu).</td>
+                    <td>Rất nhẹ, tiêu tốn ít tài nguyên bộ nhớ, loại bỏ hoàn toàn rủi ro <b>Race Condition</b> (Tranh chấp dữ liệu).</td>
                 </tr>
                 <tr>
                     <td><strong>Dựa trên Luồng<br>(Thread-based)</strong></td>
@@ -24,9 +24,10 @@
                 <tr>
                     <td><strong>Dựa trên Tiến trình<br>(Process-based)</strong></td>
                     <td><strong>Chạy song song thực sự (CPU):</strong> Đẩy tác vụ nặng sang Process Pool (mỗi tiến trình chạy trên lõi CPU riêng) xử lý ngầm.</td>
-                    <td>Phù hợp cho các tác vụ CPU-bound (tính toán toán học, xử lý ảnh). Giúp lách qua rào cản khóa **GIL** của Python.</td>
+                    <td>Phù hợp cho các tác vụ CPU-bound (tính toán toán học, xử lý ảnh). Giúp lách qua rào cản khóa <b>GIL</b> của Python.</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+

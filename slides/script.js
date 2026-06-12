@@ -197,7 +197,39 @@ function initializeSlideshow() {
             }
         }
     };
-    
+
+    // ── Hỗ trợ vuốt cảm ứng (Touch Swipe) cho điện thoại ──
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    const slidesWrapper = document.getElementById('slidesWrapper');
+    if (slidesWrapper) {
+        slidesWrapper.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
+            touchStartTime = Date.now();
+        }, { passive: true });
+
+        slidesWrapper.addEventListener('touchend', (e) => {
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+            const deltaY = e.changedTouches[0].clientY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
+
+            // Chỉ nhận vuốt ngang (|deltaX| > 50px), không phải cuộn dọc
+            // và thời gian vuốt < 500ms (loại trừ kéo chậm)
+            if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) && deltaTime < 500) {
+                if (deltaX < 0) {
+                    // Vuốt sang trái → slide tiếp theo
+                    nextSlide();
+                } else {
+                    // Vuốt sang phải → slide trước
+                    prevSlide();
+                }
+            }
+        }, { passive: true });
+    }
+
     updateSlides();
     initializeSimulations();
 }
@@ -206,117 +238,6 @@ function initializeSlideshow() {
 // INITIALIZE SIMULATIONS & DIAGRAMS
 // -----------------------------------------------------------------
 function initializeSimulations() {
-    // --- SIMULATION 4: CPU BUSY/IDLE (Slide 7) ---
-    const runSeqCpuBtn = document.getElementById('runSeqCpuBtn');
-    const runAsyncCpuBtn = document.getElementById('runAsyncCpuBtn');
-    const resetCpuLoadSimBtn = document.getElementById('resetCpuLoadSimBtn');
-    const cpuTaskABar = document.getElementById('cpuTaskABar');
-    const cpuTaskBBar = document.getElementById('cpuTaskBBar');
-    const cpuLoadTimeline = document.getElementById('cpuLoadTimeline');
-
-    if (runSeqCpuBtn) {
-        let cpuSimRunning = false;
-        let cpuSimTimers = [];
-
-        function resetCpuLoadSim() {
-            cpuSimTimers.forEach(clearTimeout);
-            cpuSimTimers = [];
-            cpuSimRunning = false;
-            if (cpuTaskABar) cpuTaskABar.style.width = '0%';
-            if (cpuTaskBBar) cpuTaskBBar.style.width = '0%';
-            if (cpuLoadTimeline) cpuLoadTimeline.innerHTML = '';
-            if (runSeqCpuBtn) runSeqCpuBtn.disabled = false;
-            if (runAsyncCpuBtn) runAsyncCpuBtn.disabled = false;
-        }
-
-        runSeqCpuBtn.onclick = () => {
-            if (cpuSimRunning) return;
-            cpuSimRunning = true;
-            runSeqCpuBtn.disabled = true;
-            runAsyncCpuBtn.disabled = true;
-            cpuLoadTimeline.innerHTML = '';
-
-            // Sequential Simulation
-            let t1 = setTimeout(() => {
-                cpuTaskABar.style.width = '50%';
-                addTimelineBlock(20, 'var(--accent-rose)', 'Busy (A)');
-            }, 500);
-
-            let t2 = setTimeout(() => {
-                cpuTaskABar.style.width = '100%';
-                addTimelineBlock(30, '#475569', 'Idle Waiting (A)');
-            }, 1500);
-
-            let t3 = setTimeout(() => {
-                cpuTaskBBar.style.width = '50%';
-                addTimelineBlock(20, 'var(--accent-rose)', 'Busy (B)');
-            }, 2500);
-
-            let t4 = setTimeout(() => {
-                cpuTaskBBar.style.width = '100%';
-                addTimelineBlock(30, '#475569', 'Idle Waiting (B)');
-                cpuSimRunning = false;
-            }, 3500);
-
-            cpuSimTimers.push(t1, t2, t3, t4);
-        };
-
-        runAsyncCpuBtn.onclick = () => {
-            if (cpuSimRunning) return;
-            cpuSimRunning = true;
-            runSeqCpuBtn.disabled = true;
-            runAsyncCpuBtn.disabled = true;
-            cpuLoadTimeline.innerHTML = '';
-
-            // Concurrent Simulation
-            let t1 = setTimeout(() => {
-                cpuTaskABar.style.width = '50%';
-                addTimelineBlock(15, 'var(--accent-rose)', 'Busy (A)');
-            }, 400);
-
-            let t2 = setTimeout(() => {
-                cpuTaskBBar.style.width = '50%';
-                addTimelineBlock(15, 'var(--accent-rose)', 'Busy (B)');
-            }, 800);
-
-            let t3 = setTimeout(() => {
-                addTimelineBlock(40, '#475569', 'Idle Waiting (A & B)');
-            }, 1800);
-
-            let t4 = setTimeout(() => {
-                cpuTaskABar.style.width = '100%';
-                addTimelineBlock(15, 'var(--accent-rose)', 'Busy (A)');
-            }, 2200);
-
-            let t5 = setTimeout(() => {
-                cpuTaskBBar.style.width = '100%';
-                addTimelineBlock(15, 'var(--accent-rose)', 'Busy (B)');
-                cpuSimRunning = false;
-            }, 2600);
-
-            cpuSimTimers.push(t1, t2, t3, t4, t5);
-        };
-
-        function addTimelineBlock(widthPercent, color, text) {
-            if (!cpuLoadTimeline) return;
-            const block = document.createElement('div');
-            block.style.width = `${widthPercent}%`;
-            block.style.background = color;
-            block.style.height = '100%';
-            block.style.display = 'flex';
-            block.style.justifyContent = 'center';
-            block.style.alignItems = 'center';
-            block.style.color = '#fff';
-            block.style.fontSize = '0.65rem';
-            block.style.fontWeight = 'bold';
-            block.style.animation = 'scaleIn 0.3s ease forwards';
-            block.textContent = text;
-            cpuLoadTimeline.appendChild(block);
-        }
-
-        resetCpuLoadSimBtn.onclick = resetCpuLoadSim;
-        resetCpuLoadSimGlobal = resetCpuLoadSim;
-    }
 
     // --- SIMULATION 1: EVENT LOOP (Slide 9) ---
     const spawnClickBtn = document.getElementById('spawnClickBtn');
@@ -906,13 +827,13 @@ function initializeSimulations() {
 
             let t2 = setTimeout(() => {
                 highlightLine('a3');
-                setThreadState('', 'ĐANG CHỜ I/O (BỊ TREO)');
-                pushStackFrame('task-a', 'Task A (Treo)', 'IP: Line 3\nlocal_v: "A"\nstate: sleep(1)');
+                setThreadState('yielding', '⚡ YIELDING (NHƯỜNG CPU CHO LOOP)');
+                pushStackFrame('task-a', 'Task A (Đóng băng)', 'IP: Line 3\nlocal_v: "A"\nstate: await sleep(1)');
             }, 2200);
 
             let t3 = setTimeout(() => {
                 highlightLine('b1');
-                setThreadState('running-b', 'Chạy Task B', 'task-b-ball', 'task_b()');
+                setThreadState('running-b', 'Luồng rảnh -> Chạy Task B', 'task-b-ball', 'task_b()');
             }, 3400);
 
             let t4 = setTimeout(() => {
@@ -921,8 +842,8 @@ function initializeSimulations() {
 
             let t5 = setTimeout(() => {
                 highlightLine('b3');
-                setThreadState('', 'ĐANG CHỜ I/O (BỊ TREO)');
-                pushStackFrame('task-b', 'Task B (Treo)', 'IP: Line 7\nlocal_v: "B"\nstate: sleep(1)');
+                setThreadState('yielding', '⚡ YIELDING (NHƯỜNG CPU CHO LOOP)');
+                pushStackFrame('task-b', 'Task B (Đóng băng)', 'IP: Line 7\nlocal_v: "B"\nstate: await sleep(1)');
             }, 5600);
 
             let t6 = setTimeout(() => {
@@ -1184,36 +1105,86 @@ function initializeSimulations() {
             addLog22(`[Start] Bắt đầu chạy ${taskType === 'io' ? 'I/O-bound' : 'CPU-bound'} với ${poolType === 'thread' ? 'ThreadPool' : 'ProcessPool'}...`);
 
             if (taskType === 'io') {
-                bars.forEach((bar, idx) => {
-                    addLog22(`[Queue] Gửi URL ${idx+1} vào pool`);
-                    bar.style.width = '0%';
-                });
+                if (poolType === 'thread') {
+                    addLog22(`[Khởi tạo] ThreadPool tạo luồng cực nhanh, tốn ít RAM.`);
+                    bars.forEach((bar, idx) => {
+                        addLog22(`[Queue] Gửi URL ${idx+1} vào ThreadPool...`);
+                        bar.style.width = '0%';
+                        bar.classList.add('blocking');
+                    });
+                    addLog22(`[Thực thi] Các Thread con nhận việc và đứng BLOCKING (Chết trân) chờ I/O...`);
 
-                let progress = [0, 0, 0];
-                let interval = setInterval(() => {
-                    let doneCount = 0;
-                    for (let i = 0; i < 3; i++) {
-                        if (progress[i] < 100) {
-                            progress[i] += Math.random() * 15 + 5;
-                            if (progress[i] >= 100) {
-                                progress[i] = 100;
-                                bars[i].classList.add('done');
-                                addLog22(`[Xong] URL ${i+1} tải hoàn thành!`);
+                    let progress = [0, 0, 0];
+                    let interval = setInterval(() => {
+                        let doneCount = 0;
+                        for (let i = 0; i < 3; i++) {
+                            if (progress[i] < 100) {
+                                progress[i] += Math.random() * 15 + 5;
+                                if (progress[i] >= 100) {
+                                    progress[i] = 100;
+                                    bars[i].classList.remove('blocking');
+                                    bars[i].classList.add('done');
+                                    addLog22(`[Xong] Luồng ${i} tải xong URL ${i+1} (hết Blocking)!`);
+                                }
+                                bars[i].style.width = `${progress[i]}%`;
+                            } else {
+                                doneCount++;
                             }
-                            bars[i].style.width = `${progress[i]}%`;
-                        } else {
-                            doneCount++;
                         }
-                    }
 
-                    if (doneCount === 3) {
-                        clearInterval(interval);
-                        addLog22(`[Kết quả] Hoàn thành 3 URLs trong ~1.00s!`);
-                        isSim22Running = false;
-                    }
-                }, 100);
-                
-                sim22Timers.push(interval);
+                        if (doneCount === 3) {
+                            clearInterval(interval);
+                            addLog22(`[Kết quả] TỐI ƯU: Hoàn thành 3 URLs trong ~1.00s! (Main Thread không bị block)`);
+                            isSim22Running = false;
+                        }
+                    }, 100);
+                    
+                    sim22Timers.push(interval);
+                } else {
+                    addLog22(`[Khởi tạo] ProcessPool đang copy RAM và tạo tiến trình con... (Rất chậm)`);
+                    bars.forEach((bar, idx) => {
+                        bar.classList.add('waiting');
+                    });
+
+                    let startupDelay = setTimeout(() => {
+                        addLog22(`[Cảnh báo] Khởi động xong. Rất lãng phí RAM và tài nguyên CPU chỉ để đợi I/O!`);
+                        bars.forEach((bar, idx) => {
+                            bar.classList.remove('waiting');
+                            addLog22(`[Queue] Gửi URL ${idx+1} vào Process Worker ${idx}...`);
+                            bar.style.width = '0%';
+                            bar.classList.add('blocking');
+                        });
+                        addLog22(`[Thực thi] Các tiến trình con cũng bị BLOCKING hoàn toàn chờ I/O...`);
+
+                        let progress = [0, 0, 0];
+                        let interval = setInterval(() => {
+                            let doneCount = 0;
+                            for (let i = 0; i < 3; i++) {
+                                if (progress[i] < 100) {
+                                    progress[i] += Math.random() * 15 + 5;
+                                    if (progress[i] >= 100) {
+                                        progress[i] = 100;
+                                        bars[i].classList.add('done');
+                                        addLog22(`[Xong] Process Worker ${i} tải xong URL ${i+1}!`);
+                                    }
+                                    bars[i].style.width = `${progress[i]}%`;
+                                } else {
+                                    doneCount++;
+                                }
+                            }
+
+                            if (doneCount === 3) {
+                                clearInterval(interval);
+                                addLog22(`[Kết quả] LÃNG PHÍ: Xong việc nhưng tốn thời gian khởi động (~2.50s) và quá nhiều RAM!`);
+                                isSim22Running = false;
+                            }
+                        }, 100);
+                        
+                        sim22Timers.push(interval);
+                    }, 1500); // Giả lập độ trễ khởi động tiến trình
+                    
+                    sim22Timers.push(startupDelay);
+                }
 
             } else {
                 if (poolType === 'thread') {
@@ -1569,6 +1540,12 @@ function initializeSimulations() {
             }
         }
 
+        const mgMain = document.getElementById('mgMain');
+        const mgCoro = document.getElementById('mgCoro');
+        const mgFuture = document.getElementById('mgFuture');
+        const mgCallback = document.getElementById('mgCallback');
+        const mgToken = document.getElementById('mgToken');
+
         function resetFutureCodeSim() {
             futureSimTimers.forEach(clearTimeout);
             futureSimTimers = [];
@@ -1576,6 +1553,27 @@ function initializeSimulations() {
             clear34Highlights();
             if (futureTerminalLogs) futureTerminalLogs.textContent = 'Chờ chạy code...\n';
             if (runFutureCodeBtn) runFutureCodeBtn.disabled = false;
+            
+            if (mgMain) mgMain.style.background = 'rgba(56,189,248,0.1)';
+            if (mgCoro) mgCoro.style.opacity = '0.3';
+            if (mgFuture) {
+                mgFuture.style.opacity = '0.3';
+                mgFuture.textContent = 'Future (Trống)';
+                mgFuture.style.borderColor = '#f59e0b';
+                mgFuture.style.color = '#f59e0b';
+            }
+            if (mgCallback) {
+                mgCallback.style.opacity = '0.3';
+                mgCallback.style.background = 'rgba(244,63,94,0.1)';
+            }
+            if (mgToken) {
+                mgToken.style.opacity = '0';
+                mgToken.style.transition = 'none';
+                mgToken.style.top = '100px';
+                mgToken.style.left = '40px';
+                void mgToken.offsetWidth;
+                mgToken.style.transition = 'top 0.6s ease, left 0.6s ease, opacity 0.3s ease';
+            }
         }
 
         function runFutureCodeSim() {
@@ -1585,44 +1583,67 @@ function initializeSimulations() {
             if (futureTerminalLogs) futureTerminalLogs.textContent = '';
 
             highlight34Line('mainStart');
+            if (mgFuture) mgFuture.style.opacity = '1';
 
             let t1 = setTimeout(() => {
                 highlight34Line('addCallback');
-            }, 800);
+                if (mgCallback) mgCallback.style.opacity = '1';
+            }, 1200);
 
             let t2 = setTimeout(() => {
                 highlight34Line('createTask');
-            }, 1600);
+                if (mgCoro) mgCoro.style.opacity = '1';
+            }, 2400);
 
             let t3 = setTimeout(() => {
                 highlight34Line('printMain');
                 addFutureLog('Main đang chờ Future...');
-            }, 2400);
+            }, 3600);
 
             let t4 = setTimeout(() => {
                 highlight34Line('coroStart');
                 addFutureLog('-> [Coroutine]: Đang xử lý ngầm...');
-            }, 3200);
+                if (mgToken) mgToken.style.opacity = '1';
+            }, 4800);
 
             let t5 = setTimeout(() => {
                 highlight34Line('coroSleep');
-            }, 4000);
+            }, 6000);
 
             let t6 = setTimeout(() => {
                 highlight34Line('coroSet');
                 addFutureLog('-> [Coroutine]: Đã xong! Thiết lập kết quả...');
-            }, 4800);
+                if (mgToken) {
+                    mgToken.style.top = '15px';
+                    mgToken.style.left = 'calc(100% - 60px)';
+                }
+            }, 7200);
 
             let t7 = setTimeout(() => {
                 highlight34Line('callback');
                 addFutureLog('-> [Callback]: Nhận tín hiệu!');
                 addFutureLog('-> [Callback]: Kết quả = \'KẾT QUẢ THÀNH CÔNG\'');
-            }, 5600);
+                
+                if (mgToken) mgToken.style.opacity = '0';
+                if (mgFuture) {
+                    mgFuture.textContent = 'Future (DONE)';
+                    mgFuture.style.borderColor = 'var(--accent-emerald)';
+                    mgFuture.style.color = 'var(--accent-emerald)';
+                }
+                if (mgCallback) {
+                    mgCallback.style.background = 'var(--accent-rose)';
+                    mgCallback.style.color = 'white';
+                }
+            }, 8400);
 
             let t8 = setTimeout(() => {
                 highlight34Line('awaitFuture');
+                if (mgCallback) {
+                    mgCallback.style.background = 'rgba(244,63,94,0.1)';
+                    mgCallback.style.color = 'var(--accent-rose)';
+                }
                 isFutureRunning = false;
-            }, 6400);
+            }, 9600);
 
             futureSimTimers.push(t1, t2, t3, t4, t5, t6, t7, t8);
         }
@@ -1630,5 +1651,323 @@ function initializeSimulations() {
         runFutureCodeBtn.onclick = runFutureCodeSim;
         resetFutureCodeBtn.onclick = resetFutureCodeSim;
         resetFutureCodeSimGlobal = resetFutureCodeSim;
+    }
+
+    // Slide 10: Entity Token Animation
+    const runWfBtn = document.getElementById('runWfBtn');
+    const resetWfBtn = document.getElementById('resetWfBtn');
+    if (runWfBtn) {
+        let wfTimers = [];
+        let isWfRunning = false;
+        
+        const nodes = {
+            main: document.getElementById('entMain'),
+            queue: document.getElementById('entQueue'),
+            worker: document.getElementById('entWorker'),
+            future: document.getElementById('entFuture')
+        };
+        const tokenContainer = document.getElementById('wfTokenContainer');
+        const wfStepDesc = document.getElementById('wfStepDesc');
+        
+        function resetWf() {
+            wfTimers.forEach(clearTimeout);
+            wfTimers = [];
+            isWfRunning = false;
+            
+            Object.values(nodes).forEach(n => {
+                if (n) {
+                    n.classList.remove('active-node');
+                    n.style.borderColor = '';
+                }
+            });
+            
+            if (tokenContainer) tokenContainer.innerHTML = '';
+            if (wfStepDesc) wfStepDesc.style.opacity = '0';
+        }
+        
+        function updateDesc(text) {
+            if (!wfStepDesc) return;
+            wfStepDesc.innerHTML = text;
+            wfStepDesc.style.opacity = '1';
+        }
+
+        function createTokens(count, type) {
+            let tokens = [];
+            for (let i = 0; i < count; i++) {
+                let token = document.createElement('div');
+                token.className = 'anim-token';
+                if (type === 'task') {
+                    token.textContent = 'T' + (i+1);
+                    token.style.background = '#38bdf8';
+                    token.style.boxShadow = '0 0 10px #38bdf8';
+                    token.style.top = '33px';
+                    token.style.left = '73px';
+                } else if (type === 'result') {
+                    token.textContent = 'R' + (i+1);
+                    token.style.background = '#34d399';
+                    token.style.boxShadow = '0 0 10px #34d399';
+                    token.style.top = 'calc(100% - 57px)';
+                    token.style.left = 'calc(100% - 97px)';
+                } else if (type === 'future') {
+                    token.textContent = 'F' + (i+1);
+                    token.style.background = 'transparent';
+                    token.style.border = '2px dashed #f59e0b';
+                    token.style.color = '#f59e0b';
+                    token.style.top = '33px';
+                    token.style.left = 'calc(100% - 97px)';
+                }
+                token.style.opacity = '0';
+                if (tokenContainer) tokenContainer.appendChild(token);
+                // Trigger reflow
+                void token.offsetWidth;
+                token.style.transition = 'left 1s ease-in-out, top 1s ease-in-out, opacity 0.3s ease';
+                tokens.push(token);
+            }
+            return tokens;
+        }
+        
+        function runWf() {
+            if (isWfRunning) return;
+            resetWf();
+            isWfRunning = true;
+
+            let tasks = createTokens(4, 'task');
+            let results = createTokens(4, 'result');
+            let futures = createTokens(4, 'future');
+            
+            // Step 1: Submit 4 tasks
+            let t1 = setTimeout(() => {
+                nodes.main.classList.add('active-node');
+                nodes.future.classList.add('active-node');
+                updateDesc("Bước 1: Main Thread đẩy 4 Tác vụ (T) xuống Queue. ĐỒNG THỜI khởi tạo 4 hộp thư Future (F) rỗng.");
+                
+                tasks.forEach((tk, idx) => {
+                    wfTimers.push(setTimeout(() => {
+                        tk.style.opacity = '1';
+                        futures[idx].style.opacity = '1'; // Spawn empty Future
+                        setTimeout(() => { tk.style.top = 'calc(100% - 57px)'; }, 50);
+                    }, idx * 250));
+                });
+            }, 500);
+            
+            // Step 2: Queue to Worker
+            let t2 = setTimeout(() => {
+                nodes.main.classList.remove('active-node');
+                nodes.queue.classList.add('active-node');
+                updateDesc("Bước 2: 4 Tác vụ (T) nằm trong Queue đợi Worker bốc ra.");
+                
+                tasks.forEach((tk, idx) => {
+                    wfTimers.push(setTimeout(() => {
+                        tk.style.left = 'calc(100% - 97px)';
+                    }, idx * 250));
+                });
+            }, 3500);
+            
+            // Step 3: Worker processing
+            let t3 = setTimeout(() => {
+                nodes.queue.classList.remove('active-node');
+                nodes.worker.classList.add('active-node');
+                updateDesc("Bước 3: Worker bốc Task ra chạy song song...<br>(Main Thread vẫn đang rảnh tay đi làm việc khác)");
+                
+                tasks.forEach((tk, idx) => {
+                    wfTimers.push(setTimeout(() => {
+                        tk.style.opacity = '0';
+                        results[idx].style.opacity = '1';
+                    }, idx * 250));
+                });
+            }, 6500);
+            
+            // Step 4: Worker resolves Future
+            let t4 = setTimeout(() => {
+                updateDesc("Bước 4: Worker làm xong, nó KHÔNG TRẢ TRỰC TIẾP cho Main (vì Main đang làm việc khác), mà đem Kết quả (R) điền vào Future Mailbox.");
+                
+                results.forEach((tk, idx) => {
+                    wfTimers.push(setTimeout(() => {
+                        tk.style.top = '33px'; // Fly to Future Mailbox
+                        setTimeout(() => {
+                            futures[idx].style.opacity = '0'; // Replace empty Future with Result
+                        }, 1000);
+                    }, idx * 250));
+                });
+            }, 9500);
+            
+            // Step 5: Main reads Future
+            let t5 = setTimeout(() => {
+                nodes.worker.classList.remove('active-node');
+                nodes.main.classList.add('active-node');
+                nodes.future.style.borderColor = 'var(--accent-emerald)';
+                updateDesc("Bước 5: Bất cứ khi nào rảnh, Main Thread gọi future.result() để đến Mailbox lấy 4 kết quả về.");
+                
+                results.forEach((tk, idx) => {
+                    wfTimers.push(setTimeout(() => {
+                        tk.style.left = '73px';
+                    }, idx * 250));
+                });
+            }, 13000);
+            
+            let t6 = setTimeout(() => {
+                results.forEach((tk, idx) => {
+                    wfTimers.push(setTimeout(() => {
+                        tk.style.opacity = '0';
+                    }, idx * 250));
+                });
+                wfTimers.push(setTimeout(() => { isWfRunning = false; }, 1000));
+            }, 16000);
+            
+            wfTimers.push(t1, t2, t3, t4, t5, t6);
+        }
+        
+        runWfBtn.onclick = runWf;
+        resetWfBtn.onclick = resetWf;
+        
+        resetWf();
+    }
+
+    // =================================================================
+    // --- SIMULATION: CPU SEQUENTIAL VS CONCURRENT (Slide 7) ---
+    // =================================================================
+    const runSeqCpuBtn = document.getElementById('runSeqCpuBtn');
+    const runAsyncCpuBtn = document.getElementById('runAsyncCpuBtn');
+    const resetCpuLoadSimBtn = document.getElementById('resetCpuLoadSimBtn');
+    
+    if (runSeqCpuBtn) {
+        let cpuSimTimers = [];
+        let isCpuSimRunning = false;
+        
+        const taskABar = document.getElementById('cpuTaskABar');
+        const taskBBar = document.getElementById('cpuTaskBBar');
+        const loadTimeline = document.getElementById('cpuLoadTimeline');
+        
+        function resetCpuSim() {
+            cpuSimTimers.forEach(clearTimeout);
+            cpuSimTimers = [];
+            isCpuSimRunning = false;
+            runSeqCpuBtn.disabled = false;
+            runAsyncCpuBtn.disabled = false;
+            
+            if (taskABar) {
+                taskABar.style.transition = 'none';
+                taskABar.style.width = '0%';
+                void taskABar.offsetWidth; // Trigger reflow
+                taskABar.style.transition = 'width 1000ms linear';
+            }
+            if (taskBBar) {
+                taskBBar.style.transition = 'none';
+                taskBBar.style.width = '0%';
+                void taskBBar.offsetWidth;
+                taskBBar.style.transition = 'width 1000ms linear';
+            }
+            if (loadTimeline) loadTimeline.innerHTML = '';
+        }
+        
+        function addLoadChunk(type, durationMs, widthPercent, taskName = '') {
+            if (!loadTimeline) return;
+            let chunk = document.createElement('div');
+            chunk.style.height = '100%';
+            chunk.style.width = '0%';
+            chunk.style.overflow = 'hidden';
+            if (type === 'busy') {
+                chunk.style.background = taskName === 'A' ? 'var(--accent-sky)' : (taskName === 'B' ? 'var(--accent-emerald)' : 'var(--accent-rose)');
+                chunk.textContent = taskName;
+                chunk.style.color = '#fff';
+                chunk.style.display = 'flex';
+                chunk.style.alignItems = 'center';
+                chunk.style.justifyContent = 'center';
+                chunk.style.fontSize = '0.75rem';
+                chunk.style.fontWeight = 'bold';
+            } else {
+                chunk.style.background = '#475569';
+                chunk.style.opacity = '0.7';
+            }
+            chunk.style.transition = `width ${durationMs}ms linear`;
+            loadTimeline.appendChild(chunk);
+            
+            void chunk.offsetWidth;
+            chunk.style.width = widthPercent + '%';
+        }
+
+        const secW = 16.66; // 100% / 6 seconds
+        
+        function runSeq() {
+            if (isCpuSimRunning) return;
+            resetCpuSim();
+            isCpuSimRunning = true;
+            runSeqCpuBtn.disabled = true;
+            runAsyncCpuBtn.disabled = true;
+            
+            addLoadChunk('busy', 1000, secW, 'A');
+            if (taskABar) taskABar.style.width = '50%';
+            
+            let t1 = setTimeout(() => {
+                addLoadChunk('idle', 1000, secW);
+            }, 1000);
+            
+            let t2 = setTimeout(() => {
+                addLoadChunk('busy', 1000, secW, 'A');
+                if (taskABar) taskABar.style.width = '100%';
+            }, 2000);
+            
+            let t3 = setTimeout(() => {
+                addLoadChunk('busy', 1000, secW, 'B');
+                if (taskBBar) taskBBar.style.width = '50%';
+            }, 3000);
+            
+            let t4 = setTimeout(() => {
+                addLoadChunk('idle', 1000, secW);
+            }, 4000);
+            
+            let t5 = setTimeout(() => {
+                addLoadChunk('busy', 1000, secW, 'B');
+                if (taskBBar) taskBBar.style.width = '100%';
+            }, 5000);
+            
+            let t6 = setTimeout(() => {
+                isCpuSimRunning = false;
+                runSeqCpuBtn.disabled = false;
+                runAsyncCpuBtn.disabled = false;
+            }, 6000);
+            
+            cpuSimTimers.push(t1, t2, t3, t4, t5, t6);
+        }
+        
+        function runAsync() {
+            if (isCpuSimRunning) return;
+            resetCpuSim();
+            isCpuSimRunning = true;
+            runSeqCpuBtn.disabled = true;
+            runAsyncCpuBtn.disabled = true;
+            
+            addLoadChunk('busy', 1000, secW, 'A');
+            if (taskABar) taskABar.style.width = '50%';
+            
+            let t1 = setTimeout(() => {
+                addLoadChunk('busy', 1000, secW, 'B'); 
+                if (taskBBar) taskBBar.style.width = '50%';
+            }, 1000);
+            
+            let t2 = setTimeout(() => {
+                addLoadChunk('busy', 1000, secW, 'A'); 
+                if (taskABar) taskABar.style.width = '100%';
+            }, 2000);
+            
+            let t3 = setTimeout(() => {
+                addLoadChunk('busy', 1000, secW, 'B'); 
+                if (taskBBar) taskBBar.style.width = '100%';
+            }, 3000);
+            
+            let t4 = setTimeout(() => {
+                isCpuSimRunning = false;
+                runSeqCpuBtn.disabled = false;
+                runAsyncCpuBtn.disabled = false;
+            }, 4000);
+            
+            cpuSimTimers.push(t1, t2, t3, t4);
+        }
+        
+        runSeqCpuBtn.onclick = runSeq;
+        runAsyncCpuBtn.onclick = runAsync;
+        resetCpuLoadSimBtn.onclick = resetCpuSim;
+        
+        resetCpuSim();
     }
 }

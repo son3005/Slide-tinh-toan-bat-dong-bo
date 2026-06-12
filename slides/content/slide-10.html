@@ -12,46 +12,70 @@
                 <p style="font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary);">Event Loop đẩy tác vụ nặng sang Process Pool độc lập trên các nhân CPU riêng, lách GIL để đạt song song thực sự.</p>
             </div>
             <div class="info-box" style="margin-top: 0.5rem;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem;">Quy trình Hoạt động với Pool:</h4>
-                <div class="sim-controls" style="padding: 0.4rem; justify-content: center; gap: 0.35rem; display: flex; flex-wrap: wrap; border: none; background: transparent; margin-bottom: 0;">
-                    <button class="sim-btn" id="poolStep1Btn">Bước 1: Khởi tạo</button>
-                    <button class="sim-btn" id="poolStep2Btn" disabled>Bước 2: Giao việc & Future</button>
-                    <button class="sim-btn" id="poolStep3Btn" disabled>Bước 3: Worker chạy</button>
-                    <button class="sim-btn btn-rose" id="poolStep4Btn" disabled>Bước 4: Nhận kết quả</button>
-                </div>
+                <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem;">📝 Đặc điểm nổi bật</h4>
+                <ul style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; padding-left: 1.2rem;">
+                    <li><strong>Luồng chính (Main Thread):</strong> Không bao giờ bị chặn (non-blocking) khi giao việc. Nó chỉ việc cầm Future (biên lai) và đi làm việc khác.</li>
+                    <li><strong>Luồng nền (Worker Pool):</strong> Luôn túc trực sẵn sàng. Khi có việc trong Task Queue, worker rảnh rỗi sẽ tự động chạy tác vụ đó.</li>
+                </ul>
             </div>
         </div>
         <div class="column" style="flex: 1.15;">
-            <h4 class="sub-title" style="text-align: center; font-size: 0.95rem;">Sơ đồ D: Quy trình dòng chảy dữ liệu với Pool</h4>
+            <h4 class="sub-title" style="text-align: center; font-size: 0.95rem;">Mô phỏng Hoạt họa: Vòng đời Future & Pool</h4>
             
-            <div class="pool-flow-container" id="poolFlowContainer">
-                <!-- Row 1: Main Thread & Future -->
-                <div class="pool-flow-node" id="poolNodeMain" style="top: 20px; left: 10%;">
-                    Main Thread<br><span style="font-size: 0.65rem; color: var(--text-muted);">Luồng chính</span>
-                </div>
-                <div class="pool-flow-arrow h-arrow" id="poolArrowMainFuture" style="top: calc(20px + 32.5px - 3px); left: calc(10% + 170px); right: calc(10% + 170px);"></div>
-                <div class="pool-flow-node" id="poolNodeFuture" style="top: 20px; right: 10%;">
-                    Future Object<br><span style="font-size: 0.65rem; color: var(--text-muted);">Biên lai kết quả</span>
-                </div>
+            <div class="sim-controls" style="justify-content: center; margin-top: 0.5rem; background: transparent; border: none;">
+                <button class="sim-btn btn-rose" id="runWfBtn">Chạy mô phỏng</button>
+                <button class="sim-btn btn-sec" id="resetWfBtn">Reset</button>
+            </div>
+
+            <!-- Khung chứa các thực thể -->
+            <div class="entity-sim-container" style="position: relative; height: 320px; background: var(--card-bg); border-radius: 12px; margin-top: 1rem; border: 1px solid var(--card-border); box-shadow: var(--shadow-soft); overflow: hidden;">
                 
-                <!-- Vertical Arrows -->
-                <div class="pool-flow-arrow v-arrow" id="poolArrowMainQueue" style="top: 85px; left: calc(10% + 85px - 3px); height: 100px;"></div>
-                <div class="pool-flow-arrow v-arrow" id="poolArrowPoolFuture" style="top: 85px; right: calc(10% + 85px - 3px); height: 100px;"></div>
-                
-                <!-- Row 2: Queue & Worker Pool -->
-                <div class="pool-flow-node" id="poolNodeQueue" style="bottom: 20px; left: 10%;">
-                    Task Queue<br><span style="font-size: 0.65rem; color: var(--text-muted);">Hàng đợi việc</span>
+                <!-- Thực thể (Nodes) -->
+                <div class="entity-node" id="entMain" style="top: 20px; left: 20px;">
+                    👨‍💻 Main Thread
                 </div>
-                <div class="pool-flow-arrow h-arrow" id="poolArrowQueuePool" style="bottom: calc(20px + 32.5px - 3px); left: calc(10% + 170px); right: calc(10% + 170px);"></div>
-                <div class="pool-flow-node" id="poolNodePool" style="bottom: 20px; right: 10%;">
-                    Worker Pool<br><span style="font-size: 0.65rem; color: var(--text-muted);">Nhóm Worker nền</span>
+                <div class="entity-node" id="entQueue" style="bottom: 20px; left: 20px;">
+                    📥 Task Queue
+                </div>
+                <div class="entity-node" id="entWorker" style="bottom: 20px; right: 20px;">
+                    ⚙️ Worker Pool
+                </div>
+                <div class="entity-node" id="entFuture" style="top: 20px; right: 20px; border-style: dashed;">
+                    🎫 Future (Mailbox)
+                </div>
+
+                <!-- Đường nối SVG -->
+                <svg style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 1;">
+                    <defs>
+                        <marker id="arrowSky" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+                        </marker>
+                        <marker id="arrowEmerald" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399" />
+                        </marker>
+                    </defs>
+                    <!-- Main -> Queue -->
+                    <line x1="80" y1="70" x2="80" y2="240" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowSky)" opacity="0.4"/>
+                    <!-- Queue -> Worker -->
+                    <line x1="140" y1="275" x2="calc(100% - 150px)" y2="275" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowSky)" opacity="0.4"/>
+                    <!-- Worker -> Future -->
+                    <line x1="calc(100% - 80px)" y1="240" x2="calc(100% - 80px)" y2="80" stroke="#34d399" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowEmerald)" opacity="0.4"/>
+                    <!-- Future -> Main -->
+                    <line x1="calc(100% - 150px)" y1="45" x2="150" y2="45" stroke="#34d399" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowEmerald)" opacity="0.4"/>
+                </svg>
+
+                <!-- Token Container (JS will inject tokens here) -->
+                <div id="wfTokenContainer"></div>
+                
+                <!-- Mô tả bước -->
+                <div id="wfStepDesc" style="position: absolute; top: 130px; left: 50%; transform: translateX(-50%); width: 75%; text-align: center; color: var(--text-primary); font-size: 0.9rem; padding: 0.6rem; background: var(--card-bg); border-radius: 8px; border: 2px solid var(--accent-sky); z-index: 5; opacity: 0; transition: opacity 0.3s; box-shadow: var(--shadow-medium);">
+                    Mô tả bước...
                 </div>
             </div>
-            
-            <div class="info-box" style="margin-top: 0.5rem; background: #0f172a; border: 1px solid rgba(0,0,0,0.08); padding: 0.6rem;">
-                <strong style="font-size: 0.8rem; color: #38bdf8;">Chi tiết bước chạy:</strong>
-                <p id="poolExplainText" style="font-size: 0.78rem; color: #cbd5e1; margin-top: 0.2rem; line-height: 1.4;">
-                    Nhấp nút "Bước 1: Khởi tạo" ở bộ điều khiển để bắt đầu xem cách Pool vận hành.
+
+            <div class="info-box" style="margin-top: 1.5rem; background: rgba(59, 130, 246, 0.1); border: 1px dashed var(--accent-sky); padding: 0.75rem;">
+                <p style="font-size: 0.8rem; color: var(--text-primary); text-align: center;">
+                    💡 <strong>Sự nhầm lẫn phổ biến:</strong> Future không phải là luồng (Thread), nó chỉ là một vùng nhớ chia sẻ (biên lai) để Luồng Chính và Luồng Nền trao đổi dữ liệu an toàn với nhau.
                 </p>
             </div>
         </div>

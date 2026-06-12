@@ -1,4 +1,4 @@
-<div class="glass-card">
+﻿<div class="glass-card">
     <span class="slide-header">Phần 03 · asyncio</span>
     <h3>3.2. So sánh Subroutine vs Coroutine vs Thread</h3>
     
@@ -28,14 +28,14 @@
                 <tr>
                     <td><strong>Cơ chế điều phối</strong></td>
                     <td>Chạy tuần tự theo luồng chính của chương trình.</td>
-                    <td>**Hợp tác (Cooperative):** Tác vụ tự nguyện nhường quyền điều khiển.</td>
-                    <td>**Tranh đoạt (Preemptive):** Hệ điều hành tự ý ngắt và chuyển luồng.</td>
+                    <td><b>Hợp tác (Cooperative):</b> Tác vụ tự nguyện nhường quyền điều khiển.</td>
+                    <td><b>Tranh đoạt (Preemptive):</b> Hệ điều hành tự ý ngắt và chuyển luồng.</td>
                 </tr>
                 <tr>
                     <td><strong>Chi phí tài nguyên</strong></td>
                     <td>Rất thấp (gọi hàm thông thường).</td>
-                    <td>**Rất thấp:** Chỉ tốn một lượng nhỏ RAM lưu trữ biến trạng thái.</td>
-                    <td>**Cao:** Phải cấp phát vùng nhớ stack riêng (thường 1MB - 8MB / thread).</td>
+                    <td><b>Rất thấp:</b> Chỉ tốn một lượng nhỏ RAM lưu trữ biến trạng thái.</td>
+                    <td><b>Cao:</b> Phải cấp phát vùng nhớ stack riêng (thường 1MB - 8MB / thread).</td>
                 </tr>
                 <tr>
                     <td><strong>Chuyển ngữ cảnh</strong></td>
@@ -93,3 +93,4 @@
         </div>
     </div>
 </div>
+
