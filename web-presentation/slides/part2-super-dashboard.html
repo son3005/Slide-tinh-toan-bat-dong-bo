@@ -1,0 +1,230 @@
+<div class="split-screen" style="display: block;">
+    <div class="content-pane" style="max-width: 1000px; margin: 0 auto 1rem auto; text-align: center;">
+        <h2>Bức tranh toàn cảnh: <span class="hl-class">concurrent.futures</span></h2>
+        <p>
+            Mọi thứ bạn vừa học (Code, Flowchart, và ThreadPool) nay được gộp chung vào một biểu đồ duy nhất!
+            Hãy tương tác để thấy dữ liệu chảy qua hệ thống như thế nào.
+        </p>
+        
+        <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+            <button id="btn-sd-run" class="nav-btn">
+                <span class="btn-core" style="background: var(--accent-primary); color: white; padding: 0.8rem 2rem;">▶ Chạy Code Từng Dòng</span>
+            </button>
+            <button id="btn-sd-spam" class="nav-btn">
+                <span class="btn-core" style="background: var(--text-primary); color: white; padding: 0.8rem 2rem;">🚀 Bắn 10 Task Ngẫu nhiên</span>
+            </button>
+            <button id="btn-sd-reset" class="nav-btn">
+                <span class="btn-core" style="background: var(--color-wait); color: white; padding: 0.8rem 2rem;">Làm mới</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Super Dashboard 2x2 -->
+    <div class="simulation-pane" style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem; border-radius: 24px; box-shadow: var(--shadow-soft);">
+            
+            <div class="sd-grid">
+                
+                <!-- TOP LEFT: Main Thread & Code -->
+                <!-- ROW 1 -->
+                <div class="sd-node" id="sd-main" style="grid-area: main;">
+                    <div class="sd-header">🧑‍💻 Main Thread / Process</div>
+                    <pre class="sd-code" id="sd-code-block">
+<span class="sd-line" id="line-1"><span class="syn-comment"># Mã giả:</span> </span>
+<span class="sd-line" id="line-2"><span class="syn-comment"># def task(): ...</span></span>
+<span class="sd-line" id="line-3"></span>
+<span class="sd-line" id="line-4"><span class="syn-kw">with</span> <span class="syn-class">Executor</span>(max_workers=<span class="syn-num">3</span>) <span class="syn-kw">as</span> <span class="syn-var">executor</span>: <span class="syn-comment"># Thread hoặc Process Pool</span></span>
+<span class="sd-line" id="line-5">    <span class="syn-var">futures</span> = []</span>
+<span class="sd-line" id="line-6">    <span class="syn-kw">for</span> i <span class="syn-kw">in</span> <span class="syn-func">range</span>(<span class="syn-num">5</span>):</span>
+<span class="sd-line" id="line-7">        <span class="syn-var">f</span> = <span class="syn-var">executor</span>.<span class="syn-func">submit</span>(<span class="syn-func">task</span>, i)</span>
+<span class="sd-line" id="line-8">        <span class="syn-var">futures</span>.<span class="syn-func">append</span>(<span class="syn-var">f</span>)</span>
+<span class="sd-line" id="line-9">    </span>
+<span class="sd-line" id="line-10">    <span class="syn-func">print</span>(<span class="syn-str">"Main thread!"</span>)</span>
+<span class="sd-line" id="line-11">    </span>
+<span class="sd-line" id="line-12">    <span class="syn-kw">for</span> <span class="syn-var">f</span> <span class="syn-kw">in</span> <span class="syn-var">futures</span>:</span>
+<span class="sd-line" id="line-13">        <span class="syn-func">print</span>(<span class="syn-var">f</span>.<span class="syn-func">result</span>())</span></pre>
+                </div>
+                
+                <div class="arrow-cell" style="grid-area: a-top;"><div class="arrow-left">⟵</div></div>
+                
+                <div class="sd-node" id="sd-futures" style="grid-area: future;">
+                    <div class="sd-header">📬 Future (Mailbox)</div>
+                    <div id="sd-future-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; overflow-y: auto; width: 100%; padding: 0.5rem;">
+                        <!-- Futures appear here -->
+                    </div>
+                </div>
+
+                <!-- ROW 2 -->
+                <div class="arrow-cell" style="grid-area: a-left;"><div class="arrow-down">⬇</div></div>
+                <div style="grid-area: center;"></div>
+                <div class="arrow-cell" style="grid-area: a-right;"><div class="arrow-up">⬆</div></div>
+
+                <!-- ROW 3 -->
+                <div class="sd-node" id="sd-queue" style="grid-area: queue;">
+                    <div class="sd-header">📥 Task Queue <span id="sd-q-count">(0)</span></div>
+                    <div id="sd-queue-list" style="display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; width: 100%; padding: 0.5rem;">
+                        <!-- Tasks appear here -->
+                    </div>
+                </div>
+                
+                <div class="arrow-cell" style="grid-area: a-bot;"><div class="arrow-right">⟶</div></div>
+                
+                <div class="sd-node" id="sd-pool" style="grid-area: pool;">
+                    <div class="sd-header">⚙️ Worker Pool</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                        <div class="sd-worker" id="sd-w1">Worker 1 (Rảnh)</div>
+                        <div class="sd-worker" id="sd-w2">Worker 2 (Rảnh)</div>
+                        <div class="sd-worker" id="sd-w3">Worker 3 (Rảnh)</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Syntax Highlighting */
+.syn-kw { color: #a626a4; font-weight: bold; } /* Purple */
+.syn-str { color: #50a14f; } /* Green */
+.syn-comment { color: #a0a1a7; font-style: italic; } /* Gray */
+.syn-var { color: #e45649; } /* Red */
+.syn-num { color: #986801; } /* Orange */
+.syn-func { color: #4078f2; font-weight: bold; } /* Blue */
+.syn-class { color: #c18401; font-weight: bold; } /* Yellow/Brown */
+
+.sd-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 80px 0.8fr;
+    grid-template-rows: auto 80px 1fr;
+    grid-template-areas: 
+        "main a-top future"
+        "a-left center a-right"
+        "queue a-bot pool";
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+    min-width: 1000px;
+}
+
+.sd-node {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.arrow-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--accent-secondary);
+    font-weight: bold;
+    opacity: 0.6;
+}
+.arrow-left { color: var(--accent-primary); opacity: 0.5; }
+.arrow-up { color: var(--color-success); }
+
+.sd-header {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sd-code {
+    background: var(--bg-primary);
+    width: 100%;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+.sd-line {
+    display: block;
+    padding: 0 4px;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+.sd-line.active {
+    background: rgba(4, 120, 234, 0.15);
+    color: var(--accent-primary);
+    font-weight: bold;
+}
+
+.sd-svg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.sd-arrow {
+    stroke: var(--accent-secondary);
+    stroke-width: 4;
+    stroke-dasharray: 6,6;
+    marker-end: url(#arrowhead);
+}
+
+.sd-task {
+    background: var(--color-cpu);
+    color: white;
+    padding: 0.4rem 2rem; /* Wider horizontal padding */
+    width: 100%; /* Span the container */
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    animation: slideIn 0.3s var(--ease-spring);
+    text-align: center;
+}
+.sd-task.slow { background: var(--color-io); }
+
+.sd-worker {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+.sd-worker.busy-fast { background: var(--color-cpu); color: white; border-color: var(--color-cpu); }
+.sd-worker.busy-slow { background: var(--color-io); color: white; border-color: var(--color-io); }
+
+.sd-future {
+    background: var(--bg-primary);
+    border: 1px solid #f59e0b;
+    padding: 0.3rem 0.6rem; /* Smaller padding */
+    border-radius: 6px;
+    font-size: 0.75rem; /* Smaller font */
+    font-weight: bold;
+    animation: popIn 0.3s;
+}
+.sd-future.done {
+    border-color: var(--color-success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+@keyframes slideIn {
+    0% { transform: translateY(-10px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+</style>

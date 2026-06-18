@@ -1,0 +1,247 @@
+<div class="slide-content">
+    <div class="header-section">
+        <h1 class="gradient-text">Cuộc Chiến: ThreadPool vs ProcessPool</h1>
+        <p class="subtitle">Hiểu rõ bản chất của I/O Bound và CPU Bound qua mô phỏng thực tế</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="simulation-controls" style="justify-content: center; margin-bottom: 2rem;">
+        <button id="btn-tvp-io" class="nav-btn">
+            <span class="btn-core" style="background: var(--color-success); color: white; padding: 0.8rem 2rem;">🌐 Chạy 3 Task I/O (Tải File)</span>
+        </button>
+        <button id="btn-tvp-cpu" class="nav-btn">
+            <span class="btn-core" style="background: var(--color-cpu); color: white; padding: 0.8rem 2rem;">🧠 Chạy 3 Task CPU (Tính Toán)</span>
+        </button>
+        <button id="btn-tvp-reset" class="nav-btn">
+            <span class="btn-core" style="background: var(--color-wait); color: white; padding: 0.8rem 2rem;">Làm Mới</span>
+        </button>
+    </div>
+
+    <!-- Split Screen Simulation -->
+    <div class="tvp-grid">
+        
+        <!-- THREAD POOL SIDE -->
+        <div class="tvp-panel" id="panel-thread">
+            <div class="tvp-header">
+                <h2><i class="fas fa-server"></i> ThreadPoolExecutor</h2>
+                <div class="tvp-timer">Thời gian: <span id="timer-thread">0.0</span>s</div>
+            </div>
+            
+            <!-- GIL Indicator -->
+            <div class="gil-lock-container">
+                <div class="gil-status" id="gil-status">GIL: Đang Rảnh</div>
+            </div>
+
+            <!-- Worker Pool -->
+            <div class="tvp-pool">
+                <div class="tvp-worker" id="tw-1">
+                    <div class="w-name">Thread 1</div>
+                    <div class="w-task" id="tt-1">Trống</div>
+                    <div class="w-progress-bar"><div class="w-progress-fill" id="tprog-1"></div></div>
+                </div>
+                <div class="tvp-worker" id="tw-2">
+                    <div class="w-name">Thread 2</div>
+                    <div class="w-task" id="tt-2">Trống</div>
+                    <div class="w-progress-bar"><div class="w-progress-fill" id="tprog-2"></div></div>
+                </div>
+                <div class="tvp-worker" id="tw-3">
+                    <div class="w-name">Thread 3</div>
+                    <div class="w-task" id="tt-3">Trống</div>
+                    <div class="w-progress-bar"><div class="w-progress-fill" id="tprog-3"></div></div>
+                </div>
+            </div>
+            
+            <div class="tvp-conclusion" id="conc-thread">
+                Thích hợp cho I/O Bound vì các Thread có thể nhả GIL trong lúc chờ mạng.
+            </div>
+        </div>
+
+        <!-- PROCESS POOL SIDE -->
+        <div class="tvp-panel" id="panel-process">
+            <div class="tvp-header">
+                <h2><i class="fas fa-industry"></i> ProcessPoolExecutor</h2>
+                <div class="tvp-timer">Thời gian: <span id="timer-process">0.0</span>s</div>
+            </div>
+            
+            <!-- Process Memory Block -->
+            <div class="process-memory-container">
+                Độc lập vùng nhớ - Không bị ảnh hưởng bởi GIL
+            </div>
+
+            <!-- Worker Pool -->
+            <div class="tvp-pool">
+                <div class="tvp-worker process-worker" id="pw-1">
+                    <div class="w-name">Process 1</div>
+                    <div class="w-task" id="pt-1">Trống</div>
+                    <div class="w-progress-bar"><div class="w-progress-fill" id="pprog-1"></div></div>
+                </div>
+                <div class="tvp-worker process-worker" id="pw-2">
+                    <div class="w-name">Process 2</div>
+                    <div class="w-task" id="pt-2">Trống</div>
+                    <div class="w-progress-bar"><div class="w-progress-fill" id="pprog-2"></div></div>
+                </div>
+                <div class="tvp-worker process-worker" id="pw-3">
+                    <div class="w-name">Process 3</div>
+                    <div class="w-task" id="pt-3">Trống</div>
+                    <div class="w-progress-bar"><div class="w-progress-fill" id="pprog-3"></div></div>
+                </div>
+            </div>
+            
+            <div class="tvp-conclusion" id="conc-process">
+                Thích hợp cho CPU Bound vì mỗi Process có 1 luồng riêng biệt, tận dụng tối đa Multi-Core.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.tvp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-top: 1rem;
+}
+
+.tvp-panel {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    overflow: hidden;
+}
+
+.tvp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed var(--border-subtle);
+    padding-bottom: 1rem;
+}
+
+.tvp-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.tvp-timer {
+    font-size: 1.4rem;
+    font-weight: 800;
+    font-family: 'Fira Code', monospace;
+    background: var(--bg-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: var(--accent-primary);
+    border: 1px solid var(--border-subtle);
+}
+
+.gil-lock-container {
+    background: var(--red-50);
+    border: 2px solid var(--color-wait);
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+    font-weight: bold;
+    color: var(--color-wait);
+    transition: all 0.3s;
+}
+.gil-lock-container.locked {
+    background: var(--color-wait);
+    color: white;
+    box-shadow: 0 0 15px rgba(241, 41, 56, 0.5);
+}
+
+.process-memory-container {
+    background: var(--cyan-50);
+    border: 2px solid var(--color-success);
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+    font-weight: bold;
+    color: var(--color-success);
+}
+
+.tvp-pool {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tvp-worker {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1rem;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.tvp-worker.process-worker {
+    border-style: dashed; /* Indicate isolation */
+}
+
+.w-name {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.w-task {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+    background: var(--border-subtle);
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 0.8rem;
+    font-family: monospace;
+}
+
+.w-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+}
+
+.w-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-wait);
+    transition: width 0.1s linear, background 0.3s ease;
+}
+
+.tvp-worker.status-io .w-progress-fill {
+    background: var(--color-success);
+}
+.tvp-worker.status-cpu .w-progress-fill {
+    background: var(--color-cpu);
+}
+.tvp-worker.status-waiting .w-progress-fill {
+    background: var(--color-wait); /* Waiting for GIL */
+}
+
+.tvp-conclusion {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 1024px) {
+    .tvp-grid { grid-template-columns: 1fr; }
+}
+</style>

@@ -1,0 +1,49 @@
+CÂU HỎI VÀ TRẢ LỜI BẢO VỆ BÁO CÁO (Q&A)
+
+--------------------------------------------------
+Câu hỏi 1: Đối với Future thì việc giải phóng như thế nào sau khi done? Làm sao định danh được ví dụ 100 future khác nhau thì làm sao biết task nào sẽ là future nào, và khi giải phóng làm sao kiểm soát được việc bị trùng?
+
+Trả lời: 
+Để quản lý 100 hay 1.000.000 Future mà không bao giờ bị nhầm lẫn hay giải phóng nhầm, Python sử dụng 2 cơ chế cốt lõi: Đóng gói (_WorkItem) và Con trỏ bộ nhớ (Memory Pointers).
+
+1. Cách định danh: Gói bưu kiện `_WorkItem`
+Khi gọi `future = executor.submit(hàm_xử_lý, tham_số)` ở Main Thread, Python làm 3 bước:
+- Tạo ra một Object `Future` trống rỗng.
+- Lấy `hàm_xử_lý`, các `tham_số`, VÀ chiếc hộp `Future` vừa tạo... gộp chung lại thành một gói bưu kiện duy nhất tên là `_WorkItem`.
+- Đẩy nguyên cái gói `_WorkItem` đó vào Task Queue.
+
+=> Kết luận: Future được nhét trực tiếp vào balo của Task ngay từ lúc bắt đầu! Khi Worker kéo gói `_WorkItem` ra chạy, nó chỉ việc mở gói ra, chạy hàm, và bỏ ngay kết quả vào chiếc hộp Future nằm sẵn trong gói đó. Không cần tìm kiếm ID, do đó không bao giờ nhầm lẫn.
+
+2. Tránh đụng độ khi giải phóng (Garbage Collection)
+Hệ thống dọn rác của Python hoạt động dựa trên bộ đếm Reference Count (Đếm tham chiếu). Mỗi Future là một Object sở hữu một địa chỉ bộ nhớ vật lý riêng biệt (Ví dụ: 0x0001FA9C).
+
+- Tạo 100 Future, sẽ có 100 vùng nhớ riêng biệt được cấp phát trong RAM. Dù các Task có cùng tên, mỗi lần gọi submit() là Python lại tạo ra một thực thể Future vật lý mới.
+- Quá trình giải phóng: Khi Worker chạy xong (Done), nó ném kết quả vào Future và buông tay (xóa tham chiếu). Khi Main Thread lấy dữ liệu xong (ví dụ qua future.result()), nó cũng buông tay.
+- Lúc này Reference Count = 0. Trình dọn rác (GC) của Python sẽ đi ngang và chỉ xóa sạch vùng nhớ của đúng Future đó. Việc này diễn ra độc lập từng cái một mà không bao giờ sợ bị xung đột hay chạm tới 99 Future còn lại.
+
+--------------------------------------------------
+Câu hỏi 2: Truyền nhiều tham số vào cái hàm task đó thì sao nhỉ ví dụ một cái task có 10 tham số ấy? Truyền như thế nào?
+
+Trả lời:
+Hàm `executor.submit()` của Python được thiết kế để nhận số lượng tham số là vô hạn (hỗ trợ cả positional arguments và keyword arguments). 
+
+Cú pháp gốc của nó là: `executor.submit(fn, /, *args, **kwargs)`
+
+Vì vậy, nếu hàm `task` của bạn cần 10 tham số, bạn có 3 cách truyền cực kỳ linh hoạt:
+
+1. Truyền trực tiếp từng biến (Positional Arguments):
+   Ghi liên tiếp các tham số ngăn cách bằng dấu phẩy.
+   Ví dụ: `executor.submit(task, a, b, c, d, e, f, g, h, i, j)`
+
+2. Truyền bằng Keyword Arguments (Tên tham số cụ thể):
+   Rất hữu ích khi có 10 tham số để code dễ đọc hơn.
+   Ví dụ: `executor.submit(task, ten="Alice", tuoi=20, luong=5000, ...)`
+
+3. Dùng toán tử giải nén (Unpacking - * và **):
+   Nếu bạn đã đóng gói 10 tham số đó vào một Tuple/List hoặc một Dictionary, bạn chỉ cần đặt dấu sao (*) đằng trước để Python tự bung nó ra.
+   - Bung Tuple: `tham_so_list = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)`
+                 `executor.submit(task, *tham_so_list)`
+   - Bung Dict:  `tham_so_dict = {"a": 1, "b": 2, ...}`
+                 `executor.submit(task, **tham_so_dict)`
+
+Đây là sự linh hoạt tuyệt vời của Python giúp code Concurrent không bao giờ bị gò bó về mặt dữ liệu truyền vào!

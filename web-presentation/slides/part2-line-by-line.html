@@ -1,0 +1,119 @@
+<div class="split-screen">
+    <div class="content-pane">
+        <h2>Mô phỏng: <span class="hl-func">executor.submit()</span></h2>
+        <p>
+            Làm sao để chúng ta gửi tác vụ vào ThreadPool và lấy kết quả mà không bị chặn chương trình chính? Đáp án chính là <span class="hl-class">Future</span>.
+        </p>
+        
+        <div class="concept-card">
+            <h3 style="margin-bottom: 1rem;">Mô phỏng Code Từng Dòng</h3>
+            
+            <pre class="code-block" id="lbl-code">
+<span class="code-line" id="line-1">with ThreadPoolExecutor(max_workers=2) as executor:</span>
+<span class="code-line" id="line-2">    print("Gửi tác vụ...")</span>
+<span class="code-line" id="line-3">    future1 = executor.submit(task, "A")</span>
+<span class="code-line" id="line-4">    future2 = executor.submit(task, "B")</span>
+<span class="code-line" id="line-5">    </span>
+<span class="code-line" id="line-6">    print("Main thread vẫn chạy!")</span>
+<span class="code-line" id="line-7">    </span>
+<span class="code-line" id="line-8">    # Đợi và lấy kết quả</span>
+<span class="code-line" id="line-9">    print(future1.result())</span>
+<span class="code-line" id="line-10">    print(future2.result())</span></pre>
+
+            <button id="btn-run-lbl" class="nav-btn" style="margin-top: 1rem;">
+                <span class="btn-core">▶ Chạy từng dòng (Line-by-line)</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="simulation-pane">
+        <div class="simulation-core">
+            <h3 style="text-align: center; margin-bottom: 2rem;">Trạng thái Hệ thống</h3>
+            
+            <div id="pool-state" style="margin-bottom: 1.5rem;">
+                <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 0.5rem;">ThreadPool (2 Workers)</div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="worker-box" id="worker-1">Worker 1: N/A</div>
+                    <div class="worker-box" id="worker-2">Worker 2: N/A</div>
+                </div>
+            </div>
+
+            <div id="future-state">
+                <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 0.5rem;">Đối tượng Futures</div>
+                <div style="display: flex; gap: 1rem;" id="future-container">
+                    <!-- Futures spawn here -->
+                </div>
+            </div>
+
+            <div id="console-output" style="margin-top: 2rem; background: #0f172a; color: #10b981; padding: 1rem; border-radius: 8px; font-family: monospace; min-height: 120px;">
+                > Console Ready...<br>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.code-block {
+    background: var(--bg-tertiary); 
+    padding: 1rem; 
+    border-radius: 8px; 
+    font-family: monospace; 
+    font-size: 0.95rem; 
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.code-line {
+    display: block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.code-line.active {
+    background: rgba(4, 120, 234, 0.15); /* Blue tint */
+    border-left: 3px solid var(--accent-primary);
+    font-weight: bold;
+}
+
+.worker-box {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: 8px;
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.worker-box.busy {
+    background: var(--color-cpu);
+    color: white;
+    border: 2px solid var(--color-cpu);
+}
+
+.future-card {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    font-weight: bold;
+    text-align: center;
+    flex: 1;
+    animation: popIn 0.3s var(--ease-spring);
+    transition: all 0.3s ease;
+}
+
+.future-card.pending {
+    background: #f59e0b; /* Amber */
+    color: white;
+}
+
+.future-card.done {
+    background: var(--color-success);
+    color: white;
+}
+</style>

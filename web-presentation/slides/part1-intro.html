@@ -1,0 +1,109 @@
+<div class="split-screen">
+    <!-- Content Pane (Text and Knowledge) -->
+    <div class="content-pane">
+        <h1>Asynchronous Computing</h1>
+        <h2>Phần 1: Nền tảng cốt lõi</h2>
+        <p>
+            Chào mừng bạn đến với hướng dẫn tương tác về <span class="hl-class">Asynchronous Computing</span>. 
+            Trước khi đi sâu vào việc triển khai trên Python với <span class="hl-func">concurrent.futures</span> 
+            và <span class="hl-func">asyncio</span>, chúng ta cần hiểu rõ mô hình cốt lõi.
+        </p>
+        
+        <div class="concept-card">
+            <h3>Synchronous và Asynchronous</h3>
+            <p>
+                Trong mô hình <strong>Synchronous</strong>, các tác vụ được thực thi tuần tự. Nếu Task A đang chờ một phản hồi mạng chậm (I/O), toàn bộ CPU sẽ bị chặn (blocked).
+            </p>
+            <p>
+                Trong mô hình <strong>Asynchronous</strong>, khi một tác vụ gặp thời gian chờ I/O, nó ngay lập tức nhường quyền điều khiển. Hệ thống sẽ chọn Task B để tiếp tục, giữ cho CPU luôn hoạt động.
+            </p>
+        </div>
+    </div>
+
+    <!-- Simulation Pane (Visual Mapping) -->
+    <div class="simulation-pane">
+        <div class="simulation-core" id="intro-simulation">
+            <h3>Sơ đồ khái niệm</h3>
+            
+            <div class="timeline-container sync-timeline">
+                <h4>Synchronous (Blocking)</h4>
+                <div class="track">
+                    <div class="task task-a" style="width: 30%">Task A (CPU)</div>
+                    <div class="task task-wait" style="width: 40%">Đang chờ I/O... (Blocked)</div>
+                    <div class="task task-b" style="width: 30%">Task B</div>
+                </div>
+                <div class="time-label">Tổng thời gian: 10s</div>
+            </div>
+
+            <div class="timeline-container async-timeline" style="margin-top: 2rem;">
+                <h4>Asynchronous (Non-Blocking)</h4>
+                <div class="track">
+                    <div class="task task-a" style="width: 30%">Task A (CPU)</div>
+                    <div class="task task-b" style="width: 30%">Task B (Chạy trong lúc chờ!)</div>
+                </div>
+                <!-- I/O happens in the background -->
+                <div class="track background-track">
+                    <div class="spacer" style="width: 30%"></div>
+                    <div class="task task-io" style="width: 40%">Xử lý I/O ngầm</div>
+                </div>
+                <div class="time-label">Tổng thời gian: 6s</div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+/* Scoped styles just for this slide */
+.concept-card {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: var(--radius-inner);
+    border: var(--border-subtle);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-top: 1rem;
+}
+
+.timeline-container h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.track {
+    display: flex;
+    height: 40px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.background-track {
+    background: transparent;
+    border: 2px dashed var(--bg-tertiary);
+}
+
+.task {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: width 1s var(--ease-spring);
+}
+
+.task-a { background: #3b82f6; }
+.task-b { background: #10b981; }
+.task-wait { background: #ef4444; color: white; }
+.task-io { background: #8b5cf6; opacity: 0.8; }
+
+.time-label {
+    text-align: right;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+</style>

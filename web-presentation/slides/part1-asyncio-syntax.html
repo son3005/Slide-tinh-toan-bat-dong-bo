@@ -1,0 +1,117 @@
+<div class="slide-content">
+    <div class="header-section" style="margin-bottom: 2rem;">
+        <h1 class="gradient-text">Cú pháp & Cơ chế Hoạt động</h1>
+        <p class="subtitle">Hiểu rõ <code>async</code> và <code>await</code> thông qua sơ đồ dòng chảy (Flowchart)</p>
+    </div>
+
+    <div class="split-screen" style="align-items: stretch; gap: 3rem;">
+        
+        <!-- TRÁI: Giải thích cú pháp (Đọc) -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem;">
+            
+            <div class="sd-node" style="border-color: var(--accent-primary);">
+                <div class="sd-header" style="background: rgba(14, 165, 233, 0.1); color: var(--accent-primary);"><i class="fas fa-file-code"></i> 1. Tạo Coroutine</div>
+                <div style="padding: 1.5rem;">
+                    <div style="font-family: monospace; font-size: 1.2rem; margin-bottom: 1rem;">
+                        <span class="syn-kw">async def</span> <span class="syn-func">fetch_data</span>():
+                    </div>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                        Thêm <code>async</code> trước <code>def</code> để khai báo một Coroutine. Khi gọi <code>fetch_data()</code>, hàm <strong>không chạy ngay</strong> mà trả về một Object (Bản thiết kế) chờ Event Loop thực thi.
+                    </p>
+                </div>
+            </div>
+
+            <div class="sd-node" style="border-color: var(--color-wait);">
+                <div class="sd-header" style="background: rgba(241, 41, 56, 0.1); color: var(--color-wait);"><i class="fas fa-pause-circle"></i> 2. Điểm Nhường Quyền (Yield Point)</div>
+                <div style="padding: 1.5rem;">
+                    <div style="font-family: monospace; font-size: 1.2rem; margin-bottom: 1rem;">
+                        <span class="syn-kw">await</span> asyncio.sleep(2)
+                    </div>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                        <code>await</code> là linh hồn của hệ thống. Nó báo cho Event Loop biết: <em>"Chỗ này mất thời gian chờ đấy, anh cứ tạm dừng tác vụ này và đi làm việc khác đi"</em>. Nó giải phóng luồng chính (Main Thread) khỏi sự tắc nghẽn (Blocking).
+                    </p>
+                </div>
+            </div>
+
+            <div class="sd-node" style="border-color: var(--color-success);">
+                <div class="sd-header" style="background: rgba(16, 185, 129, 0.1); color: var(--color-success);"><i class="fas fa-rocket"></i> 3. Chạy Song Song</div>
+                <div style="padding: 1.5rem;">
+                    <div style="font-family: monospace; font-size: 1.2rem; margin-bottom: 1rem;">
+                        asyncio.<span class="syn-func">create_task</span>(...)
+                    </div>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                        Bọc Coroutine vào một Task và tống thẳng vào Event Loop Queue. Task sẽ chạy ngầm dưới nền một cách độc lập.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PHẢI: Sơ đồ dòng chảy (Diagram) -->
+        <div style="flex: 1.2; background: var(--bg-primary); padding: 2rem; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-soft); display: flex; flex-direction: column;">
+            <h3 style="color: var(--text-primary); text-align: center; margin-top: 0; margin-bottom: 2rem;"><i class="fas fa-project-diagram"></i> Sơ đồ luân chuyển điều khiển</h3>
+            
+            <div style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center;">
+                <!-- Flowchart Container -->
+                <div style="display: flex; gap: 2rem; width: 100%; height: 100%;">
+                    
+                    <!-- Event Loop Column -->
+                    <div style="flex: 1; background: rgba(14, 165, 233, 0.05); border: 2px dashed var(--accent-primary); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative;">
+                        <h4 style="color: var(--accent-primary); margin: 0;">Event Loop</h4>
+                        
+                        <div style="background: var(--accent-primary); color: white; padding: 0.8rem; border-radius: 8px; width: 80%; text-align: center; font-weight: bold; z-index: 2;">
+                            Quản lý Queue
+                        </div>
+                        <div style="height: 40px; border-left: 3px solid var(--accent-primary);"></div>
+                        <div style="background: var(--accent-primary); color: white; padding: 0.8rem; border-radius: 8px; width: 80%; text-align: center; font-weight: bold; z-index: 2;">
+                            Nhận lại quyền
+                        </div>
+                        <div style="height: 40px; border-left: 3px solid var(--accent-primary);"></div>
+                        <div style="background: var(--accent-primary); color: white; padding: 0.8rem; border-radius: 8px; width: 80%; text-align: center; font-weight: bold; z-index: 2;">
+                            Trả kết quả
+                        </div>
+                    </div>
+
+                    <!-- Task Column -->
+                    <div style="flex: 1; background: rgba(16, 185, 129, 0.05); border: 2px dashed var(--color-success); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; align-items: center; position: relative;">
+                        <h4 style="color: var(--color-success); margin: 0; margin-bottom: auto;">Task (Coroutine)</h4>
+                        
+                        <div style="background: var(--color-success); color: white; padding: 0.8rem; border-radius: 8px; width: 80%; text-align: center; font-weight: bold; margin-bottom: auto; z-index: 2;">
+                            Đang thực thi code
+                        </div>
+                        
+                        <div style="background: var(--color-wait); color: white; padding: 0.8rem; border-radius: 8px; width: 80%; text-align: center; font-weight: bold; margin-bottom: auto; z-index: 2; box-shadow: 0 0 15px rgba(241, 41, 56, 0.4);">
+                            Gặp <code>await</code> (Dừng)
+                        </div>
+
+                        <div style="background: var(--color-success); color: white; padding: 0.8rem; border-radius: 8px; width: 80%; text-align: center; font-weight: bold; margin-bottom: 2rem; z-index: 2;">
+                            Tiếp tục chạy xong
+                        </div>
+                    </div>
+
+                    <!-- Arrows crossing columns (Absolute positioning) -->
+                    <div style="position: absolute; top: 30%; left: 35%; width: 30%; height: 3px; background: var(--text-primary); z-index: 1;">
+                        <div style="position: absolute; right: -5px; top: -6px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 10px solid var(--text-primary);"></div>
+                        <span style="position: absolute; top: -25px; left: 10%; font-size: 0.85rem; font-weight: bold; color: var(--text-primary);">Gọi Task</span>
+                    </div>
+
+                    <div style="position: absolute; top: 55%; right: 35%; width: 30%; height: 3px; background: var(--color-wait); z-index: 1;">
+                        <div style="position: absolute; left: -5px; top: -6px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 10px solid var(--color-wait);"></div>
+                        <span style="position: absolute; top: -25px; left: 10%; font-size: 0.85rem; font-weight: bold; color: var(--color-wait);">Yield (Nhường)</span>
+                    </div>
+                    
+                    <div style="position: absolute; top: 75%; left: 35%; width: 30%; height: 3px; background: var(--color-success); z-index: 1;">
+                        <div style="position: absolute; right: -5px; top: -6px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 10px solid var(--color-success);"></div>
+                        <span style="position: absolute; top: -25px; left: 10%; font-size: 0.85rem; font-weight: bold; color: var(--color-success);">Resume (Xong I/O)</span>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 0.95rem;">
+                * Sơ đồ trên giải thích cơ chế Context Switching (Chuyển đổi ngữ cảnh) của Asyncio.
+            </div>
+        </div>
+
+    </div>
+</div>

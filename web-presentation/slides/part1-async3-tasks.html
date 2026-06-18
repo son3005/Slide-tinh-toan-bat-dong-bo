@@ -1,0 +1,62 @@
+<div class="slide-content">
+    <div class="header-section" style="margin-bottom: 2rem;">
+        <h1 class="gradient-text">3. Chạy Song Song (Tasks & Gather)</h1>
+        <p class="subtitle">Cách bắt Event Loop làm việc hết công suất</p>
+    </div>
+
+    <div class="split-screen" style="align-items: stretch; gap: 4rem;">
+        
+        <!-- TRÁI: asyncio.create_task -->
+        <div style="flex: 1; display: flex; flex-direction: column;">
+            <div style="background: rgba(16, 185, 129, 0.1); border-radius: 20px 20px 0 0; padding: 1.5rem; text-align: center; border: 2px solid var(--color-success); border-bottom: none;">
+                <h2 style="color: var(--color-success); margin: 0;"><i class="fas fa-rocket"></i> asyncio.create_task()</h2>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem;">Chạy ngầm (Background Task)</p>
+            </div>
+            
+            <div style="flex: 1; background: var(--bg-primary); border: 2px solid var(--color-success); border-top: none; border-radius: 0 0 20px 20px; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                <p style="margin: 0; line-height: 1.6; color: var(--text-secondary);">Bạn ném một công việc cho Event Loop và bảo nó: <em>"Cứ làm đi, tôi không cần đợi kết quả ngay lập tức"</em>. Chương trình của bạn sẽ lập tức chạy tiếp dòng code bên dưới.</p>
+                
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="font-weight: bold; color: var(--text-primary);">Chương trình chính</div>
+                    <div style="font-size: 1.5rem; color: var(--text-secondary);">➔</div>
+                    <div style="font-weight: bold; color: var(--text-primary);">Chạy tiếp ngay lập tức</div>
+                </div>
+                
+                <div style="text-align: center; color: var(--color-success);">
+                    <i class="fas fa-level-down-alt" style="font-size: 1.5rem;"></i>
+                </div>
+                
+                <div style="background: var(--cyan-50); padding: 1rem; border-radius: 12px; border: 2px dashed var(--color-success); text-align: center; font-weight: bold; color: var(--color-success);">
+                    <i class="fas fa-cog fa-spin"></i> Task ngầm đang tự chạy...
+                </div>
+            </div>
+        </div>
+
+        <!-- PHẢI: asyncio.gather -->
+        <div style="flex: 1; display: flex; flex-direction: column;">
+            <div style="background: rgba(4, 120, 234, 0.1); border-radius: 20px 20px 0 0; padding: 1.5rem; text-align: center; border: 2px solid var(--accent-primary); border-bottom: none;">
+                <h2 style="color: var(--accent-primary); margin: 0;"><i class="fas fa-network-wired"></i> asyncio.gather()</h2>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem;">Chạy đồng thời & Gom kết quả</p>
+            </div>
+            
+            <div style="flex: 1; background: var(--bg-primary); border: 2px solid var(--accent-primary); border-top: none; border-radius: 0 0 20px 20px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                <p style="margin: 0; line-height: 1.6; color: var(--text-secondary);">Bạn ném 10 công việc cùng lúc cho Event Loop và bảo: <em>"Hãy chạy tất cả cùng một lúc. Khi nào TẤT CẢ xong thì báo lại cho tôi"</em>.</p>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <div style="flex: 1; background: var(--bg-secondary); padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold; border: 1px solid var(--border-subtle);"><i class="fas fa-download"></i> Tải File 1</div>
+                    <div style="flex: 1; background: var(--bg-secondary); padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold; border: 1px solid var(--border-subtle);"><i class="fas fa-download"></i> Tải File 2</div>
+                    <div style="flex: 1; background: var(--bg-secondary); padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold; border: 1px solid var(--border-subtle);"><i class="fas fa-download"></i> Tải File 3</div>
+                </div>
+                
+                <div style="text-align: center; color: var(--accent-primary);">
+                    <i class="fas fa-compress-arrows-alt" style="font-size: 2rem; margin: 1rem 0;"></i>
+                </div>
+                
+                <div style="background: var(--accent-primary); color: white; padding: 1.5rem; border-radius: 12px; text-align: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 15px rgba(4, 120, 234, 0.3);">
+                    [Kết Quả 1, Kết Quả 2, Kết Quả 3]
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

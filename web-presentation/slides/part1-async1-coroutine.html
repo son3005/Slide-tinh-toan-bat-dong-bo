@@ -1,0 +1,63 @@
+<div class="slide-content">
+    <div class="header-section" style="margin-bottom: 3rem;">
+        <h1 class="gradient-text">1. Coroutine (Hàm Bất Đồng Bộ)</h1>
+        <p class="subtitle">Sự khác biệt cốt lõi giữa <code>def</code> và <code>async def</code></p>
+    </div>
+
+    <div class="split-screen" style="align-items: flex-start; gap: 4rem;">
+        
+        <!-- TRÁI: Hàm thường -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2rem;">
+            <div style="text-align: center;">
+                <h2 style="color: var(--color-wait);"><i class="fas fa-times-circle"></i> Hàm Thường (def)</h2>
+                <p style="color: var(--text-secondary);">Gọi là chạy ngay lập tức</p>
+            </div>
+            
+            <div class="sd-node" style="border-color: var(--color-wait);">
+                <pre class="sd-code" style="font-size: 1.1rem;">
+<span class="syn-kw">def</span> <span class="syn-func">nau_an</span>():
+    <span class="syn-kw">return</span> <span class="syn-str">"Món ăn"</span>
+
+<span class="syn-comment"># Có đồ ăn ngay!</span>
+<span class="syn-var">ket_qua</span> = nau_an()
+</pre>
+            </div>
+
+            <div style="background: var(--red-50); padding: 1.5rem; border-radius: 16px; border: 2px dashed var(--color-wait); text-align: center;">
+                <i class="fas fa-hamburger" style="font-size: 3rem; color: var(--color-wait); margin-bottom: 1rem;"></i>
+                <p style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Trả về: <strong>Dữ liệu thực tế</strong></p>
+            </div>
+        </div>
+
+        <!-- PHẢI: Hàm async -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2rem;">
+            <div style="text-align: center;">
+                <h2 style="color: var(--color-success);"><i class="fas fa-check-circle"></i> Hàm Async (async def)</h2>
+                <p style="color: var(--text-secondary);">Gọi KHÔNG chạy ngay, trả về "Công thức"</p>
+            </div>
+            
+            <div class="sd-node" style="border-color: var(--color-success);">
+                <pre class="sd-code" style="font-size: 1.1rem;">
+<span class="syn-kw">async def</span> <span class="syn-func">nau_an</span>():
+    <span class="syn-kw">return</span> <span class="syn-str">"Món ăn"</span>
+
+<span class="syn-comment"># Chưa có đồ ăn đâu!</span>
+<span class="syn-var">ket_qua</span> = nau_an()
+</pre>
+            </div>
+
+            <div style="background: var(--cyan-50); padding: 1.5rem; border-radius: 16px; border: 2px dashed var(--color-success); text-align: center;">
+                <i class="fas fa-scroll" style="font-size: 3rem; color: var(--color-success); margin-bottom: 1rem;"></i>
+                <p style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Trả về: <strong>Coroutine Object</strong></p>
+                <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.95rem;">(Một bản công thức, cần Event Loop để nấu)</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div style="margin-top: 3rem; background: var(--bg-secondary); padding: 1.5rem; border-radius: 16px; text-align: center; border: 1px solid var(--border-subtle);">
+        <p style="margin: 0; font-size: 1.2rem; color: var(--accent-primary);">
+            <i class="fas fa-lightbulb"></i> <strong>Chốt lại:</strong> Viết <code>async def</code> là bạn đang tạo ra một Coroutine (Tác vụ chờ). Phải đưa nó cho Event Loop thì nó mới chạy!
+        </p>
+    </div>
+</div>

@@ -1,0 +1,310 @@
+<div class="slide-content" style="height: 100vh; overflow: hidden; padding: 2rem;">
+    <div class="header-section" style="margin-bottom: 2rem;">
+        <h1 class="gradient-text">Giải Mã Cú Pháp Asyncio</h1>
+        <p class="subtitle">Bấm vào từng từ khóa trong đoạn code để hiểu bản chất thực sự của chúng</p>
+    </div>
+
+    <div class="split-screen" style="height: calc(100% - 100px); gap: 3rem;">
+        
+        <!-- TRÁI: MOCK IDE -->
+        <div style="flex: 1; display: flex; flex-direction: column;">
+            <div class="mock-ide">
+                <div class="ide-header">
+                    <span class="dot" style="background: #ef4444;"></span>
+                    <span class="dot" style="background: #f59e0b;"></span>
+                    <span class="dot" style="background: var(--color-success);"></span>
+                    <span style="margin-left: 1rem; color: var(--text-secondary); font-family: monospace; font-size: 0.9rem;">main.py</span>
+                </div>
+                <div class="ide-body" style="padding: 1.5rem; font-family: 'Fira Code', monospace; font-size: 1.1rem; line-height: 1.8;">
+                    <div class="code-line">
+                        <span class="syn-kw interactive-kw" data-target="async-def" style="cursor: pointer;">async def</span> <span class="syn-func">fetch_data</span>(id):
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        print(<span class="syn-str">f"Bắt đầu tải {id}"</span>)
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        <span class="syn-kw interactive-kw" data-target="await" style="cursor: pointer;">await</span> asyncio.sleep(<span class="syn-num">2</span>)
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        <span class="syn-kw">return</span> <span class="syn-str">f"Data {id}"</span>
+                    </div>
+                    <br>
+                    <div class="code-line">
+                        <span class="syn-kw interactive-kw" data-target="async-def" style="cursor: pointer;">async def</span> <span class="syn-func">main</span>():
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        <span class="syn-comment"># Chạy ngầm background (không chờ đợi)</span>
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        task1 = <span class="syn-func interactive-kw" data-target="create-task" style="cursor: pointer;">asyncio.create_task</span>(fetch_data(1))
+                    </div>
+                    <br>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        <span class="syn-comment"># Chạy song song nhiều Coroutine cùng lúc</span>
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        results = <span class="syn-kw interactive-kw" data-target="await" style="cursor: pointer;">await</span> <span class="syn-func interactive-kw" data-target="gather" style="cursor: pointer;">asyncio.gather</span>(
+                    </div>
+                    <div class="code-line" style="padding-left: 4rem;">
+                        fetch_data(2), fetch_data(3)
+                    </div>
+                    <div class="code-line" style="padding-left: 2rem;">
+                        )
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; color: var(--text-secondary); text-align: center; font-style: italic; font-size: 0.95rem;">
+                <i class="fas fa-hand-pointer"></i> Hãy bấm vào các từ khóa có viền sáng để khám phá
+            </div>
+        </div>
+
+        <!-- PHẢI: VISUAL EXPLANATION (GLASSMORPHISM) -->
+        <div style="flex: 1.2; display: flex; flex-direction: column;">
+            <div class="explanation-panel glass-panel" id="expl-panel">
+                
+                <!-- Default State -->
+                <div id="state-default" class="state-view active">
+                    <div style="text-align: center; color: var(--text-secondary); padding: 4rem 2rem;">
+                        <i class="fas fa-magic" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-primary); opacity: 0.5;"></i>
+                        <h2 style="margin: 0; color: var(--text-primary);">Khu Vực Phân Tích</h2>
+                        <p style="font-size: 1.1rem; line-height: 1.6;">Chọn một từ khóa bên trái để xem cách hoạt động của nó ở cấp độ lõi của Event Loop.</p>
+                    </div>
+                </div>
+
+                <!-- Async Def State -->
+                <div id="state-async-def" class="state-view">
+                    <div class="expl-header" style="color: var(--color-io);">
+                        <h2><i class="fas fa-box"></i> async def (Coroutine)</h2>
+                    </div>
+                    <div class="expl-body">
+                        <p>Hàm bình thường (<code>def</code>) khi được gọi sẽ chạy ngay lập tức. Nhưng <code>async def</code> thì khác!</p>
+                        <p>Khi bạn gọi <code>fetch_data(1)</code>, code <strong>chưa hề chạy</strong>. Nó chỉ trả về một <strong>đối tượng Coroutine</strong> (giống như một hộp chứa mã lệnh chờ được thực thi).</p>
+                        
+                        <div class="visual-box" style="margin-top: 2rem;">
+                            <div class="v-function">fetch_data(1)</div>
+                            <div class="v-arrow">➔</div>
+                            <div class="v-coroutine">
+                                <i class="fas fa-file-code"></i> Coroutine Object
+                                <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.5rem;">(Chưa chạy, đang đợi Event Loop)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Await State -->
+                <div id="state-await" class="state-view">
+                    <div class="expl-header" style="color: var(--color-wait);">
+                        <h2><i class="fas fa-pause-circle"></i> await (Nhường quyền)</h2>
+                    </div>
+                    <div class="expl-body">
+                        <p>Đây là linh hồn của Asyncio. Khi gặp <code>await</code>, tác vụ hiện tại sẽ bị treo (đứng im).</p>
+                        <p>Nhưng thay vì làm treo cả chương trình, <code>await</code> sẽ <strong>trả quyền điều khiển (Yield)</strong> lại cho Event Loop, để Event Loop chạy đi làm việc khác!</p>
+                        
+                        <div class="visual-box" style="margin-top: 2rem; position: relative; height: 120px;">
+                            <div class="v-task" id="v-task-await" style="position: absolute; left: 10%; top: 20px;">Task 1</div>
+                            <div class="v-loop" style="position: absolute; right: 10%; top: 20px;">Event Loop</div>
+                            <div id="v-await-arrow" style="position: absolute; left: 35%; top: 40px; font-weight: bold; color: var(--color-wait); opacity: 0;">➔ Yield (Nhường quyền)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Task State -->
+                <div id="state-create-task" class="state-view">
+                    <div class="expl-header" style="color: var(--color-success);">
+                        <h2><i class="fas fa-rocket"></i> asyncio.create_task()</h2>
+                    </div>
+                    <div class="expl-body">
+                        <p>Lệnh này gói Coroutine thành một <strong>Task</strong> và ném thẳng vào hàng đợi của Event Loop.</p>
+                        <p>Nó sẽ lập tức chạy ngầm dưới nền mà không cần bạn phải <code>await</code> ngay lúc đó (Non-blocking). Cực kỳ hữu dụng khi muốn kích hoạt task chạy song song.</p>
+                        
+                        <div class="visual-box" style="margin-top: 2rem; align-items: flex-start;">
+                            <div class="v-queue" style="width: 100%;">
+                                <div style="font-weight: bold; margin-bottom: 0.5rem; color: var(--text-secondary);">Event Loop Queue</div>
+                                <div style="display: flex; gap: 1rem; align-items: center;" id="v-create-queue">
+                                    <div class="v-task" style="opacity: 0.5;">Task Cũ</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gather State -->
+                <div id="state-gather" class="state-view">
+                    <div class="expl-header" style="color: var(--accent-primary);">
+                        <h2><i class="fas fa-network-wired"></i> asyncio.gather()</h2>
+                    </div>
+                    <div class="expl-body">
+                        <p>Gom nhóm nhiều Coroutines lại và yêu cầu Event Loop chạy TẤT CẢ chúng cùng một lúc.</p>
+                        <p>Nó sẽ chờ (block) cho đến khi toàn bộ task trong nhóm chạy xong, sau đó gộp kết quả lại thành một mảng (List) theo đúng thứ tự truyền vào.</p>
+                        
+                        <div class="visual-box" style="margin-top: 2rem; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; gap: 2rem;">
+                                <div class="v-task v-run">fetch(2)</div>
+                                <div class="v-task v-run">fetch(3)</div>
+                                <div class="v-task v-run">fetch(4)</div>
+                            </div>
+                            <div>⬇️ Hợp nhất</div>
+                            <div class="v-coroutine" style="background: var(--bg-primary); color: var(--accent-primary); border-color: var(--accent-primary);">[Kết quả 2, 3, 4]</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.mock-ide {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 20px 40px rgba(30, 45, 141, 0.15);
+    overflow: hidden;
+    flex: 1;
+}
+
+.ide-header {
+    background: var(--bg-secondary);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.interactive-kw {
+    position: relative;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    border: 1px dashed transparent;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.interactive-kw:hover {
+    background: rgba(14, 165, 233, 0.1);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.interactive-kw.active {
+    background: rgba(14, 165, 233, 0.2);
+    border: 1px solid var(--accent-primary);
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.3);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(30, 45, 141, 0.1);
+    padding: 2.5rem;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.state-view {
+    display: none;
+    animation: fadeIn 0.4s var(--ease-smooth);
+}
+.state-view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.expl-header {
+    border-bottom: 2px dashed var(--border-subtle);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+.expl-header h2 { margin: 0; display: flex; align-items: center; gap: 0.8rem; }
+.expl-body p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.visual-box {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border-subtle);
+}
+
+.v-function {
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: monospace;
+    font-weight: bold;
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+}
+.v-arrow {
+    font-size: 2rem;
+    margin: 0 1.5rem;
+    color: var(--text-secondary);
+}
+.v-coroutine {
+    background: var(--mag-50);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: bold;
+    color: var(--color-io);
+    border: 2px dashed var(--color-io);
+    text-align: center;
+}
+
+.v-task {
+    background: var(--accent-primary);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+}
+.v-loop {
+    background: var(--color-success);
+    color: white;
+    padding: 1rem;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.v-run {
+    animation: bounce 1s infinite alternate;
+}
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+</style>

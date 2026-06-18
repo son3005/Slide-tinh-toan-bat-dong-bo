@@ -1,0 +1,247 @@
+<div class="slide-content" style="height: 100vh; overflow-y: auto; padding: 2rem;">
+    <div class="header-section" style="margin-bottom: 1rem;">
+        <h1 class="gradient-text">Từ Điển Toàn Diện: concurrent.futures</h1>
+        <p class="subtitle">Chi tiết toàn bộ các Lớp, Phương thức và Hàm tiện ích trong thư viện</p>
+    </div>
+
+    <div class="api-grid-comprehensive">
+        
+        <!-- MODULE: EXECUTORS -->
+        <div class="api-card api-tall">
+            <div class="api-card-header" style="background: rgba(14, 165, 233, 0.1); color: var(--accent-primary);">
+                <h3><i class="fas fa-industry"></i> Các lớp Executor (Nhà máy)</h3>
+                <p>Quản lý Worker và Hàng đợi (Kế thừa từ Base <code>Executor</code>)</p>
+            </div>
+            <div class="api-card-body">
+                <div class="api-item" style="border-left-color: var(--accent-primary);">
+                    <div class="api-signature"><span class="syn-class">ThreadPoolExecutor</span>(max_workers=None, thread_name_prefix='', initializer=None, initargs=())</div>
+                    <p class="api-desc">Tạo Pool chứa các Threads. Dùng cho tác vụ <b>I/O Bound</b>.</p>
+                </div>
+                <div class="api-item" style="border-left-color: #f59e0b;">
+                    <div class="api-signature"><span class="syn-class">ProcessPoolExecutor</span>(max_workers=None, mp_context=None, initializer=None, initargs=())</div>
+                    <p class="api-desc">Tạo Pool chứa các Processes. Né được GIL, dùng cho <b>CPU Bound</b>.</p>
+                </div>
+                
+                <h4 style="margin: 1.5rem 0 0.5rem 0; color: var(--text-primary); border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.5rem;">Phương thức (Dùng chung cho cả 2)</h4>
+                
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">submit</span>(fn, /, *args, **kwargs)</div>
+                    <p class="api-desc">Đẩy một hàm (kèm tham số) vào Hàng đợi. Trả về ngay một đối tượng <strong>Future</strong>.</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">map</span>(fn, *iterables, timeout=None, chunksize=1)</div>
+                    <p class="api-desc">Áp dụng hàm <code>fn</code> lên các phần tử của <code>iterables</code> một cách song song. Trả về kết quả theo đúng thứ tự (Iterator). Có thể chia nhỏ mảng bằng <code>chunksize</code> (chỉ cho ProcessPool).</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">shutdown</span>(wait=True, *, cancel_futures=False)</div>
+                    <p class="api-desc">Đóng Pool. Nếu <code>wait=True</code>, chặn cho đến khi các task đang chạy hoàn tất. Nếu <code>cancel_futures=True</code>, hủy tất cả task đang nằm chờ trong Queue chưa kịp chạy.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE: FUTURE -->
+        <div class="api-card api-tall">
+            <div class="api-card-header" style="background: rgba(16, 185, 129, 0.1); color: var(--color-success);">
+                <h3><i class="fas fa-box-open"></i> Đối tượng Future</h3>
+                <p>Chứa trạng thái và kết quả của một tác vụ đang chạy</p>
+            </div>
+            <div class="api-card-body">
+                <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary); border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.5rem;">Lấy kết quả & Trạng thái</h4>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">result</span>(timeout=None)</div>
+                    <p class="api-desc">Lấy kết quả của task. Sẽ <strong>block</strong> dòng code hiện tại cho đến khi task xong. Nếu quá thời gian <code>timeout</code>, ném ra <code>TimeoutError</code>.</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">exception</span>(timeout=None)</div>
+                    <p class="api-desc">Lấy lỗi (Exception) do task sinh ra (nếu có). Không làm sập chương trình chính.</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">done</span>()</div>
+                    <p class="api-desc">Trả về <code>True</code> nếu task đã chạy xong hoặc bị hủy.</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">running</span>()</div>
+                    <p class="api-desc">Trả về <code>True</code> nếu task đang được thực thi bởi một Worker.</p>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem 0; color: var(--text-primary); border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.5rem;">Điều khiển & Callback</h4>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">cancel</span>()</div>
+                    <p class="api-desc">Cố gắng hủy task. Trả về <code>True</code> nếu hủy thành công (tức là task vẫn còn nằm trong Queue). Nếu task đã bắt đầu chạy, không thể hủy, trả về <code>False</code>.</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">cancelled</span>()</div>
+                    <p class="api-desc">Kiểm tra xem task đã bị hủy thành công hay chưa.</p>
+                </div>
+                <div class="api-item">
+                    <div class="api-signature"><span class="syn-func">add_done_callback</span>(fn)</div>
+                    <p class="api-desc">Gắn một hàm callback. Ngay khi Future có kết quả (done), hệ thống sẽ tự động gọi <code>fn(future)</code> dưới background.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-right-col">
+            <!-- MODULE: UTILITIES -->
+            <div class="api-card">
+                <div class="api-card-header" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <h3><i class="fas fa-tools"></i> Hàm Tiện Ích (Module Functions)</h3>
+                    <p>Hỗ trợ xử lý mảng hàng loạt Futures</p>
+                </div>
+                <div class="api-card-body">
+                    <div class="api-item">
+                        <div class="api-signature">cf.<span class="syn-func">as_completed</span>(fs, timeout=None)</div>
+                        <p class="api-desc">Đầu vào là một mảng Futures. Trả về một Iterator (phễu lọc). <strong>Future nào xong trước sẽ văng ra trước</strong>. Rất quan trọng để hiển thị kết quả theo thời gian thực.</p>
+                    </div>
+                    <div class="api-item">
+                        <div class="api-signature">cf.<span class="syn-func">wait</span>(fs, timeout=None, return_when=ALL_COMPLETED)</div>
+                        <p class="api-desc">Block luồng hiện tại để chờ nhiều Futures. Trả về 2 set: <code>(done, not_done)</code>. Cờ <code>return_when</code> có thể là:
+                            <br>- <span class="syn-kw">ALL_COMPLETED</span>: Chờ tất cả xong.
+                            <br>- <span class="syn-kw">FIRST_COMPLETED</span>: Chỉ cần 1 task xong là đi tiếp.
+                            <br>- <span class="syn-kw">FIRST_EXCEPTION</span>: Đi tiếp ngay nếu có 1 task sinh lỗi.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXCEPTIONS -->
+            <div class="api-card">
+                <div class="api-card-header" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Exceptions (Ngoại lệ)</h3>
+                </div>
+                <div class="api-card-body" style="padding-top: 1rem;">
+                    <div class="api-item" style="border-left-color: #ef4444;">
+                        <div class="api-signature"><span class="syn-class">TimeoutError</span></div>
+                        <p class="api-desc">Bắn ra khi gọi <code>result(timeout=X)</code> mà quá X giây vẫn chưa có kết quả.</p>
+                    </div>
+                    <div class="api-item" style="border-left-color: #ef4444;">
+                        <div class="api-signature"><span class="syn-class">CancelledError</span></div>
+                        <p class="api-desc">Bắn ra nếu bạn cố gọi <code>result()</code> của một Future đã bị <code>cancel()</code>.</p>
+                    </div>
+                    <div class="api-item" style="border-left-color: #ef4444;">
+                        <div class="api-signature"><span class="syn-class">BrokenExecutor</span></div>
+                        <p class="api-desc">Bắn ra nếu Thread/Process pool bị lỗi nghiêm trọng hoặc sập bất ngờ khiến việc ném task mới vào bị thất bại.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.api-grid-comprehensive {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    padding-bottom: 2rem;
+}
+
+.api-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.api-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+}
+
+.api-tall {
+    height: 100%;
+}
+
+.api-card-header {
+    padding: 1.2rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.api-card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.api-card-header p {
+    margin: 0.3rem 0 0 0;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.api-card-body {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
+
+.api-item {
+    border-left: 3px solid var(--border-subtle);
+    padding-left: 1rem;
+}
+
+.api-signature {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+    background: var(--bg-primary);
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+}
+
+.api-desc {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+/* Syntax Highlighting */
+.syn-kw { color: #a626a4; font-weight: bold; }
+.syn-func { color: #4078f2; font-weight: bold; }
+.syn-class { color: #c18401; font-weight: bold; }
+
+/* Scrollbar for container */
+.slide-content::-webkit-scrollbar {
+    width: 8px;
+}
+.slide-content::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+.slide-content::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 4px;
+}
+
+/* Mobile Stack */
+@media (max-width: 1200px) {
+    .api-grid-comprehensive {
+        grid-template-columns: 1fr 1fr;
+    }
+    .api-right-col {
+        grid-column: 1 / -1;
+        flex-direction: row;
+    }
+}
+@media (max-width: 768px) {
+    .api-grid-comprehensive {
+        grid-template-columns: 1fr;
+    }
+    .api-right-col {
+        flex-direction: column;
+    }
+}
+</style>

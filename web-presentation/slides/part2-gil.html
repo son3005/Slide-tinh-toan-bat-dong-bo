@@ -1,0 +1,105 @@
+<div class="split-screen">
+    <div class="content-pane">
+        <h2>Khóa <span class="hl-class">GIL (Global Interpreter Lock)</span></h2>
+        <p>
+            Mặc dù ThreadPool quản lý nhiều luồng, nhưng trong Python (CPython), <strong>chỉ có MỘT luồng được phép thực thi mã byte (bytecode) tại một thời điểm</strong>.
+        </p>
+        
+        <div class="concept-card">
+            <h3>Bản chất của GIL:</h3>
+            <ul>
+                <li>Nó như một chiếc <strong>ổ khóa duy nhất</strong>. Ai cầm khóa thì mới được chạy trên CPU.</li>
+                <li><strong>CPU-Bound:</strong> Các luồng tranh giành nhau chiếc khóa này, dẫn đến việc dùng Thread không làm code nhanh hơn (thậm chí chậm hơn do chi phí chuyển đổi).</li>
+                <li><strong>I/O-Bound:</strong> Khi một luồng chờ I/O, nó sẽ tự động <strong>nhả khóa GIL ra</strong> cho luồng khác chạy! Do đó ThreadPool cực kỳ hiệu quả với I/O.</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <button id="btn-simulate-gil" class="nav-btn">
+                <span class="btn-core" style="background: var(--color-cpu); color: white;">Bật Mô phỏng Tranh giành GIL</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="simulation-pane">
+        <div class="simulation-core">
+            <h3 style="text-align: center; margin-bottom: 2rem;">Mô phỏng 1 CPU với 3 Threads (GIL)</h3>
+            
+            <div class="gil-container">
+                <!-- The GIL Lock Indicator -->
+                <div id="gil-lock" class="gil-padlock">🔒 GIL</div>
+                
+                <!-- Threads -->
+                <div class="thread-lane">
+                    <div class="thread-label">Thread 1</div>
+                    <div class="thread-bar" id="t1-bar"></div>
+                </div>
+                <div class="thread-lane">
+                    <div class="thread-label">Thread 2</div>
+                    <div class="thread-bar" id="t2-bar"></div>
+                </div>
+                <div class="thread-lane">
+                    <div class="thread-label">Thread 3</div>
+                    <div class="thread-bar" id="t3-bar"></div>
+                </div>
+            </div>
+            
+            <p id="gil-status" style="text-align: center; margin-top: 2rem; font-weight: bold; color: var(--text-secondary);">
+                Hệ thống đang ở trạng thái nghỉ...
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.gil-container {
+    position: relative;
+    padding-left: 80px; /* Space for the padlock to move up and down */
+}
+
+.gil-padlock {
+    position: absolute;
+    left: 0;
+    top: 15px; /* Aligns with first thread initially */
+    background: #fbbf24;
+    color: #78350f;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    transition: top 0.2s var(--ease-spring);
+    z-index: 10;
+}
+
+.thread-lane {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    height: 50px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.thread-label {
+    width: 100px;
+    padding: 0.5rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    border-right: 2px dashed var(--bg-tertiary);
+}
+
+.thread-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--color-cpu);
+    opacity: 0.2; /* Dim when not holding GIL */
+    transition: width 0.1s linear, opacity 0.2s ease;
+}
+
+.thread-bar.active {
+    opacity: 1;
+    background: var(--color-cpu);
+}
+</style>

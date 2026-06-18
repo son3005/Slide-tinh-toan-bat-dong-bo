@@ -1,0 +1,357 @@
+/* AISA System Rules: 100% Light Theme, Double-Bezel Architecture */
+
+:root {
+    /* User Provided Base Palette */
+    --base-red: #F12938;
+    --base-magenta: #940F44;
+    --base-dark-purple: #321542;
+    --base-cyan: #55DDF0;
+    --base-blue: #0478EA;
+    --base-navy: #1E2D8D;
+
+    /* Extended Red Palette */
+    --red-50: #fef2f2;
+    --red-100: #fee2e2;
+    --red-300: #fca5a5;
+    --red-500: #F12938; /* Base */
+    --red-700: #b91c1c;
+    --red-900: #7f1d1d;
+
+    /* Extended Magenta Palette */
+    --mag-50: #fdf4f7;
+    --mag-100: #fbe8f0;
+    --mag-300: #f4b8cf;
+    --mag-500: #940F44; /* Base */
+    --mag-700: #700a33;
+    --mag-900: #4a0621;
+
+    /* Extended Purple Palette */
+    --purp-50: #f9f7fa;
+    --purp-100: #f1ecf4;
+    --purp-300: #d2c1dc;
+    --purp-500: #321542; /* Base */
+    --purp-700: #250f31;
+    --purp-900: #180920;
+
+    /* Extended Cyan Palette */
+    --cyan-50: #ecfeff;
+    --cyan-100: #cffafe;
+    --cyan-300: #67e8f9;
+    --cyan-500: #55DDF0; /* Base */
+    --cyan-700: #0e7490;
+    --cyan-900: #164e63;
+
+    /* Extended Blue Palette */
+    --blue-50: #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-300: #93c5fd;
+    --blue-500: #0478EA; /* Base */
+    --blue-700: #1d4ed8;
+    --blue-900: #1e3a8a;
+
+    /* Extended Navy Palette */
+    --navy-50: #f0f2f9;
+    --navy-100: #e0e5f2;
+    --navy-300: #a3b3dc;
+    --navy-500: #1E2D8D; /* Base */
+    --navy-700: #16216a;
+    --navy-900: #0e1546;
+
+    /* Theme Mapping */
+    --bg-primary: #ffffff;
+    --bg-secondary: var(--navy-50);
+    --bg-tertiary: var(--navy-100);
+    
+    --text-primary: var(--base-dark-purple); /* Using Dark Purple for strong text */
+    --text-secondary: var(--purp-700);
+    
+    --accent-primary: var(--base-blue);
+    --accent-secondary: var(--base-cyan);
+    --accent-hover: var(--blue-700);
+    
+    /* Semantic Colors */
+    --color-cpu: var(--base-blue);
+    --color-io: var(--base-magenta);
+    --color-wait: var(--base-red);
+    --color-success: var(--base-cyan);
+
+    /* Code Highlighting Constants */
+    --hl-class: var(--base-navy); 
+    --hl-func: var(--base-magenta);
+    
+    /* Bezel/Shadow Physics */
+    --radius-outer: 2rem;
+    --radius-inner: 1.5rem;
+    --shadow-soft: 0 10px 40px -10px rgba(30, 45, 141, 0.12); /* Navy tinted shadow */
+    --border-subtle: 1px solid rgba(30, 45, 141, 0.08);
+    
+    /* Motion */
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.8; /* Increased line height for readability */
+    font-size: 18px; /* Larger base font size */
+    overflow-x: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* -------------------------
+   Navigation & Progress
+------------------------- */
+#progress-bar-container {
+    height: 6px;
+    width: 100%;
+    background-color: var(--bg-tertiary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+
+#progress-bar {
+    height: 100%;
+    background-color: var(--accent-primary);
+    width: 0%;
+    transition: width 0.6s var(--ease-smooth);
+}
+
+#navigation {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--bg-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 100px;
+    box-shadow: var(--shadow-soft);
+    border: var(--border-subtle);
+    z-index: 100;
+}
+
+#slide-counter {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.nav-btn {
+    background: var(--bg-secondary);
+    border: none;
+    border-radius: 100px;
+    padding: 4px;
+    cursor: pointer;
+    transition: transform 0.2s var(--ease-spring);
+}
+
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.nav-btn:not(:disabled):hover {
+    transform: scale(1.05);
+}
+
+.btn-core {
+    display: block;
+    background: var(--bg-primary);
+    padding: 0.6rem 1.8rem;
+    border-radius: 100px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+/* -------------------------
+   Slide Container
+------------------------- */
+#slide-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    opacity: 1;
+    transition: opacity 0.4s var(--ease-smooth), transform 0.4s var(--ease-smooth);
+}
+
+.slide-transition.fading-out {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.slide-transition.fading-in {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: slideIn 0.5s var(--ease-smooth) forwards;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* -------------------------
+   Double-Bezel Layouts
+------------------------- */
+.split-screen {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr; /* Slightly more space for text */
+    gap: 4rem;
+    width: 100%;
+    height: auto;
+    min-height: 70vh;
+}
+
+.content-pane {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.simulation-pane {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-outer);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+}
+
+.simulation-core {
+    background: var(--bg-primary);
+    border-radius: var(--radius-inner);
+    border: var(--border-subtle);
+    flex: 1;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem;
+}
+
+/* -------------------------
+   Typography & Highlights
+------------------------- */
+h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1.5rem; color: var(--text-primary); line-height: 1.2; }
+h2 { font-size: 2.25rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1.25rem; color: var(--accent-primary); }
+h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
+p { font-size: 1.125rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+
+/* Readability improvements for lists */
+ul {
+    list-style-type: none;
+    padding-left: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+}
+
+ul li::before {
+    content: "•";
+    color: var(--accent-primary);
+    font-weight: bold;
+    font-size: 1.5rem;
+    position: absolute;
+    left: 0;
+    top: -0.25rem;
+}
+
+.hl-func {
+    color: var(--hl-func);
+    font-family: monospace;
+    font-weight: 700;
+    background: rgba(14, 165, 233, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.hl-class {
+    color: var(--hl-class);
+    font-family: monospace;
+    font-weight: 700;
+    background: rgba(79, 70, 229, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.concept-card {
+    background: var(--bg-primary);
+    padding: 1.8rem;
+    border-radius: var(--radius-inner);
+    border: var(--border-subtle);
+    box-shadow: var(--shadow-soft);
+    margin-top: 1rem;
+    border-left: 4px solid var(--accent-primary);
+}
+
+/* -------------------------
+   Mobile Responsive
+------------------------- */
+@media (max-width: 1024px) {
+    .split-screen {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    
+    #slide-container { 
+        padding: 6rem 1rem 5rem 1rem; /* Extra top/bot padding for fixed navs */
+    }
+    
+    .simulation-pane {
+        padding: 0.75rem;
+    }
+    
+    .simulation-core {
+        padding: 1.25rem;
+        overflow-x: auto; /* Allow scrolling if pre/code blocks overflow */
+    }
+    
+    .concept-card {
+        padding: 1rem;
+    }
+    
+    .nav-btn .btn-core {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    #navigation {
+        width: 90%;
+        justify-content: center;
+        bottom: 1rem;
+    }
+}
+

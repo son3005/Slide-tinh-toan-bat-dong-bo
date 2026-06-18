@@ -1,0 +1,71 @@
+<div class="slide-content">
+    <div class="header-section" style="margin-bottom: 2rem;">
+        <h1 class="gradient-text">Asyncio là gì?</h1>
+        <p class="subtitle">Thư viện cốt lõi của Python cho lập trình Bất đồng bộ (Asynchronous Programming)</p>
+    </div>
+
+    <div class="split-screen" style="align-items: stretch; gap: 3rem;">
+        
+        <!-- TRÁI: Lý thuyết để đọc -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 16px; border-left: 4px solid var(--accent-primary);">
+                <h3 style="color: var(--accent-primary); margin-top: 0;"><i class="fas fa-book"></i> Định nghĩa</h3>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 0;">
+                    <strong>Asyncio</strong> là một thư viện chuẩn của Python được sử dụng để viết mã đồng thời (concurrent) bằng cú pháp <code>async/await</code>. Nó cho phép hàng ngàn tác vụ chạy "song song" trên một luồng (thread) duy nhất.
+                </p>
+            </div>
+
+            <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 16px; border-left: 4px solid var(--color-success);">
+                <h3 style="color: var(--color-success); margin-top: 0;"><i class="fas fa-bolt"></i> Đặc điểm nổi bật</h3>
+                <ul style="color: var(--text-secondary); line-height: 1.6; padding-left: 1.2rem; margin-bottom: 0;">
+                    <li><strong>Single-threaded:</strong> Hoạt động hoàn toàn trên 1 Thread (Luồng) duy nhất, tránh được các rủi ro chết chóc của Threading như Race Condition hay Deadlock.</li>
+                    <li><strong>Non-blocking I/O:</strong> Không bao giờ đứng im chờ đợi các tác vụ mạng/ổ đĩa. Rất nhẹ và tiết kiệm RAM.</li>
+                    <li><strong>Sinh ra cho I/O Bound:</strong> Lựa chọn số 1 để xây dựng Web Servers (FastAPI), Web Scraping, Chatbots, và Microservices.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- PHẢI: Sơ đồ 3 thành phần cốt lõi -->
+        <div style="flex: 1.2; background: var(--bg-primary); padding: 2rem; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-soft); display: flex; flex-direction: column;">
+            <h3 style="color: var(--text-primary); text-align: center; margin-top: 0; margin-bottom: 2rem;"><i class="fas fa-sitemap"></i> 3 Thành phần Cốt lõi của Asyncio</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 2rem; flex: 1; justify-content: center;">
+                
+                <!-- Component 1 -->
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="width: 80px; height: 80px; background: rgba(14, 165, 233, 0.1); border: 2px dashed var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent-primary);">
+                        <i class="fas fa-sync fa-spin"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; color: var(--accent-primary); font-size: 1.2rem;">1. Event Loop (Bộ não điều phối)</h4>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); line-height: 1.5;">Vòng lặp vô tận chạy liên tục để phân phát công việc. Nó giám sát xem Task nào đã sẵn sàng để chạy tiếp và Task nào đang phải chờ I/O.</p>
+                    </div>
+                </div>
+
+                <!-- Component 2 -->
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border: 2px dashed var(--color-success); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--color-success);">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; color: var(--color-success); font-size: 1.2rem;">2. Coroutine (Hàm bất đồng bộ)</h4>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); line-height: 1.5;">Là các hàm được định nghĩa bằng <code>async def</code>. Chúng có khả năng tự tạm dừng thực thi (thông qua <code>await</code>) và tiếp tục lại sau mà không làm treo hệ thống.</p>
+                    </div>
+                </div>
+
+                <!-- Component 3 -->
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="width: 80px; height: 80px; background: rgba(245, 158, 11, 0.1); border: 2px dashed #f59e0b; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #f59e0b;">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; color: #f59e0b; font-size: 1.2rem;">3. Task / Future (Hộp chứa kết quả)</h4>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); line-height: 1.5;">Một lớp bọc (wrapper) bên ngoài Coroutine để Event Loop có thể theo dõi trạng thái (Đang chờ, Đang chạy, Đã xong) và nhận kết quả trả về.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>

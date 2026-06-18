@@ -1,0 +1,141 @@
+<div class="split-screen" style="display: block;">
+    <div class="content-pane" style="max-width: 800px; margin: 0 auto 2rem auto; text-align: center;">
+        <h2>Sơ đồ luồng thực thi (Chu trình 2x2)</h2>
+        <p>
+            Vòng đời của một tác vụ trong <span class="hl-func">executor.submit()</span> diễn ra như thế nào? Hãy theo dõi từng bước.
+        </p>
+        
+        <div class="concept-card" style="margin-top: 1rem; text-align: left;">
+            <h3 id="step-title">Bước 0: Khởi tạo</h3>
+            <p id="step-desc">
+                Main Thread chuẩn bị một tác vụ (hàm và tham số) cần thực thi.
+            </p>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+            <button id="btn-next-step" class="nav-btn">
+                <span class="btn-core" style="background: var(--accent-primary); color: white; padding: 0.8rem 2rem;">Tiếp tục (Next Step) ⏭️</span>
+            </button>
+            <button id="btn-reset-flow" class="nav-btn" style="opacity: 0; pointer-events: none;">
+                <span class="btn-core" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 0.8rem 2rem;">Làm lại</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- The 2x2 Cycle Diagram using 3x3 Grid for perfect alignment -->
+    <div class="simulation-pane" style="max-width: 900px; margin: 0 auto; padding: 3rem;">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 3rem; border-radius: 24px; box-shadow: var(--shadow-soft);">
+            
+            <div class="cycle-grid-3x3">
+                
+                <!-- ROW 1 -->
+                <div class="cycle-node" id="node-main">
+                    <div class="icon">🧑‍💻</div>
+                    <h4>Main Thread</h4>
+                </div>
+                
+                <div class="arrow-cell hidden" id="arrow-fm">
+                    <div class="arrow-left">⟵</div>
+                </div>
+
+                <div class="cycle-node hidden" id="node-future">
+                    <div class="icon">📬</div>
+                    <h4>Future (Mailbox)</h4>
+                    <span id="future-state-lbl" style="font-size: 0.85rem; background: #f59e0b; padding: 2px 8px; border-radius: 4px; color: white;">Pending</span>
+                </div>
+
+                <!-- ROW 2 (Arrows Vertical) -->
+                <div class="arrow-cell hidden" id="arrow-mq">
+                    <div class="arrow-down">⬇</div>
+                </div>
+                
+                <div><!-- Empty Center --></div>
+                
+                <div class="arrow-cell hidden" id="arrow-pf">
+                    <div class="arrow-up">⬆</div>
+                </div>
+
+                <!-- ROW 3 -->
+                <div class="cycle-node hidden" id="node-queue">
+                    <div class="icon">📥</div>
+                    <h4>Task Queue</h4>
+                    <div id="queue-item" class="hidden" style="background: var(--color-cpu); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-top: 5px;">Task A</div>
+                </div>
+                
+                <div class="arrow-cell hidden" id="arrow-qp">
+                    <div class="arrow-right">⟶</div>
+                </div>
+
+                <div class="cycle-node hidden" id="node-pool">
+                    <div class="icon">⚙️</div>
+                    <h4>Worker Pool</h4>
+                    <div id="worker-a" style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-top: 5px; color: var(--text-secondary);">Worker 1 (Rảnh)</div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.cycle-grid-3x3 {
+    display: grid;
+    grid-template-columns: 200px 100px 200px;
+    grid-template-rows: 150px 80px 150px;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cycle-node {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-subtle);
+    padding: 1rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: all 0.5s var(--ease-spring);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.cycle-node .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.cycle-node h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.2rem;
+    font-size: 1.1rem;
+}
+
+.cycle-node.active {
+    border-color: var(--accent-primary);
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(79, 70, 229, 0.15);
+}
+
+.arrow-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--accent-secondary);
+    font-weight: bold;
+    transition: opacity 0.4s ease;
+}
+
+.arrow-left { color: var(--accent-primary); opacity: 0.5; }
+.arrow-up { color: var(--color-success); }
+
+.hidden {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+}
+</style>

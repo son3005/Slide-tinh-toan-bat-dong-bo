@@ -1,0 +1,177 @@
+<div class="split-screen">
+    <div class="content-pane">
+        <h2>Cơ chế Event Loop</h2>
+        <p>
+            <span class="hl-class">Event Loop</span> là trái tim của lập trình bất đồng bộ. Nó hoạt động trên một <strong>luồng duy nhất (single thread)</strong>, liên tục giám sát các tác vụ và quyết định xem cái nào sẽ chạy tiếp theo.
+        </p>
+        
+        <div class="concept-card">
+            <h3>Cách thức hoạt động:</h3>
+            <ul>
+                <li>Các tác vụ được thêm vào <strong>Task Queue</strong>.</li>
+                <li>Event Loop chọn tác vụ đầu tiên và thực thi nó.</li>
+                <li>Nếu tác vụ gặp lệnh <code>await</code> (thao tác I/O), nó sẽ <strong>nhường quyền (yield)</strong> lại cho vòng lặp.</li>
+                <li>Vòng lặp ngay lập tức chọn tác vụ tiếp theo, trong khi tác vụ đầu tiên chờ ở chế độ ngầm.</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <h3>Thực hành tương tác</h3>
+            <p>Hãy thử thêm các tác vụ để xem cách Event Loop xử lý chúng mà không bị chặn.</p>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button id="btn-add-fast" class="nav-btn">
+                    <span class="btn-core" style="background: var(--color-cpu); color: white;">Thêm Task Nhanh (CPU)</span>
+                </button>
+                <button id="btn-add-slow" class="nav-btn">
+                    <span class="btn-core" style="background: var(--color-io); color: white;">Thêm Task Chậm (I/O)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="simulation-pane">
+        <div class="simulation-core">
+            <h3 style="text-align: center; margin-bottom: 2rem;">Mô phỏng Event Loop</h3>
+            
+            <div id="sim-container">
+                <!-- Task Queue -->
+                <div class="queue-zone">
+                    <div class="queue-title">Task Queue</div>
+                    <div id="task-queue" class="queue-box">
+                        <!-- Tasks inject here -->
+                    </div>
+                </div>
+
+                <!-- The Loop -->
+                <div class="loop-zone">
+                    <!-- The outer wheel spins, the inner text stays still -->
+                    <div class="loop-wheel-container">
+                        <div class="loop-wheel-ring" id="loop-wheel"></div>
+                        <div class="loop-center-text">Loop</div>
+                    </div>
+                </div>
+
+                <!-- Executing -->
+                <div class="exec-zone">
+                    <div class="queue-title">Main Thread</div>
+                    <div id="main-thread" class="exec-box">
+                        <!-- Active task here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suspended/Background -->
+            <div class="suspended-zone" style="margin-top: 2.5rem;">
+                <div class="queue-title" style="text-align: left;">I/O Ngầm (Tác vụ bị tạm dừng)</div>
+                <div id="bg-thread" class="bg-box">
+                    <!-- Suspended tasks here -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+#sim-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.queue-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.queue-box, .exec-box, .bg-box {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--bg-tertiary);
+    border-radius: 16px;
+    padding: 1.25rem;
+    min-height: 180px;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.bg-box {
+    min-height: 90px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.sim-task {
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    animation: popIn 0.3s var(--ease-spring);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+.task-fast { background: var(--color-cpu); }
+.task-slow { background: var(--color-io); }
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Loop Animation Fix */
+.loop-wheel-container {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loop-wheel-ring {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 6px dashed var(--accent-primary);
+    border-radius: 50%;
+    transition: transform 0.2s linear;
+}
+
+.loop-center-text {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--accent-primary);
+    z-index: 2;
+    background: var(--bg-primary);
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.spinning {
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    #sim-container {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .loop-wheel-container {
+        margin: 1rem 0;
+    }
+}
+</style>

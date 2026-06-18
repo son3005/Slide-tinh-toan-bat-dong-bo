@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asynchronous Computing - Interactive Presentation</title>
+    
+    <!-- D3.js for Relationship Graphs -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- AISA Core Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    
+    <!-- Top Progress Bar -->
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <!-- Main Dynamic Slide Container -->
+    <main id="slide-container" class="slide-transition">
+        <!-- Content injected dynamically by engine.js -->
+    </main>
+
+    <!-- Navigation Controls -->
+    <nav id="navigation">
+        <button id="btn-prev" class="nav-btn" disabled>
+            <span class="btn-core">Previous</span>
+        </button>
+        <div id="slide-counter">1 / 1</div>
+        <button id="btn-next" class="nav-btn">
+            <span class="btn-core">Next</span>
+        </button>
+    </nav>
+
+    <!-- Core Engine -->
+    <script type="module" src="js/engine.js"></script>
+</body>
+</html>
