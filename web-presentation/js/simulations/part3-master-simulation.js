@@ -1,17 +1,17 @@
 // js/simulations/part3-master-simulation.js
 
 export function init() {
-    const btnStart = document.getElementById('btn-master-start');
+    const btnStart = document.getElementById('btn-master-run');
     const btnReset = document.getElementById('btn-master-reset');
 
-    const elList = document.getElementById('el-task-list');
-    const wqList = document.getElementById('pool-queue');
-    const fList = document.getElementById('master-future-list');
+    const elList = document.getElementById('m-event-loop');
+    const wqList = document.getElementById('m-tp-queue');
+    const fList = document.getElementById('m-futures');
     
     const workers = [
-        document.getElementById('mw-1'),
-        document.getElementById('mw-2'),
-        document.getElementById('mw-3')
+        document.getElementById('m-w1'),
+        document.getElementById('m-w2'),
+        document.getElementById('m-w3')
     ];
 
     let isRunning = false;
@@ -45,31 +45,55 @@ export function init() {
         isRunning = true;
         btnStart.disabled = true;
 
-        // 1. Generate 10 API Tasks in Event Loop
+        // 1. Generate 10 Random Tasks (Some Heavy, Some Async)
         for(let i=1; i<=10; i++) {
             taskCounter++;
+            const isHeavy = Math.random() > 0.5; // 50% heavy, 50% light
             const t = document.createElement('div');
-            t.className = 'm-item';
+            t.className = isHeavy ? 'm-task heavy' : 'm-task async';
             t.id = `mtask-${taskCounter}`;
-            t.textContent = `API Request ${taskCounter}`;
+            t.innerHTML = isHeavy ? `<i class="fas fa-weight-hanging"></i> Heavy Task ${taskCounter}` : `<i class="fas fa-bolt"></i> Async Task ${taskCounter}`;
+            
             elList.appendChild(t);
-            masterTasks.push({ id: taskCounter, el: t, status: 'in_loop' });
+            masterTasks.push({ 
+                id: taskCounter, 
+                el: t, 
+                type: isHeavy ? 'heavy' : 'async', 
+                status: 'in_loop' 
+            });
+
+            // Create Future placeholder
+            const f = document.createElement('div');
+            f.className = 'm-future pending';
+            f.id = `mfuture-${taskCounter}`;
+            f.innerHTML = `<div>Task ${taskCounter}</div><div class="f-badge">PENDING</div>`;
+            fList.appendChild(f);
         }
 
         await sleep(1000);
 
-        // 2. Event Loop delegates them to Worker Pool Queue
+        // 2. Event Loop processes tasks
         for(let task of masterTasks) {
             if(!isRunning) return;
-            // Move to queue
-            task.el.style.borderColor = 'var(--color-cpu)';
-            task.el.style.color = 'var(--color-cpu)';
-            task.el.innerHTML = `<i class="fas fa-truck-loading"></i> Đang chờ (API ${task.id})`;
-            wqList.appendChild(task.el);
-            task.status = 'in_queue';
-            await sleep(150); // fast delegation
             
-            // Try process
+            if (task.type === 'async') {
+                // Event loop handles async quickly
+                task.el.innerHTML = `<i class="fas fa-check"></i> Xong (Async ${task.id})`;
+                task.el.style.opacity = '0.5';
+                
+                const f = document.getElementById(`mfuture-${task.id}`);
+                if (f) {
+                    f.className = 'm-future done';
+                    f.querySelector('.f-badge').textContent = 'DONE';
+                }
+                task.status = 'done';
+            } else {
+                // Event loop delegates heavy tasks to queue
+                task.el.style.padding = "2px 8px";
+                wqList.appendChild(task.el);
+                task.status = 'in_queue';
+            }
+            await sleep(200); 
             processQueue();
         }
     });
@@ -94,10 +118,10 @@ export function init() {
         
         // Update worker UI
         const w = workers[freeWorkerIdx];
-        w.className = 'm-worker active';
-        w.innerHTML = `<i class="fas fa-cog fa-spin"></i> Tải API ${nextTask.id}...`;
+        w.className = 'm-worker busy';
+        w.innerHTML = `<i class="fas fa-cog fa-spin"></i> Chạy Heavy Task ${nextTask.id}...`;
 
-        // Simulate network delay (2 to 4 seconds)
+        // Simulate computation delay
         const delay = Math.floor(Math.random() * 2000) + 2000;
         await sleep(delay);
         
@@ -109,14 +133,12 @@ export function init() {
         workerStatus[freeWorkerIdx] = false;
         nextTask.status = 'done';
 
-        // Put result in Futures Box
-        const f = document.createElement('div');
-        f.className = 'm-item done';
-        f.style.borderColor = 'var(--color-success)';
-        f.style.color = 'var(--color-success)';
-        f.style.animation = 'popIn 0.3s';
-        f.innerHTML = `<i class="fas fa-check-circle"></i> Kết quả API ${nextTask.id}`;
-        fList.appendChild(f);
+        // Update Future Box
+        const f = document.getElementById(`mfuture-${nextTask.id}`);
+        if (f) {
+            f.className = 'm-future done';
+            f.querySelector('.f-badge').textContent = 'DONE';
+        }
 
         // Check if all done
         if (masterTasks.every(t => t.status === 'done')) {

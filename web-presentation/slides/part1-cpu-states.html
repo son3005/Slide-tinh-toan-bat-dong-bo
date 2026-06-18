@@ -1,0 +1,60 @@
+<div class="split-screen">
+    <!-- Phân tích lý thuyết -->
+    <div class="content-pane">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 1: Khái niệm Tổng quát</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">1.3 Phân tích trạng thái CPU (Busy vs Idle)</h2>
+        
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            CPU vật lý luôn hoạt động ở 2 trạng thái cơ bản. Mục tiêu tối thượng của lập trình đồng thời là giữ cho CPU luôn ở trạng thái <strong>Busy</strong>.
+        </p>
+        
+        <div class="concept-card" style="border-left-color: var(--color-cpu);">
+            <h3 style="color: var(--color-cpu); margin-top: 0;"><i class="fas fa-microchip"></i> Trạng thái Busy (Bận rộn)</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0;">
+                CPU đang tích cực thực thi các tập lệnh tính toán phức tạp (Toán học, Mã hóa, Xử lý ảnh AI).
+            </p>
+        </div>
+
+        <div class="concept-card" style="border-left-color: var(--color-wait); margin-top: 1rem;">
+            <h3 style="color: var(--color-wait); margin-top: 0;"><i class="fas fa-hourglass-half"></i> Trạng thái Idle (Nhàn rỗi)</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                CPU không có lệnh để chạy, phải đứng chờ các thiết bị ngoại vi chậm chạp (Mạng lưới internet, Ổ cứng từ tính).
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.1); padding: 0.8rem; border-radius: 8px; border: 1px dashed #ef4444;">
+                <strong style="color: #ef4444;">Nút thắt cổ chai:</strong> Tốc độ mạng/ổ cứng chậm hơn tốc độ CPU hàng triệu lần!
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ luồng chạy -->
+    <div class="simulation-pane">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem;">
+            <h3 style="color: var(--accent-primary); margin-bottom: 1.5rem; text-align: center;">Thời gian biểu thực thi</h3>
+            
+            <div style="margin-bottom: 2rem;">
+                <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem;">Cách 1: Lập trình Tuần tự (Lãng phí)</h4>
+                <div style="display: flex; height: 40px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div style="flex: 2; background: var(--color-cpu); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">CPU Tính toán</div>
+                    <div style="flex: 6; background: var(--color-wait); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">IDLE (Chờ Mạng tải File)</div>
+                    <div style="flex: 2; background: var(--color-cpu); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">Lưu File</div>
+                </div>
+                <div style="text-align: right; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.3rem;">Tổng thời gian: 10s</div>
+            </div>
+
+            <div>
+                <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem;">Cách 2: Lập trình Bất đồng bộ (Tối ưu)</h4>
+                <div style="display: flex; height: 40px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div style="flex: 2; background: var(--color-cpu); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">Tính Task 1</div>
+                    <div style="flex: 2; background: var(--accent-secondary); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">Tính Task 2</div>
+                    <div style="flex: 2; background: var(--color-success); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">Tính Task 3</div>
+                    <div style="flex: 4; background: var(--color-wait); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">Chờ Mạng chung</div>
+                </div>
+                <div style="text-align: right; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.3rem;">Tổng thời gian: 5s</div>
+            </div>
+            
+            <p style="text-align: center; color: var(--color-success); margin-top: 2rem; font-weight: bold;">
+                <i class="fas fa-check-circle"></i> Tranh thủ lúc chờ I/O của Task 1, ta nhét Task 2 và 3 vào chạy trên CPU!
+            </p>
+        </div>
+    </div>
+</div>

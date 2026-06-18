@@ -1,0 +1,48 @@
+<div class="split-screen">
+    <!-- Cột trái: Lý thuyết -->
+    <div class="content-pane">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 2: Asyncio (Đơn luồng)</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">2.2 Khái niệm Lập trình sự kiện</h2>
+        <p style="color: var(--text-secondary);">
+            Thay vì chạy tuần tự từ trên xuống dưới, luồng thực thi của chương trình được điều khiển hoàn toàn bởi các <strong>sự kiện (events)</strong> xảy ra ngẫu nhiên.
+        </p>
+
+        <ul style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem; margin-top: 1.5rem; padding-left: 1.2rem;">
+            <li style="margin-bottom: 0.8rem;"><strong>Nguồn sự kiện (Event Source):</strong> Nơi phát sinh (Người dùng click chuột, Mạng gửi gói tin đến, Ổ cứng đọc xong file).</li>
+            <li style="margin-bottom: 0.8rem;"><strong>Hàng đợi sự kiện (Event Queue):</strong> Bộ đệm xếp hàng các sự kiện để xử lý lần lượt.</li>
+            <li><strong>Bộ xử lý sự kiện (Event Handler):</strong> Hàm Callback được gọi để xử lý khi một sự kiện được rút ra khỏi hàng đợi.</li>
+        </ul>
+        
+        <div style="background: rgba(14, 165, 233, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--accent-primary); margin-top: 2rem;">
+            <strong style="color: var(--accent-primary);">Luật vàng:</strong> Nếu Event Handler của bạn chứa mã xử lý chặn (blocking) quá lâu, nó sẽ khóa băng toàn bộ Event Queue!
+        </div>
+    </div>
+
+    <!-- Cột phải: Ẩn dụ Fast Food -->
+    <div class="simulation-pane">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem;">
+            <h3 style="color: #f59e0b; margin-bottom: 1rem; text-align: center;"><i class="fas fa-hamburger"></i> Ẩn dụ: Nhà hàng Thức ăn nhanh</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center;">
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👨‍💼</div>
+                    <div style="font-weight: bold; color: var(--text-primary);">Event Loop</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Quản lý Quầy Order</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👨‍🍳</div>
+                    <div style="font-weight: bold; color: var(--color-cpu);">Main Thread</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Đầu Bếp Duy Nhất</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; background: var(--bg-secondary); padding: 1rem; border-radius: 12px; border: 1px dashed var(--text-secondary);">
+                <ol style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                    <li>Khách order liên tục. Quản lý in <strong>Hóa Đơn (Event)</strong> kẹp vào thanh treo <strong>(Event Queue)</strong>.</li>
+                    <li>Đầu bếp nấu xong món A, lập tức rút hóa đơn B để làm tiếp.</li>
+                    <li>Đầu bếp <strong>không bao giờ</strong> phải dừng nấu ăn để ra đứng chờ khách chọn món. Tối ưu hóa 100% công suất chỉ với 1 người nấu!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

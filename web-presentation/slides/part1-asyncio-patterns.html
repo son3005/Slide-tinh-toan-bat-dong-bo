@@ -1,0 +1,53 @@
+<div class="split-screen" style="display: block;">
+    <div class="content-pane" style="max-width: 1100px; margin: 0 auto; text-align: center;">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 2: Asyncio (Đơn luồng)</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">2.6 Các Mô hình Kiến trúc (Patterns)</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Trong các hệ thống lớn, Coroutine được tổ chức theo các mô hình kiến trúc thông minh để tối ưu luồng dữ liệu.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: left;">
+            
+            <!-- Chaining -->
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--accent-primary); margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
+                    <i class="fas fa-link"></i> Chaining (Chuỗi liên kết)
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                    Các coroutine gọi nối tiếp nhau tuần tự (Tác vụ 1 ➔ Tác vụ 2 ➔ Tác vụ 3). Kết quả của coroutine này là đầu vào của coroutine tiếp theo.
+                </p>
+            </div>
+
+            <!-- Pipeline -->
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--color-success); margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
+                    <i class="fas fa-stream"></i> Pipeline (Đường ống)
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                    Dữ liệu chảy qua các trạm xử lý ngầm (Database ➔ Clean ➔ Normalise ➔ Warehouse). Cực kỳ phù hợp cho Streaming Video thời gian thực hoặc xử lý ETL dữ liệu lớn.
+                </p>
+            </div>
+
+            <!-- Fan-in -->
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: #f59e0b; margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
+                    <i class="fas fa-compress-arrows-alt"></i> Fan-in (Nhiều vào - Một ra)
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                    Nhiều nguồn dữ liệu độc lập gom về một bộ xử lý trung tâm. Rất hiệu quả khi thu gom dữ liệu từ hàng vạn cảm biến IoT hoặc websocket client về máy chủ.
+                </p>
+            </div>
+
+            <!-- Fan-out -->
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: #ef4444; margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
+                    <i class="fas fa-expand-arrows-alt"></i> Fan-out (Một vào - Nhiều ra)
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                    Một sự kiện đầu vào kích hoạt đồng thời nhiều hành động đầu ra dưới nền. (VD: Nhận diện 1 khuôn mặt ➔ Lưu Video + Ghi Log + Báo động còi đồng thời).
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>

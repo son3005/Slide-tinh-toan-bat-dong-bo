@@ -1,0 +1,37 @@
+<div class="split-screen" style="display: block; min-height: 100vh; background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);">
+    <div class="content-pane" style="max-width: 900px; margin: 0 auto; text-align: center; padding-top: 3rem;">
+        <h1 style="margin-bottom: 0; font-size: 3rem; color: var(--text-primary); letter-spacing: -0.02em; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Phần 5: Tổng kết & Thảo luận</h1>
+        <h2 style="margin-bottom: 3rem; font-size: 1.2rem; color: var(--text-secondary); font-weight: 500;">Hành trình làm chủ Lập trình Đồng thời & Bất đồng bộ trong Python</h2>
+        
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: left;">
+            <h3 style="color: var(--text-primary); margin-top: 0; font-size: 1.6rem; border-bottom: 2px solid var(--border-subtle); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-gem" style="color: var(--accent-primary); margin-right: 0.5rem;"></i> Cốt lõi cần nhớ
+            </h3>
+            
+            <ul style="color: var(--text-secondary); line-height: 2; font-size: 1.1rem; padding-left: 1.5rem;">
+                <li style="margin-bottom: 1rem;">
+                    <strong>Bản chất:</strong> Tính toán bất đồng bộ là nghệ thuật giảm thiểu thời gian CPU nhàn rỗi (Idle) do phải chờ đợi I/O.
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Giải pháp Đa luồng/Tiến trình:</strong> <code>concurrent.futures</code> cung cấp các Executor cấp cao mạnh mẽ. Đặc biệt <em>ProcessPool</em> là chìa khóa duy nhất để lách qua khe cửa hẹp của GIL.
+                </li>
+                <li>
+                    <strong>Giải pháp Đơn luồng:</strong> <code>asyncio</code> là đỉnh cao của đa nhiệm hợp tác (cooperative multitasking), có thể gánh vác hàng vạn kết nối mạng cùng lúc mà không cần thêm Thread nào.
+                </li>
+            </ul>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <h2 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 2rem;">Chân thành cảm ơn!</h2>
+                <p style="color: var(--text-secondary); font-size: 1.1rem;">Thầy và các bạn đã chú ý lắng nghe bài thuyết trình của Nhóm 4.</p>
+            </div>
+            
+            <div style="margin-top: 3rem; text-align: center; padding-top: 2rem; border-top: 1px dashed var(--border-subtle);">
+                <button class="nav-btn" style="pointer-events: none; transform: scale(1.1);">
+                    <span class="btn-core" style="background: var(--color-success); color: white; padding: 1rem 3rem; font-size: 1.2rem; display: flex; align-items: center; gap: 0.8rem;">
+                        <i class="fas fa-comments"></i> Hỏi & Đáp (Q&A)
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

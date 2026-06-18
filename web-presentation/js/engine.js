@@ -1,18 +1,42 @@
 // engine.js - Central routing and module loading
 
+import * as part1EventLoopSim from './simulations/part1-event-loop.js';
+import * as part1AsyncioSim from './simulations/part1-asyncio-simulation.js';
+import * as part2ThreadProcessSim from './simulations/part2-thread-vs-process.js';
+import * as part2GilSim from './simulations/part2-gil.js';
+import * as part2SuperDashboardSim from './simulations/part2-super-dashboard.js';
+import * as part3MasterSim from './simulations/part3-master-simulation.js';
+
+function initializeSimulations() {
+    part1EventLoopSim.init();
+    part1AsyncioSim.init();
+    part2ThreadProcessSim.init();
+    part2GilSim.init();
+    part2SuperDashboardSim.init();
+    part3MasterSim.init();
+}
+
 const slides = [
     'part1-intro',
+    'part1-architecture-compare',
+    'part1-cpu-states',
     'part1-asyncio-theory',
-    'part1-asyncio-syntax',
+    'part1-asyncio-event-driven',
     'part1-event-loop',
+    'part1-asyncio-syntax',
+    'part1-asyncio-advanced',
+    'part1-asyncio-patterns',
+    'part1-asyncio-simulation',
     'part2-intro',
+    'part2-future-lifecycle',
     'part2-thread-vs-process',
     'part2-gil',
     'part2-super-dashboard',
     'part2-api-docs',
     'part3-intro',
     'part3-code-example',
-    'part3-master-simulation'
+    'part3-master-simulation',
+    'part5-summary'
 ];
 
 let currentIndex = 0;

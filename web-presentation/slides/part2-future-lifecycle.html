@@ -1,0 +1,79 @@
+<div class="split-screen">
+    <!-- Cột trái: Lý thuyết -->
+    <div class="content-pane">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 3: Concurrent (Đa luồng/Đa tiến trình)</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">3.2 Vòng đời của Đối tượng Future</h2>
+        
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            Khi bạn giao việc cho ThreadPool bằng hàm <code>submit()</code>, hệ thống trả về ngay một <strong>Future</strong> (Tờ biên lai). Tờ biên lai này đại diện cho kết quả sẽ có trong tương lai.
+        </p>
+
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-subtle); margin-top: 2rem;">
+            <h3 style="color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.5rem;">Cơ chế Callback</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem;">
+                Hàm <code>result()</code> sẽ làm <strong>đóng băng (block)</strong> hệ thống nếu tác vụ chưa chạy xong. Để tránh điều này, ta dùng Callback:
+            </p>
+            <pre style="background: var(--bg-primary); color: #d4d4d4; padding: 0.8rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem;">future.add_done_callback(my_function)</pre>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.5rem;">
+                <em>Ẩn dụ: Thay vì đứng đợi lấy ly trà sữa, bạn để lại số điện thoại (Callback). Quán làm xong sẽ gọi bạn!</em>
+            </p>
+        </div>
+    </div>
+
+    <!-- Cột phải: Diagram vòng đời -->
+    <div class="simulation-pane" style="display: flex; align-items: center; justify-content: center;">
+        <div style="background: var(--bg-primary); padding: 3rem; border-radius: 20px; box-shadow: var(--shadow-soft); width: 100%;">
+            <h3 style="text-align: center; color: var(--accent-primary); margin-bottom: 3rem; margin-top: 0;">Sơ đồ Trạng thái (State Machine)</h3>
+            
+            <div style="display: flex; justify-content: center; align-items: flex-start; gap: 2rem;">
+                <!-- Cột Cancelled -->
+                <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2rem;">
+                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px dashed #64748b; font-weight: bold; width: 160px; text-align: center; color: #64748b; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        CANCELLED<br>
+                        <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Bị hủy bỏ)</span>
+                    </div>
+                </div>
+
+                <!-- Cột chính -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <!-- PENDING -->
+                    <div style="position: relative; background: var(--bg-secondary); padding: 1rem 2rem; border-radius: 8px; border: 2px solid #f59e0b; font-weight: bold; min-width: 280px; text-align: center; color: #f59e0b; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        PENDING<br>
+                        <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Nằm trong Task Queue)</span>
+                        
+                        <!-- Mũi tên chỉ sang Cancelled -->
+                        <div style="position: absolute; left: -40px; top: 50%; transform: translateY(-50%); font-size: 2rem; color: #64748b;">⬅</div>
+                    </div>
+                    
+                    <div style="font-size: 2rem; color: var(--text-secondary);">⬇</div>
+                    
+                    <!-- RUNNING -->
+                    <div style="background: var(--bg-secondary); padding: 1rem 2rem; border-radius: 8px; border: 2px solid var(--color-cpu); font-weight: bold; min-width: 280px; text-align: center; color: var(--color-cpu); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        RUNNING<br>
+                        <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Đang được Worker xử lý)</span>
+                    </div>
+                    
+                    <div style="font-size: 2rem; color: var(--text-secondary);">⬇</div>
+                    
+                    <!-- DONE -->
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px solid var(--color-success); font-weight: bold; width: 140px; text-align: center; color: var(--color-success); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            DONE<br>
+                            <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Thành công)</span>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px solid var(--color-wait); font-weight: bold; width: 140px; text-align: center; color: var(--color-wait); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            DONE<br>
+                            <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Có lỗi/Exception)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <div style="display: inline-block; background: var(--bg-secondary); padding: 0.8rem 1.2rem; border-radius: 8px; border: 1px dashed var(--text-secondary); color: var(--text-secondary); font-size: 0.9rem;">
+                    * Lưu ý: Hàm <code>cancel()</code> chỉ có tác dụng khi tác vụ đang ở trạng thái <strong>PENDING</strong>.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

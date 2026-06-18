@@ -1,47 +1,46 @@
-<div class="slide-content">
-    <div class="header-section" style="margin-bottom: 2rem;">
-        <h1 class="gradient-text">Phase 3: Khi Asyncio gặp Blocking</h1>
-        <p class="subtitle">Vấn đề chết người khi gọi hàm đồng bộ (như thư viện <code>requests</code>) bên trong Event Loop</p>
+<div class="split-screen">
+    <!-- Cột Trái: Vấn đề -->
+    <div class="content-pane">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 4: Asyncio & Concurrent (Kết hợp)</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">4.1 Khi Asyncio gặp Blocking</h2>
+        
+        <div class="concept-card" style="border-color: #ef4444; border-left: 4px solid #ef4444;">
+            <h3 style="color: #ef4444; margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
+                <i class="fas fa-exclamation-triangle"></i> Nút Thắt Cổ Chai (Bottleneck)
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.6;">
+                Bạn đang có một hệ thống <strong>Asyncio</strong> cực nhanh có thể xử lý 10,000 kết nối. Nhưng đột nhiên bạn cần dùng thư viện <code>requests</code> (hoặc tính toán nặng) bên trong một Coroutine.
+            </p>
+            <p style="color: var(--text-secondary); line-height: 1.6;">
+                Khổ nỗi, <code>requests.get()</code> là hàm <strong>Đồng bộ (Synchronous/Blocking)</strong>. Nó không biết "nhường CPU". Nó bắt toàn bộ chương trình phải đứng im chờ đợi!
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                <p style="margin: 0; color: #ef4444; font-weight: bold;">Hậu quả:</p>
+                <p style="margin: 0.5rem 0 0 0; color: var(--text-primary);">Event Loop bị treo cứng. 9,999 kết nối khác bị "đứng hình" theo chỉ vì một tác vụ tải web/ảnh!</p>
+            </div>
+        </div>
     </div>
 
-    <div class="split-screen" style="align-items: center; gap: 3rem;">
-        
-        <!-- Cột Trái: Vấn đề -->
-        <div style="flex: 1; background: var(--bg-secondary); padding: 2rem; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-soft);">
-            <h2 style="color: var(--color-wait); margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
-                <i class="fas fa-exclamation-triangle"></i> Nút Thắt Cổ Chai
-            </h2>
-            <p style="color: var(--text-secondary); line-height: 1.6;">
-                Bạn đang có một hệ thống <strong>Asyncio</strong> cực nhanh có thể xử lý 10,000 kết nối. Nhưng đột nhiên bạn cần dùng thư viện <code>requests</code> để tải một tấm ảnh.
-            </p>
-            <p style="color: var(--text-secondary); line-height: 1.6;">
-                Khổ nỗi, <code>requests.get()</code> là hàm <strong>Đồng bộ (Synchronous/Blocking)</strong>. Nó bắt toàn bộ chương trình phải đứng im chờ đợi!
-            </p>
-            <div style="background: rgba(239, 68, 68, 0.1); padding: 1rem; border-left: 4px solid #ef4444; border-radius: 8px; margin-top: 1.5rem;">
-                <p style="margin: 0; color: #ef4444; font-weight: bold;">Hậu quả:</p>
-                <p style="margin: 0.5rem 0 0 0; color: var(--text-primary);">Event Loop bị treo cứng. 9,999 kết nối khác bị "đứng hình" theo chỉ vì một tác vụ tải ảnh!</p>
-            </div>
-        </div>
+    <!-- Cột Phải: Đoạn Code Lỗi -->
+    <div class="simulation-pane">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem;">
+            <h3 style="color: #ef4444; margin-bottom: 0.5rem;"><i class="fas fa-skull-crossbones"></i> Đoạn Code "Tự hủy"</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Không bao giờ được gọi hàm Blocking trực tiếp bên trong `async def`.</p>
+            
+            <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 1rem; line-height: 1.6; border: 1px solid #ef4444;">
+<span style="color: #c586c0;">import</span> asyncio
+<span style="color: #c586c0;">import</span> requests
 
-        <!-- Cột Phải: Đoạn Code Lỗi -->
-        <div style="flex: 1;">
-            <div class="sd-node" style="border-color: #ef4444;">
-                <div class="sd-header" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">❌ Đoạn code tự hủy</div>
-                <pre class="sd-code" style="font-size: 1.1rem; line-height: 1.6;">
-<span class="syn-kw">import</span> asyncio
-<span class="syn-kw">import</span> requests
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">download_image</span>():
+    <span style="color: #6a9955;"># LỖI: Lệnh này CHẶN cứng Event Loop!</span>
+    <span style="color: #6a9955;"># Nó không có chữ `await`, nó không nhường CPU.</span>
+    response = requests.get(<span style="color: #ce9178;">"https://..."</span>)
+    <span style="color: #c586c0;">return</span> response.content
 
-<span class="syn-kw">async def</span> <span class="syn-func">download_image</span>():
-    <span class="syn-comment"># LỖI: Lệnh này CHẶN cứng Event Loop!</span>
-    <span class="syn-var">response</span> = requests.<span class="syn-func">get</span>(<span class="syn-str">"https://..."</span>)
-    <span class="syn-kw">return</span> <span class="syn-var">response</span>.content
-
-<span class="syn-kw">async def</span> <span class="syn-func">main</span>():
-    <span class="syn-comment"># Cả hệ thống đứng im chờ 1 file...</span>
-    <span class="syn-kw">await</span> <span class="syn-func">download_image</span>()
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">main</span>():
+    <span style="color: #6a9955;"># Cả hệ thống 10,000 users đứng im chờ...</span>
+    <span style="color: #c586c0; font-weight: bold;">await</span> download_image()
 </pre>
-            </div>
         </div>
-
     </div>
 </div>

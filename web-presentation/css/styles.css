@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 /* AISA System Rules: 100% Light Theme, Double-Bezel Architecture */
 
 :root {
@@ -5,7 +6,7 @@
     --base-red: #F12938;
     --base-magenta: #940F44;
     --base-dark-purple: #321542;
-    --base-cyan: #55DDF0;
+    --base-cyan: #0891b2;
     --base-blue: #0478EA;
     --base-navy: #1E2D8D;
 
@@ -36,8 +37,8 @@
     /* Extended Cyan Palette */
     --cyan-50: #ecfeff;
     --cyan-100: #cffafe;
-    --cyan-300: #67e8f9;
-    --cyan-500: #55DDF0; /* Base */
+    --cyan-300: #22d3ee;
+    --cyan-500: #0891b2; /* Base */
     --cyan-700: #0e7490;
     --cyan-900: #164e63;
 

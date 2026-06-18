@@ -1,0 +1,185 @@
+<div class="split-screen">
+    <!-- Content Pane: Feature List -->
+    <div class="content-pane">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 2: Asyncio (Đơn luồng)</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">2.5 Bách khoa Cú pháp (API)</h2>
+        <p>
+            Bên cạnh <code>await</code>, Asyncio cung cấp một kho vũ khí (API) mạnh mẽ để bạn thao túng các Task theo mọi kịch bản phức tạp nhất.
+        </p>
+
+        <div class="concept-card" style="padding: 1rem; border-left: none;">
+            <div id="api-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button class="api-btn active" data-target="api-run">
+                    <i class="fas fa-play" style="width: 20px; color: var(--base-red);"></i> <code>asyncio.run()</code>
+                    <span style="display: block; font-size: 0.8rem; font-weight: 400; color: var(--text-secondary); margin-top: 0.2rem;">Khởi động Event Loop</span>
+                </button>
+                
+                <button class="api-btn" data-target="api-create-task">
+                    <i class="fas fa-rocket" style="width: 20px; color: var(--base-magenta);"></i> <code>asyncio.create_task()</code>
+                    <span style="display: block; font-size: 0.8rem; font-weight: 400; color: var(--text-secondary); margin-top: 0.2rem;">Chạy ngầm không chờ đợi (Fire & Forget)</span>
+                </button>
+                
+                <button class="api-btn" data-target="api-gather">
+                    <i class="fas fa-layer-group" style="width: 20px; color: var(--base-cyan);"></i> <code>asyncio.gather()</code>
+                    <span style="display: block; font-size: 0.8rem; font-weight: 400; color: var(--text-secondary); margin-top: 0.2rem;">Gom nhóm và chạy song song</span>
+                </button>
+
+                <button class="api-btn" data-target="api-wait-for">
+                    <i class="fas fa-hourglass-half" style="width: 20px; color: var(--base-blue);"></i> <code>asyncio.wait_for()</code>
+                    <span style="display: block; font-size: 0.8rem; font-weight: 400; color: var(--text-secondary); margin-top: 0.2rem;">Giới hạn thời gian ép buộc (Timeout)</span>
+                </button>
+
+                <button class="api-btn" data-target="api-as-completed">
+                    <i class="fas fa-list-ol" style="width: 20px; color: #10b981;"></i> <code>asyncio.as_completed()</code>
+                    <span style="display: block; font-size: 0.8rem; font-weight: 400; color: var(--text-secondary); margin-top: 0.2rem;">Ai xong trước, xử lý trước</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulation Pane: Code Example -->
+    <div class="simulation-pane">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem; position: relative;">
+            
+            <!-- RUN -->
+            <div id="api-run" class="api-content active">
+                <h3 style="color: var(--base-red); margin-bottom: 0.5rem;">Điểm kích nổ Event Loop</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Bạn không thể gọi trực tiếp một hàm <code>async</code> bằng cú pháp thông thường. Hàm <code>run()</code> là cầu nối giữa thế giới đồng bộ (Sync) và bất đồng bộ (Async).</p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.95rem; line-height: 1.6;">
+<span style="color: #c586c0;">import</span> asyncio
+
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">main</span>():
+    print(<span style="color: #ce9178;">"Hello from Asyncio!"</span>)
+
+<span style="color: #6a9955;"># Sai: main() sẽ không chạy! Nó chỉ trả về coroutine.</span>
+<span style="color: #6a9955;"># main() </span>
+
+<span style="color: #6a9955;"># Đúng: Khởi tạo Event Loop, nhét main() vào và chạy</span>
+asyncio.run(main())
+</pre>
+            </div>
+
+            <!-- CREATE TASK -->
+            <div id="api-create-task" class="api-content">
+                <h3 style="color: var(--base-magenta); margin-bottom: 0.5rem;">Chạy ngầm (Background Tasks)</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Giúp bạn kích hoạt một tác vụ chạy ngầm trong background mà không cần phải đứng lại đợi nó xong (Fire and Forget).</p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.95rem; line-height: 1.6;">
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">gui_email</span>():
+    <span style="color: #c586c0; font-weight: bold;">await</span> asyncio.sleep(5)
+    print(<span style="color: #ce9178;">"Đã gửi email!"</span>)
+
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">main</span>():
+    <span style="color: #6a9955;"># Đẩy việc gửi email ra chạy ngầm</span>
+    task = asyncio.create_task(gui_email())
+    
+    <span style="color: #6a9955;"># Hàm main vẫn tiếp tục chạy lập tức</span>
+    print(<span style="color: #ce9178;">"Phản hồi cho user xong!"</span>)
+    
+    <span style="color: #6a9955;"># (Sau này có thể await task nếu muốn lấy kết quả)</span>
+</pre>
+            </div>
+
+            <!-- GATHER -->
+            <div id="api-gather" class="api-content">
+                <h3 style="color: var(--base-cyan); margin-bottom: 0.5rem;">Gom nhóm và Đợi (Concurrency)</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Đẩy cùng lúc N tác vụ vào Event Loop và đợi tất cả chúng hoàn thành. Đây là trái tim của việc tối ưu thời gian.</p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.95rem; line-height: 1.6;">
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">tai_file</span>(id):
+    <span style="color: #c586c0; font-weight: bold;">await</span> asyncio.sleep(2)
+    <span style="color: #c586c0;">return</span> <span style="color: #ce9178;">f"Data {id}"</span>
+
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">main</span>():
+    <span style="color: #6a9955;"># Cả 3 file sẽ được tải cùng lúc (song song)</span>
+    <span style="color: #6a9955;"># Tổng thời gian: 2 giây (thay vì 6 giây)</span>
+    ket_qua = <span style="color: #c586c0; font-weight: bold;">await</span> asyncio.gather(
+        tai_file(1),
+        tai_file(2),
+        tai_file(3)
+    )
+    <span style="color: #6a9955;"># ket_qua = ['Data 1', 'Data 2', 'Data 3']</span>
+</pre>
+            </div>
+
+            <!-- WAIT FOR -->
+            <div id="api-wait-for" class="api-content">
+                <h3 style="color: var(--base-blue); margin-bottom: 0.5rem;">Kiểm soát Timeout</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Không ai muốn chờ đợi mãi mãi. Ép một tác vụ phải hoàn thành trong N giây, nếu không sẽ tự động hủy (Cancel) nó.</p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.95rem; line-height: 1.6;">
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">goi_api_cham</span>():
+    <span style="color: #c586c0; font-weight: bold;">await</span> asyncio.sleep(10) <span style="color: #6a9955;"># API bị kẹt</span>
+
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">main</span>():
+    <span style="color: #c586c0;">try</span>:
+        <span style="color: #6a9955;"># Chỉ cho phép API chạy tối đa 3 giây</span>
+        <span style="color: #c586c0; font-weight: bold;">await</span> asyncio.wait_for(goi_api_cham(), timeout=3.0)
+    <span style="color: #c586c0;">except</span> asyncio.TimeoutError:
+        print(<span style="color: #ce9178;">"Quá lâu! Đã tự động hủy tác vụ."</span>)
+</pre>
+            </div>
+
+            <!-- AS COMPLETED -->
+            <div id="api-as-completed" class="api-content">
+                <h3 style="color: #10b981; margin-bottom: 0.5rem;">Xử lý ngay khi có kết quả</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Khác với <code>gather()</code> phải đợi TẤT CẢ xong mới trả về cục bộ. <code>as_completed()</code> cho phép Task nào xong trước thì đem ra dùng luôn.</p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.95rem; line-height: 1.6;">
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">tai_file</span>(time, ten):
+    <span style="color: #c586c0; font-weight: bold;">await</span> asyncio.sleep(time)
+    <span style="color: #c586c0;">return</span> ten
+
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">main</span>():
+    tasks = [tai_file(5, <span style="color: #ce9178;">"Nặng"</span>), tai_file(1, <span style="color: #ce9178;">"Nhẹ"</span>)]
+    
+    <span style="color: #6a9955;"># Vòng lặp này sẽ in "Nhẹ" ra trước (sau 1s),</span>
+    <span style="color: #6a9955;"># rồi mới in "Nặng" ra sau (sau 5s).</span>
+    <span style="color: #c586c0;">for</span> coroutine <span style="color: #c586c0;">in</span> asyncio.as_completed(tasks):
+        ket_qua = <span style="color: #c586c0; font-weight: bold;">await</span> coroutine
+        print(ket_qua)
+</pre>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.api-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.api-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.api-btn.active {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--accent-primary);
+}
+
+.api-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.api-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>

@@ -1,50 +1,55 @@
-<div class="slide-content">
-    <div class="header-section" style="margin-bottom: 2rem;">
-        <h1 class="gradient-text">Chiếc Cầu Nối: run_in_executor()</h1>
-        <p class="subtitle">Cách Event Loop (Não bộ) ủy quyền công việc cho Worker Pool (Cơ bắp)</p>
-    </div>
-
-    <div class="split-screen" style="align-items: center; gap: 3rem;">
+<div class="split-screen">
+    <!-- Cột Trái: Phân tích -->
+    <div class="content-pane">
+        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 4: Asyncio & Concurrent (Kết hợp)</h1>
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">4.2 Chiếc cầu nối: run_in_executor()</h2>
         
-        <!-- Cột Trái: Code Giải pháp -->
-        <div style="flex: 1.2;">
-            <div class="sd-node" style="border-color: var(--color-success);">
-                <div class="sd-header" style="background: var(--cyan-50); color: var(--color-success);">✅ Đoạn code Chuẩn mực</div>
-                <pre class="sd-code" style="font-size: 1rem; line-height: 1.6;">
-<span class="syn-kw">import</span> asyncio, requests
-<span class="syn-kw">from</span> concurrent.futures <span class="syn-kw">import</span> <span class="syn-class">ThreadPoolExecutor</span>
-
-<span class="syn-comment"># Tạo "Cơ bắp" (Nhà máy xử lý I/O Blocking)</span>
-<span class="syn-var">pool</span> = <span class="syn-class">ThreadPoolExecutor</span>(max_workers=<span class="syn-num">10</span>)
-
-<span class="syn-kw">async def</span> <span class="syn-func">download_image</span>():
-    <span class="syn-var">loop</span> = asyncio.<span class="syn-func">get_running_loop</span>()
-    
-    <span class="syn-comment"># THẦN CHÚ: Ném việc cho Pool, Event Loop đi làm việc khác!</span>
-    <span class="syn-var">response</span> = <span class="syn-kw">await</span> <span class="syn-var">loop</span>.<span class="syn-func">run_in_executor</span>(<span class="syn-var">pool</span>, requests.<span class="syn-func">get</span>, <span class="syn-str">"https://..."</span>)
-    
-    <span class="syn-kw">return</span> <span class="syn-var">response</span>.content
-</pre>
-            </div>
-        </div>
-
-        <!-- Cột Phải: Phân tích -->
-        <div style="flex: 1; background: var(--bg-secondary); padding: 2rem; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-soft);">
-            <h2 style="color: var(--color-success); margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
+        <div class="concept-card">
+            <h3 style="color: var(--color-success); margin-top: 0; display: flex; align-items: center; gap: 0.8rem;">
                 <i class="fas fa-magic"></i> Cơ chế Ủy Quyền
-            </h2>
-            <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.2rem; font-size: 1.05rem;">
-                <li style="margin-bottom: 1rem;">
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.6;">
+                Cách duy nhất để giải quyết vấn đề hàm Blocking là <strong>tống cổ nó ra khỏi Event Loop</strong> và giao cho một "cơ bắp" (Thread/Process) khác xử lý.
+            </p>
+            <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.2rem; font-size: 0.95rem; margin-top: 1rem;">
+                <li style="margin-bottom: 0.5rem;">
                     <strong>Event Loop rảnh tay:</strong> Khi gọi <code>run_in_executor()</code>, não bộ (Event Loop) sẽ gói hàm <code>requests.get</code> lại và ném sang nhà máy Worker Pool. Ngay lập tức nó quay về phục vụ các kết nối khác.
                 </li>
-                <li style="margin-bottom: 1rem;">
+                <li style="margin-bottom: 0.5rem;">
                     <strong>Worker làm việc bẩn:</strong> Các Worker (Thread) trong Pool sẽ gánh chịu sự "treo" của hàm tải file.
                 </li>
                 <li>
-                    <strong>Từ khóa await:</strong> Giúp Event Loop "treo" hàm download này lại, nhưng không treo toàn bộ hệ thống. Khi nào Worker tải xong, nó sẽ báo cho Event Loop để chạy tiếp.
+                    <strong>Từ khóa await:</strong> Giúp Event Loop "treo" Coroutine hiện tại, nhưng không treo toàn hệ thống. Khi nào Worker tải xong, nó sẽ báo cho Event Loop để chạy tiếp.
                 </li>
             </ul>
         </div>
+    </div>
 
+    <!-- Cột Phải: Code Giải pháp -->
+    <div class="simulation-pane">
+        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem;">
+            <h3 style="color: var(--color-success); margin-bottom: 0.5rem;"><i class="fas fa-check-circle"></i> Đoạn Code Chuẩn mực</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Kết hợp hoàn hảo giữa Asyncio (não) và ThreadPool (cơ bắp).</p>
+            
+            <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 1rem; line-height: 1.6; border: 1px solid var(--border-subtle);">
+<span style="color: #c586c0;">import</span> asyncio, requests
+<span style="color: #c586c0;">from</span> concurrent.futures <span style="color: #c586c0;">import</span> ThreadPoolExecutor
+
+<span style="color: #6a9955;"># Tạo "Cơ bắp" (Nhà máy xử lý I/O Blocking)</span>
+pool = ThreadPoolExecutor(max_workers=<span style="color: #b5cea8;">10</span>)
+
+<span style="color: #c586c0;">async def</span> <span style="color: #dcdcaa;">download_image</span>():
+    loop = asyncio.get_running_loop()
+    
+    <span style="color: #6a9955;"># THẦN CHÚ: Ném việc cho Pool, Event Loop rảnh tay!</span>
+    response = <span style="color: #c586c0; font-weight: bold;">await</span> loop.run_in_executor(
+        pool, 
+        requests.get, 
+        <span style="color: #ce9178;">"https://..."</span>
+    )
+    
+    <span style="color: #c586c0;">return</span> response.content
+</pre>
+        </div>
     </div>
 </div>
