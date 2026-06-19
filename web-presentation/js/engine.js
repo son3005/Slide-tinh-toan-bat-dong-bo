@@ -17,6 +17,7 @@ function initializeSimulations() {
 }
 
 const slides = [
+    'team-intro',
     'part1-intro',
     'part1-architecture-compare',
     'part1-cpu-states',
