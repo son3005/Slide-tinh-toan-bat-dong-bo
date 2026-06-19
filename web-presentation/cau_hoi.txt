@@ -47,3 +47,161 @@ Vì vậy, nếu hàm `task` của bạn cần 10 tham số, bạn có 3 cách t
                  `executor.submit(task, **tham_so_dict)`
 
 Đây là sự linh hoạt tuyệt vời của Python giúp code Concurrent không bao giờ bị gò bó về mặt dữ liệu truyền vào!
+
+--------------------------------------------------
+Câu hỏi 3: Cái GIL là khoá tuần tự trên luồng do bản thân luồng dùng chung memory nhỉ? Vậy sao đối với các tác vụ nặng thì bị khoá GIL, điều này có thể hiểu nhưng tôi không hiểu bên phần nhường quyền ở tác vụ I/O (Slide 14, 15). Giải thích như thế nào?
+
+Trả lời:
+- Đúng, các Thread trong cùng một Process dùng chung một không gian bộ nhớ. Để tránh đụng độ (Race Condition) làm hỏng dữ liệu, Python dùng khóa GIL (Global Interpreter Lock). Chỉ luồng nào cầm khóa GIL thì mới được thực thi.
+- Với tác vụ nặng (CPU-Bound): Các luồng phải tính toán liên tục nên chúng luôn giành giật GIL. Thực tế chỉ 1 luồng được chạy tại một thời điểm, dẫn đến Thread vô dụng với tính toán nặng.
+- Với tác vụ I/O (Tải mạng, đọc file): Khi một luồng chờ I/O, nó không cần dùng đến CPU để tính toán. Do đó, Python rất thông minh sẽ cho phép luồng này "Tự động nhả khóa GIL ra" trong lúc ngồi đợi mạng. Nhờ vậy, luồng thứ 2 lập tức lấy được GIL để chạy việc của nó. Khóa GIL liên tục được nhường cho các luồng có việc để làm. Nhờ cơ chế "Nhường quyền" (Context Switching do I/O) này, ThreadPool cực kì hiệu quả trong việc tạo ra hàng ngàn kết nối mạng chờ cùng lúc.
+
+--------------------------------------------------
+Câu hỏi 4: Slide 15 đang nhảy qua lại rất nhiều và nó thực hiện từ từ (vd: thread 1 chạy 25% xong nhường thread 2). Vậy với luồng tải mạng thì GIL có can thiệp vậy không? Tốc độ thực tế ra sao và nó không hề chạy "Song song" như Process đúng không?
+
+Trả lời:
+- Hiện tượng nhảy qua lại (Context Switching ép buộc): Đây là đặc thù của Tác vụ CPU. Dù các luồng không tự nguyện nhường GIL, Python vẫn có cơ chế chống độc quyền (cứ sau khoảng 5ms, Python tước khóa GIL của luồng đang chạy để chia cho luồng khác). Vì thế ta thấy các luồng bị thay phiên nhau chạy từng khúc nhỏ (25%).
+- Luồng tải mạng (I/O) có bị GIL can thiệp ép buộc vậy không?: KHÔNG! Chờ mạng là nhờ Hệ điều hành (OS) và Card mạng làm việc ngầm. Luồng Python tự ném khóa GIL ra rồi đi "ngủ đông". Lúc này dữ liệu từ các server trả về dồn dập thông qua phần cứng, không liên quan đến việc tranh giành khóa GIL của Python.
+- Tốc độ thực tế & Vấn đề Song song: Khẳng định của bạn rất chính xác! Thread trong Python (do có GIL) CHƯA BAO GIỜ chạy "song song thực sự" (True Parallelism) trên nhiều lõi (Core) vật lý. Nó chỉ THAY PHIÊN NHAU (Concurrency) cực nhanh tạo ra ảo giác song song. Chỉ có Process (Đa tiến trình) – nhờ sở hữu không gian nhớ độc lập, và do đó có chiếc khóa GIL độc lập cho riêng mình – mới bám vào nhiều lõi CPU để chạy độc lập và song song thực sự cùng một lúc!
+
+--------------------------------------------------
+Câu hỏi 5: Đối với mô phỏng của Event Loop (slide 7), khi một tác vụ (như sleep hay tải mạng) hết thời gian chờ, thì nó có được chạy ngay lập tức không hay vẫn phải vào Task Queue để chờ thực hiện?
+
+Trả lời:
+- Chắc chắn là phải quay lại xếp hàng trong Task Queue (Hàng đợi)!
+- Khi một tác vụ (vd: `await asyncio.sleep(1)`) bắt đầu chờ, nó nhường lại Event Loop và lui vào khu vực "Đang chờ" (I/O Wait). Event Loop rảnh rỗi sẽ bốc tác vụ khác trong Queue ra làm.
+- Khi tác vụ kia hết thời gian chờ (hoặc mạng tải xong), nó KHÔNG ĐƯỢC PHÉP chen ngang chạy ngay lập tức. Hệ thống sẽ đóng gói phần code còn lại của nó và ném trở lại vào cuối hàng đợi Task Queue (lúc này gọi là Ready Queue).
+- Nó phải ngoan ngoãn xếp hàng. Event Loop cứ xoay vòng một cách từ tốn, xử lý xong đứa đang chạy dở rồi mới bốc tiếp đứa tiếp theo trong Queue ra làm. Khi nào đến lượt nó thì nó mới được "hồi sinh" và chạy tiếp đoạn code sau chữ `await`.
+- Sự ngoan ngoãn xếp hàng này là nguyên lý sống còn của Event-Driven Architecture: Đảm bảo tính công bằng (Fairness), ngăn chặn việc một tác vụ hung hăng nào đó ngắt ngang đột ngột (Preempt) làm hỏng luồng chạy của ứng dụng (hay còn gọi là Non-blocking, Cooperative Multitasking).
+
+--------------------------------------------------
+Câu hỏi 6: Asyncio vẫn có thể chạy đa luồng/đa tiến trình được đúng không? Nếu có thì hiệu quả ra sao và việc chạy song song thực sự diễn ra thế nào?
+
+Trả lời:
+- Bản chất Asyncio: Tự thân Asyncio chỉ chạy trên DUY NHẤT 1 LUỒNG (Single Thread) và hoàn toàn không tạo ra luồng hệ điều hành (OS Thread) nào cả. Nó siêu nhanh nhờ Event Loop luân chuyển các tác vụ chứ không phải nhờ chạy song song.
+- Việc kết hợp (Hybrid): Có thể kết hợp được! Khi bạn gặp một tác vụ chặn (Blocking I/O như hàm `requests`) hoặc tác vụ Tính toán nặng, nếu để trong Event Loop thì toàn bộ vòng lặp sẽ bị "treo cứng". Khi đó, ta dùng `asyncio.to_thread()` hoặc `run_in_executor` để "đá" tác vụ đó sang một ThreadPool hoặc ProcessPool chạy ngầm.
+- Vấn đề Hiệu quả & Song song thực sự:
+  + Cứu nguy cho Event Loop (với I/O cũ): Đá sang ThreadPool rất hiệu quả để giúp Event Loop rảnh tay chạy tiếp việc khác, nhưng các luồng phụ này vẫn chịu chi phối của khóa GIL (chỉ lừa giác quan là chạy song song).
+  + Tính toán nặng (CPU-Bound): Nếu đá sang ThreadPool thì VÔ DỤNG vì vướng GIL. Để song song thật sự, bắt buộc phải báo Event Loop đá tác vụ đó sang ProcessPool (Đa tiến trình). Khi đó hệ điều hành cấp Core riêng, RAM riêng và khóa GIL riêng, đem lại khả năng song song 100%.
+- Tóm lại: Quy tắc tối thượng là "Đã dùng Asyncio thì cố gắng dùng các thư viện Asyncio thuần (như `aiohttp`)". Việc lôi Đa luồng/Đa tiến trình vào kết hợp chỉ là giải pháp "chữa cháy" bất đắc dĩ nhằm dọn dẹp các tác vụ cản đường Event Loop!
+
+--------------------------------------------------
+Câu hỏi 7: Concurrent (Đa luồng/Đa tiến trình) cũng được xem là bất đồng bộ phải không? Cơ chế của nó khác biệt hoàn toàn so với Asyncio (Đơn luồng) như thế nào?
+
+Trả lời:
+- Hiểu đúng về khái niệm: "Concurrency" (Đồng thời) là một khái niệm MẸ. Nó mang ý nghĩa hệ thống có khả năng xử lý nhiều tác vụ trong cùng một khoảng thời gian. Cả Đa luồng (Threading), Đa tiến trình (Processing) và Asyncio đều là các công cụ khác nhau để đạt được Concurrency. Vì vậy Asyncio là một dạng của Concurrency.
+- Sự khác biệt 1 - Cách nhường quyền (Bị ép buộc vs Tự nguyện):
+  + Đa luồng/Tiến trình: Hoạt động theo cơ chế Đa nhiệm Ưu tiên (Preemptive Multitasking). Trọng tài là Hệ Điều Hành (OS). OS tự ý tước quyền của luồng này (dù nó đang chạy dở) để nhường luồng khác. Luồng bị ngắt ngang mà không biết lý do.
+  + Asyncio: Hoạt động theo cơ chế Đa nhiệm Hợp tác (Cooperative Multitasking). Các tác vụ chạy trên 1 luồng duy nhất và TỰ NGUYỆN nhường quyền cho nhau (thông qua từ khóa `await`). Không ai tước quyền ai cả.
+- Sự khác biệt 2 - Chi phí tài nguyên (Nặng nề vs Nhẹ nhàng):
+  + Đa luồng/Tiến trình: Rất nặng! Mỗi khi tạo 1 Thread/Process, Hệ Điều Hành tốn vài MB RAM để cấp phát không gian (Context). Nếu bạn dùng ThreadPool tạo 10.000 luồng để tải web, máy tính của bạn khả năng cao sẽ sập (Out of memory) và quá tải.
+  + Asyncio: Siêu nhẹ! 10.000 tác vụ Asyncio thực chất chỉ là 10.000 object Python tí hon nằm gọn trong bộ nhớ của đúng 1 Luồng duy nhất. Nhờ cơ chế Event Loop, Asyncio có thể gánh hàng chục nghìn kết nối ngầm cùng lúc một cách êm ái.
+
+--------------------------------------------------
+Câu hỏi 8: Đã là phần mềm thì tác vụ Asyncio rốt cuộc vẫn phải lưu trong RAM, vậy tại sao lại nói nó "nhẹ" và gánh được nhiều hơn Thread rất nhiều?
+
+Trả lời:
+- Bạn nhận xét đúng, mọi thứ đều phải lưu trên RAM. Sự khác biệt "một trời một vực" ở đây nằm ở ĐỘ LỚN CỦA GÓI HÀNH LÝ (Memory Footprint/Overhead) của từng cơ chế.
+- Đối với Thread (Luồng OS): Khi Hệ điều hành tạo ra một Thread, nó bắt buộc phải cấp phát sẵn một vùng nhớ cố định khá lớn gọi là "Thread Stack" (để lưu ngữ cảnh, con trỏ lệnh, tham số...). Thông thường kích thước này là 1MB đến 8MB cho MỖI luồng. Nếu bạn tạo 10.000 Thread, bạn sẽ ngốn mất khoảng 10GB đến 80GB RAM!
+- Đối với Asyncio Task: Một Task trong Asyncio không phải là luồng hệ điều hành. Nó thực chất chỉ là một đối tượng (Object / Coroutine) Python bình thường. Nó không yêu cầu HĐH cấp phát "Thread Stack" khổng lồ. Trọng lượng của một Task Asyncio trong RAM chỉ vỏn vẹn khoảng vài Kilobyte (tầm 2KB - 4KB). Do đó, tạo 10.000 Task Asyncio thì hệ thống mới chỉ tốn khoảng 40MB RAM (chưa bằng dung lượng của một cái Tab Google Chrome).
+- Kết luận: Cùng nằm trong RAM, nhưng Thread giống như "Xe tải", còn Asyncio Task giống như "Xe đạp". Đó là lý do Asyncio có thể mở hàng vạn kết nối đồng thời cực kỳ trơn tru mà không làm sập RAM của hệ thống.
+
+--------------------------------------------------
+Câu hỏi 9: `concurrent.futures` thực hiện song song/đồng thời bằng các Worker, vậy tại sao lại gọi nó là công cụ hỗ trợ "Bất đồng bộ"? Ví dụ có 10 Task I/O giao cho 3 Worker, thì mỗi Worker vẫn phải chạy tuần tự từng task từ đầu đến cuối chứ đâu có giống trò "nhảy qua nhảy lại" của Asyncio đúng không?
+
+Trả lời:
+- Tư duy của bạn vô cùng sắc bén! Bạn đã chỉ ra đúng điểm yếu chí mạng của ThreadPool so với Asyncio. Hãy bóc tách 2 góc nhìn:
+- Góc nhìn 1: Tại sao gọi là "Bất đồng bộ" (Asynchronous)?
+  Sự bất đồng bộ ở đây KHÔNG nằm ở cách các Worker chạy, mà nằm ở góc độ của **Luồng Chính (Main Thread)**. Khi Main Thread gọi lệnh `executor.submit()`, nó không hề bị đứng hình (Block) để chờ kết quả. Nó ném việc vào Queue, nhận lại một tờ biên lai (đối tượng `Future` - đại diện cho kết quả trong tương lai), và lập tức quay đi làm việc khác. Hành vi "giao việc rồi bỏ đi làm việc khác, kết quả lấy sau" chính là định nghĩa chuẩn của Asynchronous.
+- Góc nhìn 2: Cách "nhai" 10 Task I/O (Sự yếu kém của Worker):
+  + Với ThreadPool (3 Worker): Đúng như bạn nói, khi 3 Worker bốc 3 Task đầu tiên ra chạy, chúng sẽ bị "gắn chặt" vào 3 Task đó. Dù đang trong giai đoạn chờ tải mạng, Worker đó cũng chỉ ngáp ruồi chứ không biết bốc Task thứ 4 ra làm. Vậy nên tại 1 thời điểm, chỉ có TỐI ĐA 3 TASK được tải mạng. 7 Task còn lại bị tắc nghẽn trong Queue.
+  + Với Asyncio (1 Worker duy nhất là Event Loop): Dù chỉ có 1 người, nhưng cứ hễ gặp thao tác "chờ tải mạng", nó quăng Task đó sang một bên và ngay lập tức bốc Task tiếp theo trong Queue ra làm. Kết quả: Nó có thể tung CẢ 10 TASK ra mạng để tải CÙNG MỘT LÚC!
+- Tóm lại: `concurrent.futures` mang tính bất đồng bộ đối với "Người quản lý" (Main Thread giao việc), nhưng những kẻ "Làm thuê" (Workers) bên dưới thì hoàn toàn làm việc một cách tuần tự, cắm đầu ôm việc tới cùng chứ không hề biết "nhảy múa luân chuyển" điêu luyện như Event Loop của Asyncio!
+
+--------------------------------------------------
+Câu hỏi 10: Nếu ThreadPool tốn tài nguyên và xử lý I/O cồng kềnh hơn Asyncio như vậy, thì tại sao người ta vẫn dùng ThreadPool và nên dùng trong điều kiện nào?
+
+Trả lời:
+- Đây là bài toán về sự đánh đổi (Trade-off). ThreadPool vẫn sống khỏe và được dùng cực kỳ phổ biến nhờ 3 lý do "vàng" sau:
+- 1. Cứu tinh của "Thế giới cũ" (Legacy Blocking Code): Đại đa số các thư viện kinh điển của Python (như `requests` tải web, `sqlalchemy` kết nối Database, hay `pandas`) đều là thư viện Đồng bộ (Blocking). Nghĩa là hễ gọi chúng thì chương trình sẽ bị chặn cứng. Nếu nhét vào Asyncio, Event Loop sẽ chết đứng ngay. Trong môi trường doanh nghiệp, nếu không thể đập đi viết lại mã nguồn bằng các thư viện Asyncio (`aiohttp`, `asyncpg`), thì quăng các hàm cũ đó vào ThreadPool là cách duy nhất và an toàn nhất để hệ thống chạy đa nhiệm.
+- 2. Đọc/Ghi Ổ cứng (Disk I/O): Một sự thật ít ai để ý: Asyncio là một "vị thần" ở mảng Mạng (Network I/O), nhưng lại rất lúng túng khi xử lý Đọc/Ghi File vật lý trên ổ cứng (Disk I/O) do những giới hạn cấu trúc ở tầng Hệ điều hành. Để đọc/ghi file nặng mà không sợ làm nghẽn ứng dụng, người ta bắt buộc phải dùng ThreadPool.
+- 3. Sự đơn giản (Simplicity): Lập trình với `concurrent.futures` siêu đơn giản, code chạy tuyến tính cực dễ Debug. Bạn không phải nhức đầu với hàng tá cú pháp `async/await`, không sợ rơi vào những cái bẫy logic rối rắm của Event Loop.
+=> Lời khuyên - Khi nào nên dùng ThreadPool?:
+  + Khi tác vụ I/O của bạn nhỏ (tầm vài chục đến vài trăm kết nối), chưa đến mức phải đòi hỏi gánh "vạn kết nối" của Asyncio. Mọi thứ làm bằng ThreadPool sẽ code nhanh và nhàn hơn rất nhiều.
+  + Khi bạn thao tác liên tục với File I/O trên máy tính cục bộ.
+  + Khi dự án phụ thuộc quá nặng vào các thư viện đồng bộ (Blocking).
+
+--------------------------------------------------
+Câu hỏi 11: Nếu đọc/ghi ổ cứng (Disk I/O) bị Blocked, thì tại sao Asyncio không khôn khéo ném nó vào phần chờ (I/O Wait) rồi đi thực hiện việc khác giống hệt như cách nó làm với Network I/O?
+
+Trả lời:
+- Đây là một câu hỏi mang tầm vóc của người viết ra Hệ Điều Hành! Đúng là Asyncio rất muốn làm thế, nhưng nó KHÔNG THỂ, vì Hệ điều hành (OS) không cho phép. Lỗi không nằm ở Asyncio, lỗi nằm ở kiến trúc lõi của OS.
+- Sự ưu ái dành cho Mạng (Network): Hệ điều hành hỗ trợ các hàm API "Không chặn" (Non-blocking sockets) cho Card mạng. Khi Asyncio gọi lệnh tải mạng, HĐH trả lời ngay lập tức: "Chưa có data đâu, về đi!". Nhờ câu trả lời tức thời này, Asyncio mới có cơ hội tỉnh táo để chạy đoạn code "quăng tác vụ vào hàng chờ" và nhảy sang Task khác. Khi nào data mạng về, HĐH sẽ gõ cửa (qua cơ chế `epoll`).
+- Bất công với Ổ cứng (Disk): Trong các HĐH truyền thống (POSIX/Linux cũ), KHÔNG HỀ CÓ khái niệm "Non-blocking" thực thụ cho thao tác File cục bộ. 
+  + HĐH mặc định coi ổ cứng là "luôn sẵn sàng". Khi Asyncio vừa há miệng phát ra lệnh `read(file)`, HĐH không thèm nói chuyện, mà nó lập tức tước luôn quyền sử dụng CPU của luồng đó ở tầng Hạt nhân (Kernel) và bắt luồng này "Ngủ Sâu" chờ kim từ ổ cứng quay xong.
+  + Vì bị HĐH "đánh ngất xỉu" đột ngột ngay giữa chừng dòng lệnh đọc, bản thân Asyncio bị đóng băng hoàn toàn. Nó KHÔNG CÒN CƠ HỘI hay sự tỉnh táo để thực hiện hành vi "quăng Task vào hàng chờ và nhảy sang Task khác" như bạn nghĩ!
+- Kết luận: Asyncio chỉ là phần mềm chạy bên trên, nó bị giới hạn bởi luật của OS. OS không hỗ trợ Non-blocking Disk I/O, nên hễ đụng ổ cứng là OS bắt luồng phải chết đứng. Để lách luật, lập trình viên tạo ra ThreadPool, mục đích là dùng Thread phụ làm "kẻ thế mạng" để gánh chịu đòn "đánh ngất" của OS, giúp luồng Asyncio chính được an toàn!
+
+--------------------------------------------------
+Câu hỏi 12: Với các Hệ điều hành hiện đại ngày nay (như bản cập nhật mới của Linux, Windows, macOS/iOS), liệu giới hạn bị Blocked của Disk I/O có còn tồn tại không? Tại sao Python vẫn xử lý cồng kềnh như vậy?
+
+Trả lời:
+- Tầm nhìn của bạn cực kỳ nhạy bén! Giới hạn "ngủ sâu" của Disk I/O chủ yếu là câu chuyện của kỷ nguyên trước. Ngày nay, các Hệ điều hành đã tiến hóa vượt bậc để giải quyết triệt để nỗi đau này:
+  + Windows: Khá ngạc nhiên là Windows đã đi trước thời đại từ rất lâu với công nghệ cốt lõi IOCP (I/O Completion Ports) và Overlapped I/O, cho phép đọc/ghi ổ cứng bất đồng bộ hoàn toàn tự nhiên.
+  + Linux: Năm 2019 (từ kernel 5.1), thế giới Linux chấn động với sự ra đời của `io_uring`. Công nghệ này định hình lại toàn bộ kiến trúc I/O, cho phép Disk I/O bất đồng bộ thật sự với tốc độ kinh hoàng mà KHÔNG CẦN dùng đến Thread phụ.
+- Vậy nếu OS đã hỗ trợ, tại sao Python/Asyncio (kể cả thư viện nổi tiếng như `aiofiles`) vẫn lén lút dùng ThreadPool ở phía sau?
+  + Lý do 1 (Tính Đa nền tảng - Cross-platform): Triết lý số 1 của Python là "Viết một lần, chạy mọi nơi". Khổ nỗi `io_uring` chỉ có ở Linux mới, IOCP chỉ có ở Windows, còn macOS lại xài Kqueue. Để tạo ra một thư viện tiêu chuẩn chạy ổn định trên MỌI MÁY TÍNH mà không bị lỗi, giải pháp "chắc cốp" và phổ quát nhất suốt nhiều năm qua vẫn là... vứt nó vào ThreadPool.
+  + Lý do 2 (Hệ sinh thái đang chuyển mình): Dù `io_uring` rất mạnh, nhưng việc đập đi viết lại lõi ngôn ngữ để tích hợp nó tốn rất nhiều thời gian. Nếu bạn là một chuyên gia chạy server Linux hiện đại và muốn dùng sức mạnh Disk I/O thuần túy không qua Thread, bạn phải dùng các thư viện đặc trị của bên thứ 3 (ví dụ như `aiouring`).
+- Tổng kết: Hệ điều hành hiện đại đã gỡ bỏ gông cùm cho Disk I/O. Nhưng giới lập trình Python vẫn đang trong thời kỳ "quá độ". Để ưu tiên sự ổn định và tương thích trên nhiều hệ điều hành, đa phần các giải pháp Async File I/O hiện nay vẫn chấp nhận dùng "chiêu trò" ThreadPool phía sau sân khấu!
+
+--------------------------------------------------
+Câu hỏi 13: Cùng với khái niệm Bất đồng bộ (Asynchronous) và Đồng thời (Concurrent), chúng ta còn thường nghe tới "Event-Driven" (Hướng sự kiện). Khái niệm này là gì và chúng liên quan với nhau như thế nào?
+
+Trả lời:
+- Mối quan hệ cốt lõi: Bạn đã gom đủ bộ 3 khái niệm quyền lực nhất của lập trình hiện đại! Nếu "Đồng thời" và "Bất đồng bộ" là ĐÍCH ĐẾN (tức là mục tiêu giúp hệ thống xử lý hàng vạn tác vụ cùng lúc mà không bị treo cứng), thì "Event-Driven" (Kiến trúc Hướng sự kiện) chính là CÁCH THỨC / PHƯƠNG TIỆN để đạt được cái đích đó (đặc biệt là trong thế giới Asyncio).
+- Lập trình truyền thống: Chương trình chủ động chạy từ trên xuống dưới. Nó hỏi: "Làm việc A xong chưa? Xong rồi thì làm việc B". Dòng chảy do lập trình viên ép buộc, phải chia ra nhiều Thread cồng kềnh.
+- Tư duy lật ngược của Event-Driven:
+  Hệ thống chuyển sang trạng thái "Bị động vểnh tai nghe". Trái tim của chương trình là một vòng lặp vô tận (Event Loop) ngồi làm nhiệm vụ "trực tổng đài".
+  + Mọi thứ xảy ra đều được HĐH đóng gói thành một "Sự kiện" (Event): ví dụ như "Có dữ liệu mạng trả về", "Hết thời gian chờ 1 giây", "Người dùng click chuột", "Mất kết nối".
+  + Khi không có sự kiện, Event Loop ngồi chơi xơi nước (tiết kiệm CPU).
+  + Khi một Sự kiện nổ ra, Event Loop lập tức tra bảng, bốc đúng đoạn code (Coroutine / Callback) có trách nhiệm xử lý sự kiện đó ra chạy. Chạy xong nó lại quay về hóng sự kiện tiếp theo.
+- Bản chất của Asyncio: `asyncio` trong Python, hay toàn bộ nền tảng Node.js, CHÍNH LÀ những framework hiện thân của kiến trúc Event-Driven. Mỗi lần bạn viết chữ `await`, bạn đang nói với hệ thống rằng: "Đoạn code này tạm dừng tại đây. Chừng nào có Sự Kiện I/O hoàn tất thì mới được gọi tôi dậy chạy tiếp".
+=> Kết luận: Event-Driven là linh hồn tạo nên sức mạnh bất đồng bộ của Asyncio. Nhờ tư duy "Chỉ làm việc khi có sự kiện gõ cửa", một luồng duy nhất của Asyncio có thể thong dong phục vụ hàng vạn khách hàng mà không tốn tài nguyên đi gõ cửa hỏi thăm từng người.
+
+--------------------------------------------------
+Câu hỏi 14: Bẫy Xung đột dữ liệu (Race Condition)
+Các bạn nói Asyncio chỉ chạy trên đúng 1 luồng duy nhất (Single Thread) và không có Hệ điều hành ngắt ngang. Vậy trong Asyncio có bao giờ xảy ra lỗi Race Condition (Xung đột dữ liệu - ví dụ 2 người cùng rút tiền 1 tài khoản) hay Deadlock (Khóa chéo) không? Tại sao `asyncio` vẫn cung cấp công cụ `asyncio.Lock()`?
+
+Trả lời:
+- Vẫn xảy ra bình thường! Dù chỉ có 1 luồng, nhưng vì các Task có khả năng "nhảy qua nhảy lại" luân phiên nhau thông qua các từ khóa `await`. 
+- Ví dụ: Task A đọc số dư (100k), rồi gọi `await` để chờ mạng. Trong lúc đó, Task B nhảy vào đọc số dư (cũng 100k) và sửa thành 50k. Khi Task A tỉnh dậy ghi đè lên số 0k, dữ liệu đã bị sai hoàn toàn! 
+- Sự xung đột ở đây không phải do Hệ điều hành ngắt bừa bãi, mà là do Lập trình viên TỰ NGẮT (ở chữ `await`). Do đó, ở những vùng dữ liệu nhạy cảm, ta vẫn phải dùng `asyncio.Lock()` để đảm bảo một Task làm xong trọn vẹn đoạn code của mình rồi mới cho Task kia nhảy vào.
+
+--------------------------------------------------
+Câu hỏi 15: Bẫy Lỗi Con Người (Human Error)
+Giả sử ứng dụng Chat bằng Asyncio đang gánh 10.000 user rất mượt. Đột nhiên một lập trình viên code nhầm một vòng lặp vô tận (`while True`) hoặc một hàm mã hóa dữ liệu rất nặng mà KHÔNG CÓ từ khóa `await` trong đó. Chuyện gì sẽ xảy ra với 10.000 user kia?
+
+Trả lời:
+- Đây là THẢM HỌA của kiến trúc Event-Driven! Lúc này toàn bộ Event Loop sẽ bị "Block" (Treo cứng).
+- Do Event Loop là trái tim và là luồng duy nhất làm nhiệm vụ trực tổng đài mạng. Khi nó bị mắc kẹt ở vòng lặp hoặc hàm tính toán nặng kia, nó không có cách nào thoát ra để đi phục vụ mạng được nữa.
+- Hậu quả: Toàn bộ 10.000 người dùng kia sẽ bị "đứng hình", rớt mạng và không nhận được bất kỳ tin nhắn nào. Đây là điểm yếu chí mạng của Asyncio: 1 tác vụ sai lầm sẽ giết chết toàn bộ hệ thống. (Giải pháp là phải ném đoạn code tính toán nặng đó vào `to_thread`).
+
+--------------------------------------------------
+Câu hỏi 16: Bài toán Scale (Mở rộng sức mạnh Server)
+Asyncio chạy siêu nhanh nhưng nó chỉ chạy trên 1 Core (1 luồng) của CPU. Nếu tôi có một máy Server cực xịn với 32 Cores CPU, chẳng lẽ 31 Cores còn lại phải ngồi chơi xơi nước? Làm thế nào để Asyncio tận dụng hết sức mạnh của Server 32 Cores đó?
+
+Trả lời:
+- Giải pháp là dùng Mô hình Hybrid (Đa tiến trình + Event Loop).
+- Chúng ta không bắt 1 Event Loop chạy chẻ ra 32 Cores (điều đó là bất khả thi). Thay vào đó, ta sẽ mở 32 Process (Tiến trình độc lập bằng `Multiprocessing`).
+- Trong MỖI tiến trình đó, ta lại khởi tạo 1 cái Event Loop của riêng nó. Nhờ vậy, 32 Cores sẽ chạy 32 Event Loops hoàn toàn song song với nhau. 
+- Khái niệm này gọi là "Multiple Workers". Đây chính là cách mà các Web Server nổi tiếng như Uvicorn/FastAPI (Python) hay Cluster (Node.js) đang chạy để gánh hàng chục triệu kết nối!
+
+--------------------------------------------------
+Câu hỏi 17: Bẫy Rác Bộ Nhớ (Fire and Forget)
+Nếu tôi dùng `asyncio.create_task()` để tung một tác vụ chạy ngầm, nhưng tôi lại QUÊN không dùng lệnh `await` để chờ nó kết thúc. Tác vụ đó có chạy không? Rủi ro là gì?
+
+Trả lời:
+- Tác vụ đó VẪN CHẠY ngầm trên Event Loop (Cơ chế này gọi là Fire and Forget - Bắn rồi bỏ).
+- Tuy nhiên, rủi ro là cực kỳ lớn: 
+  + Thứ nhất (Nuốt lỗi): Nếu tác vụ đó bị lỗi (Exception) giữa chừng, lỗi đó sẽ bị "nuốt" hoàn toàn trong bóng tối (Silently fail). Bạn sẽ không bao giờ nhìn thấy dòng báo lỗi nào in ra màn hình.
+  + Thứ hai (Bị xóa sổ giữa chừng): Trình Dọn Rác (Garbage Collector) của Python liên tục đi tìm những Object không có ai nắm giữ để xóa. Vì bạn tạo Task xong mà không gán nó vào một biến nào vững chắc (mất tham chiếu - Reference), trình GC có thể quét ngang và "tiêu diệt" Task đó ngay giữa chừng khi nó chưa kịp làm xong việc! (Nên Python luôn khuyến cáo phải lưu Task vào một danh sách - Set để giữ mạng sống cho nó).

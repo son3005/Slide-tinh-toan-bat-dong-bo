@@ -45,7 +45,8 @@ let currentIndex = 0;
 const container = document.getElementById('slide-container');
 const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
-const counter = document.getElementById('slide-counter');
+const slideInput = document.getElementById('slide-input');
+const slideTotal = document.getElementById('slide-total');
 const progressBar = document.getElementById('progress-bar');
 
 async function loadSlide(index) {
@@ -54,7 +55,11 @@ async function loadSlide(index) {
     // UI Updates
     btnPrev.disabled = index === 0;
     btnNext.disabled = index === slides.length - 1;
-    counter.textContent = `${index + 1} / ${slides.length}`;
+    if (slideInput) {
+        slideInput.value = index + 1;
+        slideInput.max = slides.length;
+    }
+    if (slideTotal) slideTotal.textContent = `/ ${slides.length}`;
     progressBar.style.width = `${((index + 1) / slides.length) * 100}%`;
 
     // Transition Out
@@ -118,6 +123,21 @@ btnNext.addEventListener('click', () => {
         loadSlide(currentIndex);
     }
 });
+
+if (slideInput) {
+    slideInput.addEventListener('change', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val)) val = 1;
+        if (val < 1) val = 1;
+        if (val > slides.length) val = slides.length;
+        
+        slideInput.value = val;
+        if (currentIndex !== val - 1) {
+            currentIndex = val - 1;
+            loadSlide(currentIndex);
+        }
+    });
+}
 
 // Initialize first slide
 document.addEventListener('DOMContentLoaded', () => {

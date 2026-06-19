@@ -138,4 +138,19 @@
     transform: scale(0.9);
     pointer-events: none;
 }
+
+@media (max-width: 768px) {
+    .cycle-grid-3x3 {
+        transform: scale(0.6);
+        transform-origin: top center;
+        margin-bottom: -150px; /* Adjust height after scaling */
+    }
+}
+@media (max-width: 480px) {
+    .cycle-grid-3x3 {
+        transform: scale(0.5);
+        transform-origin: top center;
+        margin-bottom: -200px; /* Adjust height after scaling */
+    }
+}
 </style>

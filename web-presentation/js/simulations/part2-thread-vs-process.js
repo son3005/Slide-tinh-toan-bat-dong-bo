@@ -99,31 +99,47 @@ export function init() {
             gilStatus.textContent = 'GIL: Đang Rảnh';
 
         } else {
-            // CPU Bound: Threads run SEQUENTIALLY due to GIL
-            gilStatus.textContent = 'GIL: BỊ KHÓA CHẶT (CPU Bound)';
+            // CPU Bound: Threads use Context Switching (GIL is passed around)
+            gilStatus.textContent = 'GIL: Tranh giành (Context Switching)';
             gilStatus.parentNode.classList.add('locked');
 
-            for(let i=1; i<=3; i++) {
+            const chunkDuration = duration * 0.2; // 5 chunks of 20%
+            let remaining = [5, 5, 5];
+            let progress = [0, 0, 0];
+
+            while(remaining.some(r => r > 0)) {
                 if(!isRunning) break;
-                // Others are waiting
-                for(let j=1; j<=3; j++) {
-                    if (j > i) {
-                        document.getElementById(`tw-${j}`).className = 'tvp-worker status-waiting';
-                        document.getElementById(`tt-${j}`).textContent = 'Đợi GIL...';
+                for(let i=0; i<3; i++) {
+                    if(!isRunning) break;
+                    if (remaining[i] > 0) {
+                        // Others wait
+                        for(let j=0; j<3; j++) {
+                            if (j !== i && remaining[j] > 0) {
+                                document.getElementById(`tw-${j+1}`).className = 'tvp-worker status-waiting';
+                                document.getElementById(`tt-${j+1}`).textContent = 'Đợi GIL...';
+                            }
+                        }
+                        
+                        // Current runs
+                        const w = document.getElementById(`tw-${i+1}`);
+                        w.className = 'tvp-worker status-cpu';
+                        document.getElementById(`tt-${i+1}`).textContent = 'Tính toán ' + (i+1);
+                        
+                        // Animate chunk
+                        await animateProgressChunk(document.getElementById(`tprog-${i+1}`), progress[i], progress[i] + 0.2, chunkDuration, tAnimationFrames);
+                        
+                        progress[i] += 0.2;
+                        remaining[i]--;
+                        
+                        if (remaining[i] <= 0) {
+                            document.getElementById(`tt-${i+1}`).textContent = 'Xong';
+                            w.className = 'tvp-worker';
+                            document.getElementById(`tprog-${i+1}`).style.width = '100%';
+                        }
                     }
                 }
-
-                // Current running
-                const w = document.getElementById(`tw-${i}`);
-                w.className = 'tvp-worker status-cpu';
-                document.getElementById(`tt-${i}`).textContent = 'Tính toán ' + i;
-                const p = document.getElementById(`tprog-${i}`);
-
-                await animateProgress(p, duration, tAnimationFrames);
-                
-                document.getElementById(`tt-${i}`).textContent = 'Xong';
-                w.className = 'tvp-worker';
             }
+            
             gilStatus.textContent = 'GIL: Đang Rảnh';
             gilStatus.parentNode.classList.remove('locked');
         }
@@ -196,6 +212,26 @@ export function init() {
                 el.style.width = (progress * 100) + '%';
                 
                 if (progress < 1) {
+                    frameList.push(requestAnimationFrame(step));
+                } else {
+                    resolve();
+                }
+            }
+            frameList.push(requestAnimationFrame(step));
+        });
+    }
+
+    function animateProgressChunk(el, startPct, endPct, duration, frameList) {
+        return new Promise(resolve => {
+            let start = performance.now();
+            function step(timestamp) {
+                if(!isRunning) return resolve();
+                let p = (timestamp - start) / duration;
+                if (p >= 1) p = 1;
+                let currentPct = startPct + (endPct - startPct) * p;
+                el.style.width = (currentPct * 100) + '%';
+                
+                if (p < 1) {
                     frameList.push(requestAnimationFrame(step));
                 } else {
                     resolve();

@@ -31,7 +31,10 @@
         <button id="btn-prev" class="nav-btn" disabled>
             <span class="btn-core">Previous</span>
         </button>
-        <div id="slide-counter">1 / 1</div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--text-secondary);">
+            <input type="number" id="slide-input" value="1" min="1" style="width: 60px; text-align: center; border: 2px solid var(--border-subtle); border-radius: 8px; padding: 4px; font-weight: bold; color: var(--text-primary); font-family: inherit; background: var(--bg-secondary); outline: none;">
+            <span id="slide-total">/ 1</span>
+        </div>
         <button id="btn-next" class="nav-btn">
             <span class="btn-core">Next</span>
         </button>

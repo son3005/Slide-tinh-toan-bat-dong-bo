@@ -36,7 +36,7 @@ export function init() {
         tasks.filter(t => t.status === 'queued').forEach(t => {
             const el = document.createElement('div');
             el.className = `sim-task task-${t.type}`;
-            el.textContent = `Task ${t.id} (${t.type})`;
+            el.textContent = t.isContinuation ? `Task ${t.id} (Sẵn sàng)` : `Task ${t.id} (${t.type})`;
             queue.appendChild(el);
         });
     }
@@ -60,7 +60,7 @@ export function init() {
         // Move to main thread
         const el = document.createElement('div');
         el.className = `sim-task task-${task.type}`;
-        el.textContent = `Đang chạy Task ${task.id}`;
+        el.textContent = task.isContinuation ? `Tiếp tục Task ${task.id}...` : `Đang chạy Task ${task.id}`;
         mainThread.innerHTML = '';
         mainThread.appendChild(el);
 
@@ -71,27 +71,40 @@ export function init() {
             tasks.splice(taskIndex, 1); // Remove completed
             runEventLoop(); // Check for next
         } else {
-            // Slow I/O task: Execute briefly, then yield
-            await sleep(400);
-            task.status = 'suspended';
-            mainThread.innerHTML = '';
-            
-            // Move to Background
-            const bgEl = document.createElement('div');
-            bgEl.className = `sim-task task-${task.type}`;
-            bgEl.textContent = `I/O Task ${task.id} đang chờ...`;
-            bgThread.appendChild(bgEl);
+            if (task.isContinuation) {
+                // Phase 2: Resume after I/O and finish
+                await sleep(500); // Small processing after I/O
+                mainThread.innerHTML = ''; // Done
+                tasks.splice(taskIndex, 1); // Remove completed
+                runEventLoop(); // Check for next
+            } else {
+                // Phase 1: Slow I/O task: Execute briefly, then yield
+                await sleep(400);
+                task.status = 'suspended';
+                mainThread.innerHTML = '';
+                
+                // Move to Background
+                const bgEl = document.createElement('div');
+                bgEl.className = `sim-task task-${task.type}`;
+                bgEl.textContent = `I/O Task ${task.id} đang chờ...`;
+                bgThread.appendChild(bgEl);
 
-            // Yield control immediately to Event Loop to run next task
-            runEventLoop();
+                // Yield control immediately to Event Loop to run next task
+                runEventLoop();
 
-            // Background completes after 3 seconds
-            setTimeout(() => {
-                bgThread.removeChild(bgEl);
-                // In a real event loop, it goes back to queue as a callback. We simulate completion here.
-                const doneIndex = tasks.findIndex(t => t.id === task.id);
-                if(doneIndex > -1) tasks.splice(doneIndex, 1);
-            }, 3000);
+                // Background completes after 3 seconds
+                setTimeout(() => {
+                    if (bgThread.contains(bgEl)) bgThread.removeChild(bgEl);
+                    // Put back into queue!
+                    task.status = 'queued';
+                    task.isContinuation = true;
+                    renderQueue();
+                    
+                    if (!isLoopRunning) {
+                        runEventLoop();
+                    }
+                }, 3000);
+            }
         }
     }
 

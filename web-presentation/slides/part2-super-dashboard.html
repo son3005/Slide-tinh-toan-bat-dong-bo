@@ -1,6 +1,6 @@
 <div class="split-screen" style="display: block;">
     <div class="content-pane" style="max-width: 1000px; margin: 0 auto 1rem auto; text-align: center;">
-        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 3: Concurrent (Đa luồng/Đa tiến trình)</h1>
+        <img src="images/red_chrome_part3_transparent.png" alt="Phần 3" class="slide-title-img">
         <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">3.5 Bức tranh toàn cảnh: <span class="hl-class">concurrent.futures</span></h2>
         <p>
             Mọi thứ bạn vừa học (Code, Flowchart, và ThreadPool) nay được gộp chung vào một biểu đồ duy nhất!
@@ -9,27 +9,27 @@
         
         <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
             <button id="btn-sd-run" class="nav-btn">
-                <span class="btn-core" style="background: var(--accent-primary); color: white; padding: 0.8rem 2rem;">▶ Chạy Code Từng Dòng</span>
+                <span class="btn-core" style="background: var(--accent-primary); color: white; padding: 0.8rem 2rem;"><i class="fas fa-play" style="margin-right: 0.5rem;"></i> Chạy Code Từng Dòng</span>
             </button>
             <button id="btn-sd-spam" class="nav-btn">
-                <span class="btn-core" style="background: var(--text-primary); color: white; padding: 0.8rem 2rem;">🚀 Bắn 10 Task Ngẫu nhiên</span>
+                <span class="btn-core" style="background: var(--text-primary); color: var(--bg-primary); font-weight: bold; padding: 0.8rem 2rem;"><i class="fas fa-rocket" style="color: var(--accent-primary); margin-right: 0.5rem; font-size: 1.1rem;"></i> Bắn 10 Task Ngẫu nhiên</span>
             </button>
             <button id="btn-sd-reset" class="nav-btn">
-                <span class="btn-core" style="background: var(--color-wait); color: white; padding: 0.8rem 2rem;">Làm mới</span>
+                <span class="btn-core" style="background: var(--color-wait); color: white; padding: 0.8rem 2rem;"><i class="fas fa-undo" style="margin-right: 0.5rem;"></i> Làm mới</span>
             </button>
         </div>
     </div>
 
     <!-- Super Dashboard 2x2 -->
-    <div class="simulation-pane" style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
-        <div class="simulation-core" style="background: var(--bg-primary); padding: 2rem; border-radius: 24px; box-shadow: var(--shadow-soft);">
+    <div class="simulation-pane" style="max-width: 1400px; margin: 0 auto; padding: 2rem; overflow-x: hidden;">
+        <div class="simulation-core sd-core-container" style="background: var(--bg-primary); padding: 2rem; border-radius: 24px; box-shadow: var(--shadow-soft);">
             
             <div class="sd-grid">
                 
                 <!-- TOP LEFT: Main Thread & Code -->
                 <!-- ROW 1 -->
                 <div class="sd-node" id="sd-main" style="grid-area: main;">
-                    <div class="sd-header">🧑‍💻 Main Thread / Process</div>
+                    <div class="sd-header"><i class="fas fa-terminal" style="color: var(--accent-primary); margin-right: 0.5rem;"></i> Main Thread / Process</div>
                     <pre class="sd-code" id="sd-code-block">
 <span class="sd-line" id="line-1"><span class="syn-comment"># Mã giả:</span> </span>
 <span class="sd-line" id="line-2"><span class="syn-comment"># def task(): ...</span></span>
@@ -49,7 +49,7 @@
                 <div class="arrow-cell" style="grid-area: a-top;"><div class="arrow-left">⟵</div></div>
                 
                 <div class="sd-node" id="sd-futures" style="grid-area: future;">
-                    <div class="sd-header">📬 Future (Mailbox)</div>
+                    <div class="sd-header"><i class="fas fa-envelope-open-text" style="color: var(--color-cpu); margin-right: 0.5rem;"></i> Future (Mailbox)</div>
                     <div id="sd-future-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; overflow-y: auto; width: 100%; padding: 0.5rem;">
                         <!-- Futures appear here -->
                     </div>
@@ -62,7 +62,7 @@
 
                 <!-- ROW 3 -->
                 <div class="sd-node" id="sd-queue" style="grid-area: queue;">
-                    <div class="sd-header">📥 Task Queue <span id="sd-q-count">(0)</span></div>
+                    <div class="sd-header"><i class="fas fa-layer-group" style="color: var(--base-magenta); margin-right: 0.5rem;"></i> Task Queue <span id="sd-q-count">(0)</span></div>
                     <div id="sd-queue-list" style="display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; width: 100%; padding: 0.5rem;">
                         <!-- Tasks appear here -->
                     </div>
@@ -71,7 +71,7 @@
                 <div class="arrow-cell" style="grid-area: a-bot;"><div class="arrow-right">⟶</div></div>
                 
                 <div class="sd-node" id="sd-pool" style="grid-area: pool;">
-                    <div class="sd-header">⚙️ Worker Pool</div>
+                    <div class="sd-header"><i class="fas fa-cogs" style="color: var(--color-success); margin-right: 0.5rem;"></i> Worker Pool</div>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
                         <div class="sd-worker" id="sd-w1">Worker 1 (Rảnh)</div>
                         <div class="sd-worker" id="sd-w2">Worker 2 (Rảnh)</div>
@@ -133,13 +133,34 @@
 .arrow-left { color: var(--accent-primary); opacity: 0.5; }
 .arrow-up { color: var(--color-success); }
 
+@media (max-width: 1024px) {
+    .sd-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas: 
+            "main"
+            "queue"
+            "pool"
+            "future";
+        min-width: 0;
+        gap: 2rem;
+    }
+    .arrow-cell {
+        display: none; /* Hide arrows on mobile */
+    }
+    .sd-core-container {
+        padding: 1rem !important;
+    }
+}
+
 .sd-header {
     font-size: 1.2rem;
     font-weight: 800;
     color: var(--text-primary);
     margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
 }
 
 .sd-code {
@@ -227,5 +248,38 @@
 @keyframes popIn {
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 1024px) {
+    .sd-grid {
+        min-width: 900px; /* Force minimum width to enable horizontal scroll on tablet */
+    }
+}
+
+@media (max-width: 768px) {
+    .simulation-pane {
+        padding: 0.5rem !important;
+        overflow-x: hidden !important;
+    }
+    .simulation-core {
+        padding: 0.5rem !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        display: flex;
+        justify-content: center;
+    }
+    .sd-grid {
+        min-width: 950px;
+        transform: scale(0.38);
+        transform-origin: top center;
+        margin-bottom: -400px; /* Compensate for scaled down height */
+    }
+}
+
+@media (max-width: 450px) {
+    .sd-grid {
+        transform: scale(0.32);
+        margin-bottom: -450px;
+    }
 }
 </style>

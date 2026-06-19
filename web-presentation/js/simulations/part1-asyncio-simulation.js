@@ -149,7 +149,7 @@ export function init() {
 
         const COLOR_A = 'var(--accent-primary)';
         const COLOR_B = 'var(--color-success)';
-        const COLOR_MAIN = 'var(--text-primary)';
+        const COLOR_MAIN = 'var(--color-cpu)';
 
         // --- Bắt đầu từ asyncio.run() ---
         document.getElementById('c-line-16').classList.add('active');

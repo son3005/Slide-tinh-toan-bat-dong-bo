@@ -1,7 +1,7 @@
 <div class="split-screen">
     <!-- Cột trái: Lý thuyết -->
     <div class="content-pane">
-        <h1 style="margin-bottom: 0; font-size: 2.2rem; color: var(--text-primary); letter-spacing: -0.02em;">Phần 3: Concurrent (Đa luồng/Đa tiến trình)</h1>
+        <img src="images/red_chrome_part3_transparent.png" alt="Phần 3" class="slide-title-img">
         <h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--text-secondary); font-weight: 500;">3.2 Vòng đời của Đối tượng Future</h2>
         
         <p style="color: var(--text-secondary); line-height: 1.6;">
@@ -13,7 +13,7 @@
             <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem;">
                 Hàm <code>result()</code> sẽ làm <strong>đóng băng (block)</strong> hệ thống nếu tác vụ chưa chạy xong. Để tránh điều này, ta dùng Callback:
             </p>
-            <pre style="background: var(--bg-primary); color: #d4d4d4; padding: 0.8rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem;">future.add_done_callback(my_function)</pre>
+            <pre style="background: #1e1e1e; color: #d4d4d4; padding: 0.8rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem;">future.add_done_callback(my_function)</pre>
             <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.5rem;">
                 <em>Ẩn dụ: Thay vì đứng đợi lấy ly trà sữa, bạn để lại số điện thoại (Callback). Quán làm xong sẽ gọi bạn!</em>
             </p>
@@ -56,12 +56,12 @@
                     <div style="font-size: 2rem; color: var(--text-secondary);">⬇</div>
                     
                     <!-- DONE -->
-                    <div style="display: flex; gap: 1rem;">
-                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px solid var(--color-success); font-weight: bold; width: 140px; text-align: center; color: var(--color-success); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 1rem; width: 100%;">
+                        <div style="flex: 1; background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px solid var(--color-success); font-weight: bold; text-align: center; color: var(--color-success); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                             DONE<br>
                             <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Thành công)</span>
                         </div>
-                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px solid var(--color-wait); font-weight: bold; width: 140px; text-align: center; color: var(--color-wait); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="flex: 1; background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 2px solid var(--color-wait); font-weight: bold; text-align: center; color: var(--color-wait); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                             DONE<br>
                             <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 0.3rem;">(Có lỗi/Exception)</span>
                         </div>
