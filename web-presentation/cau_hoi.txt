@@ -205,3 +205,35 @@ Trả lời:
 - Tuy nhiên, rủi ro là cực kỳ lớn: 
   + Thứ nhất (Nuốt lỗi): Nếu tác vụ đó bị lỗi (Exception) giữa chừng, lỗi đó sẽ bị "nuốt" hoàn toàn trong bóng tối (Silently fail). Bạn sẽ không bao giờ nhìn thấy dòng báo lỗi nào in ra màn hình.
   + Thứ hai (Bị xóa sổ giữa chừng): Trình Dọn Rác (Garbage Collector) của Python liên tục đi tìm những Object không có ai nắm giữ để xóa. Vì bạn tạo Task xong mà không gán nó vào một biến nào vững chắc (mất tham chiếu - Reference), trình GC có thể quét ngang và "tiêu diệt" Task đó ngay giữa chừng khi nó chưa kịp làm xong việc! (Nên Python luôn khuyến cáo phải lưu Task vào một danh sách - Set để giữ mạng sống cho nó).
+--------------------------------------------------
+Câu hỏi 18: Nếu là cơ chế bất đồng bộ thì tôi cần đặt thêm 1 câu hỏi là "Bây giờ cái nào xong trước thì nó vẫn bị 1 vấn đề là đồng bộ dữ liệu như nào ấy nhỉ?"
+
+Trả lời:
+Đúng, khi các luồng chạy lộn xộn, cái nào xong trước không biết trước được, nếu chúng cùng lúc lao vào ghi đè lên chung một biến thì dữ liệu sẽ bị sai lệch hoàn toàn (Hiện tượng Race Condition).
+Tuy nhiên, có sự khác biệt lớn trong cách giải quyết:
+1. Lợi thế "Độc quyền hẹp" (Single-Threaded Advantage) của Asyncio:
+Khác với Đa luồng (Multi-threading) thực sự nơi Hệ điều hành có thể giật quyền kiểm soát của Luồng bất cứ lúc nào (kể cả khi đang làm phép toán cơ bản), Asyncio chạy trên duy nhất 1 Thread (Event Loop). 
+-> Hệ quả: Các phép gán biến cơ bản trong Asyncio là an toàn tuyệt đối. Các luồng chỉ bị mất quyền điều khiển khi nó chủ động gọi từ khóa `await`.
+
+2. Giải quyết Race Condition khi có `await` xen ngang:
+Nếu quy trình cập nhật dữ liệu có độ trễ (phải `await` đọc/ghi file hoặc database), luồng khác có thể lọt vào và làm sai lệch dữ liệu. Lúc này ta dùng 3 "vũ khí" đồng bộ hóa của Asyncio:
+- Ổ Khóa (asyncio.Lock): Giống như chìa khóa. Task A lấy khóa để cập nhật dữ liệu, Task B đến sau phải đợi Task A trả khóa mới được làm tiếp.
+- Băng chuyền Dữ liệu (asyncio.Queue) [Khuyên dùng]: Thay vì tranh giành biến chung, các Task ném kết quả vào Queue. Một luồng trung tâm (Master) đứng ở cuối lấy từng kết quả ra cập nhật theo đúng thứ tự (First In First Out).
+- Thẻ xếp hàng (asyncio.Semaphore): Dùng để giới hạn số lượng Task được phép thao tác cùng lúc (ví dụ giới hạn 10 kết nối database).
+
+--------------------------------------------------
+Câu hỏi 19: Còn đối với concurrent.futures (ThreadPool và ProcessPool) thì việc đồng bộ dữ liệu diễn ra như thế nào?
+
+Trả lời:
+Đối với concurrent.futures, câu chuyện đồng bộ khốc liệt hơn rất nhiều so với Asyncio vì nó dùng đa luồng/tiến trình thực sự.
+
+1. Trường hợp dùng ThreadPoolExecutor (Đa luồng thực sự):
+Hệ điều hành có quyền ngắt luồng ở bất kỳ mili-giây nào, kể cả khi đang thực hiện dở dang phép tính. Khóa GIL của Python chỉ bảo vệ không cho sập ứng dụng, chứ không bảo vệ logic nghiệp vụ.
+-> Cách giải quyết: Bắt buộc dùng các công cụ đồng bộ của thư viện `threading` như `threading.Lock()` (yêu cầu khóa trước khi đổi dữ liệu) hoặc `queue.Queue` (hàng đợi an toàn cho luồng - Thread-safe).
+
+2. Trường hợp dùng ProcessPoolExecutor (Đa tiến trình):
+Mỗi tiến trình chạy trên một vùng RAM độc lập. Không ai chung dữ liệu với ai (không thể dùng chung list hay global variable bình thường).
+-> Cách giải quyết (Inter-Process Communication):
+- Tuyệt chiêu gom kết quả (Map & Collect) [Tối ưu nhất]: Mỗi tiến trình tính toán độc lập ở vùng RAM của nó, xong thì ném kết quả về bằng lệnh `return`. Luồng chính (Main Thread) thu thập lại qua hàm `as_completed()`. Không dùng chung dữ liệu = Không xung đột.
+- Dùng Bộ quản lý (multiprocessing.Manager): Tạo ra một vùng nhớ trung tâm nhưng giao tiếp rất tốn chi phí.
+- multiprocessing.Queue: Hàng đợi an toàn cho đa tiến trình.
