@@ -37,7 +37,8 @@ const slides = [
     'part3-intro',
     'part3-code-example',
     'part3-master-simulation',
-    'part5-quiz',
+    //'part5-quiz',
+    'part5-knowledge-graph',
     'part5-summary'
 ];
 
@@ -111,19 +112,51 @@ function loadSlideScript(slideName) {
 }
 
 // Event Listeners
-btnPrev.addEventListener('click', () => {
-    if (currentIndex > 0) {
-        currentIndex--;
-        loadSlide(currentIndex);
+function nextAction() {
+    if (window.onSlideNext && window.onSlideNext()) {
+        return;
     }
-});
 
-btnNext.addEventListener('click', () => {
+    const hiddenSteps = document.querySelectorAll('.slide-step:not(.active)');
+    if (hiddenSteps.length > 0) {
+        hiddenSteps[0].classList.add('active');
+        return;
+    }
+
     if (currentIndex < slides.length - 1) {
         currentIndex++;
         loadSlide(currentIndex);
     }
-});
+}
+
+function prevAction() {
+    if (window.onSlidePrev && window.onSlidePrev()) {
+        return;
+    }
+
+    const activeSteps = document.querySelectorAll('.slide-step.active');
+    if (activeSteps.length > 0) {
+        activeSteps[activeSteps.length - 1].classList.remove('active');
+        return;
+    }
+
+    if (currentIndex > 0) {
+        currentIndex--;
+        loadSlide(currentIndex);
+    }
+}
+
+btnPrev.addEventListener('click', prevAction);
+
+btnNext.addEventListener('click', nextAction);
+
+// Clear hooks when changing slides
+const originalLoadSlide = loadSlide;
+loadSlide = async function (index) {
+    window.onSlideNext = null;
+    window.onSlidePrev = null;
+    return originalLoadSlide(index);
+};
 
 if (slideInput) {
     slideInput.addEventListener('change', (e) => {
@@ -147,18 +180,46 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        if (currentIndex < slides.length - 1) {
-            currentIndex++;
-            loadSlide(currentIndex);
-        }
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        nextAction();
+        if (e.key === ' ') e.preventDefault();
     } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        if (currentIndex > 0) {
-            currentIndex--;
-            loadSlide(currentIndex);
-        }
+        prevAction();
+    } else if (e.key === 't' || e.key === 'T') {
+        toggleRaccoon();
     }
 });
+
+// 🦝 Raccoon Easter Egg
+function toggleRaccoon() {
+    let overlay = document.getElementById('raccoon-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'raccoon-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.4s ease;
+            cursor: pointer;
+        `;
+        overlay.innerHTML = `
+            <img src="images/Raccoon.png" style="max-width: 60%; max-height: 80%; object-fit: contain; 
+                 filter: drop-shadow(0 0 30px rgba(139,92,246,0.5));
+                 transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
+        `;
+        overlay.addEventListener('click', () => toggleRaccoon());
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+            overlay.querySelector('img').style.transform = 'scale(1)';
+        });
+    } else {
+        overlay.style.opacity = '0';
+        overlay.querySelector('img').style.transform = 'scale(0.8)';
+        setTimeout(() => overlay.remove(), 400);
+    }
+}
 
 // Initialize first slide
 document.addEventListener('DOMContentLoaded', () => {

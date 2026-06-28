@@ -9,12 +9,39 @@ export function init() {
     let simActive = false;
     let simCounter = 0;
 
+    let nextStepResolver = null;
+
+    window.onSlideNext = () => {
+        if (simActive && nextStepResolver) {
+            let res = nextStepResolver;
+            nextStepResolver = null;
+            btnStart.disabled = true;
+            btnStart.style.opacity = '0.5';
+            res();
+            return true; // We handled it
+        }
+        return false;
+    };
+
     btnReset.addEventListener('click', resetSim);
-    btnStart.addEventListener('click', () => {
+    btnStart.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (!simActive) {
+            btnStart.innerHTML = '<i class="fas fa-step-forward"></i> Bước Tiếp';
             runSimulation();
+        } else if (nextStepResolver) {
+            window.onSlideNext();
         }
     });
+
+    const container = document.getElementById('slide-container');
+    if (container) {
+        container.addEventListener('click', (e) => {
+            if (simActive && e.target.closest('#slide-container')) {
+                window.onSlideNext();
+            }
+        });
+    }
 
     function clearLines() {
         for(let i=1; i<=16; i++) {
@@ -117,8 +144,12 @@ export function init() {
     function resetSim() {
         simCounter++;
         simActive = false;
+        if (nextStepResolver) {
+            nextStepResolver = null;
+        }
         btnStart.disabled = false;
         btnStart.style.opacity = '1';
+        btnStart.innerHTML = '<i class="fas fa-play"></i> Chạy Mô Phỏng';
         
         clearLines();
         setCpu('IDLE');
@@ -137,7 +168,12 @@ export function init() {
     }
 
     function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise(resolve => {
+            nextStepResolver = resolve;
+            btnStart.innerHTML = '<i class="fas fa-step-forward"></i> Bước Tiếp';
+            btnStart.disabled = false;
+            btnStart.style.opacity = '1';
+        });
     }
 
     async function runSimulation() {

@@ -1,0 +1,76 @@
+<style>
+    .kg-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        padding: 0.8rem 1.2rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        margin-top: 0.8rem;
+    }
+    .kg-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    .kg-legend-item .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 2px solid;
+        flex-shrink: 0;
+    }
+    .kg-legend-item .line {
+        width: 24px;
+        height: 0;
+        border-top: 2px solid;
+        flex-shrink: 0;
+    }
+    .kg-legend-item .line.dashed {
+        border-top-style: dashed;
+    }
+</style>
+
+<div style="display: flex; flex-direction: column; height: 100%; width: 100%; padding: 1.5rem 2rem; align-items: center;">
+    <h2 style="margin-bottom: 0.5rem;">Lập trình đồng thời trong Python: Bức tranh toàn cảnh</h2>
+    
+    <!-- Ảnh Knowledge Graph -->
+    <div style="flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px;">
+        <img src="images/knowledge_graph.png" alt="Python Concurrency Knowledge Graph" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+    </div>
+
+    <!-- Ghi chú / Chú thích -->
+    <div class="kg-legend">
+        <div class="kg-legend-item">
+            <div class="dot" style="border-color: #f59e0b; background: rgba(245,158,11,0.15);"></div>
+            <span>Multiprocessing — Đa tiến trình</span>
+        </div>
+        <div class="kg-legend-item">
+            <div class="dot" style="border-color: #3b82f6; background: rgba(59,130,246,0.15);"></div>
+            <span>Threading — Đa luồng</span>
+        </div>
+        <div class="kg-legend-item">
+            <div class="dot" style="border-color: #10b981; background: rgba(16,185,129,0.15);"></div>
+            <span>Asyncio — Bất đồng bộ</span>
+        </div>
+        <div class="kg-legend-item">
+            <div class="dot" style="border-color: #8b5cf6; background: rgba(139,92,246,0.15); border-style: dashed;"></div>
+            <span>Khái niệm phụ trợ</span>
+        </div>
+        <div class="kg-legend-item">
+            <div class="dot" style="border-color: #ef4444; background: rgba(239,68,68,0.15); border-style: dotted;"></div>
+            <span>Hạn chế / Rào cản</span>
+        </div>
+        <div class="kg-legend-item">
+            <div class="line" style="border-color: var(--text-secondary);"></div>
+            <span>Quan hệ trực tiếp</span>
+        </div>
+        <div class="kg-legend-item">
+            <div class="line dashed" style="border-color: #8b5cf6;"></div>
+            <span>Quan hệ gián tiếp</span>
+        </div>
+    </div>
+</div>
