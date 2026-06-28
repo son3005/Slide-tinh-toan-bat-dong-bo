@@ -2,20 +2,22 @@
     <!-- Content Pane (Text and Knowledge) -->
     <div class="content-pane">
         <img src="images/red_chrome_part1_transparent.png" alt="Phần 1" class="slide-title-img">
-        <h2>1.1 Synchronous & Asynchronous</h2>
+        <h2>1.2 Synchronous & Asynchronous</h2>
         <p>
-            Chào mừng bạn đến với hướng dẫn tương tác về <span class="hl-class">Asynchronous Computing</span>. 
-            Trước khi đi sâu vào việc triển khai trên Python với <span class="hl-func">concurrent.futures</span> 
+            Chào mừng bạn đến với hướng dẫn tương tác về <span class="hl-class">Asynchronous Computing</span>.
+            Trước khi đi sâu vào việc triển khai trên Python với <span class="hl-func">concurrent.futures</span>
             và <span class="hl-func">asyncio</span>, chúng ta cần hiểu rõ mô hình cốt lõi.
         </p>
-        
+
         <div class="concept-card">
             <h3>Synchronous và Asynchronous</h3>
             <p>
-                Trong mô hình <strong>Synchronous</strong>, các tác vụ được thực thi tuần tự. Nếu Task A đang chờ một phản hồi mạng chậm (I/O), toàn bộ CPU sẽ bị chặn (blocked).
+                Trong mô hình <strong>Synchronous</strong>, các tác vụ được thực thi tuần tự. Nếu Task A đang chờ một
+                phản hồi mạng chậm (I/O), toàn bộ CPU sẽ bị chặn (blocked).
             </p>
             <p>
-                Trong mô hình <strong>Asynchronous</strong>, khi một tác vụ gặp thời gian chờ I/O, nó ngay lập tức nhường quyền điều khiển. Hệ thống sẽ chọn Task B để tiếp tục, giữ cho CPU luôn hoạt động.
+                Trong mô hình <strong>Asynchronous</strong>, khi một tác vụ gặp thời gian chờ I/O, nó ngay lập tức
+                nhường quyền điều khiển. Hệ thống sẽ chọn Task B để tiếp tục, giữ cho CPU luôn hoạt động.
             </p>
         </div>
     </div>
@@ -24,7 +26,7 @@
     <div class="simulation-pane">
         <div class="simulation-core" id="intro-simulation">
             <h3>Sơ đồ khái niệm</h3>
-            
+
             <div class="timeline-container sync-timeline">
                 <h4>Synchronous (Blocking)</h4>
                 <div class="track">
@@ -48,62 +50,75 @@
                 </div>
                 <div class="time-label">Tổng thời gian: 6s</div>
             </div>
-            
+
         </div>
     </div>
 </div>
 
 <style>
-/* Scoped styles just for this slide */
-.concept-card {
-    background: var(--bg-primary);
-    padding: 1.5rem;
-    border-radius: var(--radius-inner);
-    border: var(--border-subtle);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    margin-top: 1rem;
-}
+    /* Scoped styles just for this slide */
+    .concept-card {
+        background: var(--bg-primary);
+        padding: 1.5rem;
+        border-radius: var(--radius-inner);
+        border: var(--border-subtle);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-top: 1rem;
+    }
 
-.timeline-container h4 {
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-}
+    .timeline-container h4 {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
 
-.track {
-    display: flex;
-    height: 40px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
-    position: relative;
-}
+    .track {
+        display: flex;
+        height: 40px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+        position: relative;
+    }
 
-.background-track {
-    background: transparent;
-    border: 2px dashed var(--bg-tertiary);
-}
+    .background-track {
+        background: transparent;
+        border: 2px dashed var(--bg-tertiary);
+    }
 
-.task {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: width 1s var(--ease-spring);
-}
+    .task {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: width 1s var(--ease-spring);
+    }
 
-.task-a { background: #3b82f6; }
-.task-b { background: #10b981; }
-.task-wait { background: #ef4444; color: white; }
-.task-io { background: #8b5cf6; opacity: 0.8; }
+    .task-a {
+        background: #3b82f6;
+    }
 
-.time-label {
-    text-align: right;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
+    .task-b {
+        background: #10b981;
+    }
+
+    .task-wait {
+        background: #ef4444;
+        color: white;
+    }
+
+    .task-io {
+        background: #8b5cf6;
+        opacity: 0.8;
+    }
+
+    .time-label {
+        text-align: right;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
 </style>

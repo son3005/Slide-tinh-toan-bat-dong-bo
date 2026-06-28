@@ -18,9 +18,9 @@ function initializeSimulations() {
 
 const slides = [
     'team-intro',
+    'part1-cpu-states',
     'part1-intro',
     'part1-architecture-compare',
-    'part1-cpu-states',
     'part1-asyncio-theory',
     'part1-asyncio-event-driven',
     'part1-event-loop',
@@ -37,6 +37,7 @@ const slides = [
     'part3-intro',
     'part3-code-example',
     'part3-master-simulation',
+    'part5-quiz',
     'part5-summary'
 ];
 
@@ -51,7 +52,7 @@ const progressBar = document.getElementById('progress-bar');
 
 async function loadSlide(index) {
     if (index < 0 || index >= slides.length) return;
-    
+
     // UI Updates
     btnPrev.disabled = index === 0;
     btnNext.disabled = index === slides.length - 1;
@@ -64,29 +65,29 @@ async function loadSlide(index) {
 
     // Transition Out
     container.classList.add('fading-out');
-    
+
     // Wait for fade out
     await new Promise(res => setTimeout(res, 300));
-    
+
     try {
         // Fetch HTML content from slides directory
         const response = await fetch(`slides/${slides[index]}.html`);
         if (!response.ok) throw new Error('Slide not found');
-        
+
         const html = await response.text();
         container.innerHTML = html;
-        
+
         // Remove old classes and add transition-in class
         container.classList.remove('fading-out');
-        
+
         // Force reflow
-        void container.offsetWidth; 
-        
+        void container.offsetWidth;
+
         container.classList.add('fading-in');
-        
+
         // Load slide-specific JS if it exists
         loadSlideScript(slides[index]);
-        
+
     } catch (error) {
         console.error("Error loading slide:", error);
         container.innerHTML = `<div class="content-pane"><h2>Error loading slide</h2><p>${error.message}</p></div>`;
@@ -130,7 +131,7 @@ if (slideInput) {
         if (isNaN(val)) val = 1;
         if (val < 1) val = 1;
         if (val > slides.length) val = slides.length;
-        
+
         slideInput.value = val;
         if (currentIndex !== val - 1) {
             currentIndex = val - 1;
@@ -138,6 +139,26 @@ if (slideInput) {
         }
     });
 }
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    // Ignore if typing in an input field
+    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
+        return;
+    }
+
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        if (currentIndex < slides.length - 1) {
+            currentIndex++;
+            loadSlide(currentIndex);
+        }
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        if (currentIndex > 0) {
+            currentIndex--;
+            loadSlide(currentIndex);
+        }
+    }
+});
 
 // Initialize first slide
 document.addEventListener('DOMContentLoaded', () => {
